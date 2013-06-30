@@ -234,7 +234,7 @@ fi
 # auto mount extra hard drives
 if [[ $detectedDistro == "ubuntu" ]]
 then
-	sudo sh -c "echo UUID=3026518E0BD8945B	/media/Media	defaults	0	0 >> /etc/fstab"
+	sudo sh -c "echo UUID=3026518E0BD8945B	/media/Media	ntfsdefaults	0	0 >> /etc/fstab"
 	echo "Create directory in /media and add line to /etc/fstab using 'sudo blkid' to get UUID (eg. UUID=insert_uuid /media/Media ntfs defaults 0 0)"
 fi
 
