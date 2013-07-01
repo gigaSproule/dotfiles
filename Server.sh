@@ -88,12 +88,7 @@ then
 	# use 'sudo start nodejs' to start and 'sudo stop nodejs' to stop
 elif [[ $detectedDistro == "debian" ]]
 then
-	sudo mkdir /opt/node
-	wget -O node-source.tar.gz http://nodejs.org/dist/v0.10.11/node-v0.10.11-linux-arm-pi.tar.gz
-	tar xvzf node-source.tar.gz
-	sudo mv -r node-source/* /opt/node/
-	echo PATH=$PATH:/opt/node/bin >> $HOME/.bash_profile
-	echo export PATH >> $HOME/.bash_profile
+	sudo apt-get install -y nodejs npm
 	
 	sudo sh -c "echo \#! /bin/bash" >> /etc/init.d/nodejs
 	sudo sh -c "echo \# /etc/init.d/nodejs" >> /etc/init.d/nodejs
