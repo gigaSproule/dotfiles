@@ -166,7 +166,7 @@ install_owncloud() {
 	
 	sudo service apache2 restart
 	
-	wget -O owncloud.tar.bz2 http://mirrors.owncloud.org/releases/owncloud-4.5.1.tar.bz2
+	wget -O owncloud.tar.bz2 http://download.owncloud.org/community/owncloud-5.0.7.tar.bz2
 	sudo tar -xjf owncloud.tar.bz2
 	sudo cp -r owncloud /var/www
 	sudo chown -R www-data:www-data /var/www/owncloud/
