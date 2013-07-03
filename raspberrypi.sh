@@ -57,8 +57,8 @@ install_postfix() {
 	sudo postconf -e 'smtpd_recipient_restrictions = permit_sasl_authenticated,permit_mynetworks,reject_unauth_destination'
 	sudo postconf -e 'inet_interfaces = all'
 	
-	sudo sh -c 'echo pwcheck_method: saslauthd' >> /etc/postfix/sasl/smtpd.conf
-	sudo sh -c 'echo mech_list: plain login' >> /etc/postfix/sasl/smtpd.conf
+	sudo sh -c 'echo pwcheck_method: saslauthd >> /etc/postfix/sasl/smtpd.conf'
+	sudo sh -c 'echo mech_list: plain login >> /etc/postfix/sasl/smtpd.conf'
 	
 	touch smtpd.key
 	chmod 600 smtpd.key
