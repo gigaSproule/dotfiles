@@ -85,22 +85,24 @@ install_postfix() {
 	
 	sudo /etc/init.d/postfix restart
 	
+	#Need to check
 	sudo sed -i "/^# START=yes.*/ s/^# //" /etc/default/saslauthd
-	sudo sh -c 'echo PWDIR=\"/var/spool/postfix/var/run/saslauthd\"' >> /etc/default/saslauthd
-	sudo sh -c 'PARAMS=\"-m ${PWDIR}\"' >> /etc/default/saslauthd
-	sudo sh -c 'PIDFILE=\"${PWDIR}/saslauthd.pid\"' >> /etc/default/saslauthd
-	sudo sh -c 'OPTIONS=\"-c -m /var/spool/postfix/var/run/saslauthd\"' >> /etc/default/saslauthd
+	sudo sh -c 'echo PWDIR=\"/var/spool/postfix/var/run/saslauthd\" >> /etc/default/saslauthd'
+	sudo sh -c 'PARAMS=\"-m \${PWDIR}\" >> /etc/default/saslauthd'
+	sudo sh -c 'PIDFILE=\"\${PWDIR}/saslauthd.pid\" >> /etc/default/saslauthd'
+	sudo sh -c 'OPTIONS=\"-c -m /var/spool/postfix/var/run/saslauthd\" >> /etc/default/saslauthd'
 	
-	dpkg-statoverride --force --update --add root sasl 755 /var/spool/postfix/var/run/saslauthd
+	sudo dpkg-statoverride --force --update --add root sasl 755 /var/spool/postfix/var/run/saslauthd
 	sudo /etc/init.d/saslauthd start
 }
 
 install_dovecot() {
 	sudo apt-get install -y dovecot-imapd dovecot-pop3d
 
+	#Need to check
 	sudo sed -i "/^protocols =.*/ s/^protocols = pop3 pop3s imap imaps//" /etc/dovecot/dovecot.conf
 
-	sudo sh -c 'echo home_mailbox = Maildir/' >> /etc/postfix/main.cf
+	sudo sh -c 'echo home_mailbox = Maildir/ >> /etc/postfix/main.cf'
 
 	sudo sed -i "/^mail_location =.*/ s/^mail_location = maildir:/home/%u/Maildir//" /etc/dovecot/dovecot.conf
 
@@ -114,7 +116,7 @@ install_dovecot() {
 	sudo chown -R myuser:usergroup /home/$USER/Maildir
 	sudo chmod -R 700 /home/$USER/Maildir
 
-
+	#Need to check
 	sudo sed -i "/^ssl =.*/ s/^ssl = yes//" /etc/dovecot/dovecot.conf
 	sudo sed -i "/^ssl_cert_file =.*/ s/^ssl_cert_file = /etc/ssl/certs/ssl-cert-snakeoil.pem//" /etc/dovecot/dovecot.conf
 	sudo sed -i "/^ssl_key_file =.*/ s/^ssl_key_file = /etc/ssl/private/ssl-cert-snakeoil.key//" /etc/dovecot/dovecot.conf
@@ -177,45 +179,46 @@ install_owncloud() {
 
 install_nodejs() {
 	sudo mkdir /opt/node
-	wget -O node-source.tar.gz http://nodejs.org/dist/v0.10.11/node-v0.10.11-linux-arm-pi.tar.gz
+	wget -O node-source.tar.gz http://nodejs.org/dist/v0.10.12/node-v0.10.12-linux-arm-pi.tar.gz
 	tar xvzf node-source.tar.gz
-	sudo mv -r node-source/* /opt/node/
+	sudo mv node-v0.10.12-linux-arm-pi/ /opt/node/
 	echo PATH=$PATH:/opt/node/bin >> $HOME/.bash_profile
 	echo export PATH >> $HOME/.bash_profile
 
-	sudo sh -c "echo \#! /bin/bash" >> /etc/init.d/nodejs
-	sudo sh -c "echo \# /etc/init.d/nodejs" >> /etc/init.d/nodejs
-	sudo sh -c "echo \#" >> /etc/init.d/nodejs
-	sudo sh -c "echo export PATH=$PATH:/opt/node/bin" >> /etc/init.d/nodejs
-	sudo sh -c "echo NODEJS_PID=/var/run/nodejs.pid" >> /etc/init.d/nodejs
-	sudo sh -c "echo start() {" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	if [ -f \$NODEJS_PID ]; then" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		rm -f \$NODEJS_PID" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	fi" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	node $HOME/node/app.js > $HOME/node/output.log &" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	echo \$! >> \$NODEJS_PID" >> /etc/init.d/nodejs
-	sudo sh -c "echo }" >> /etc/init.d/nodejs
-	sudo sh -c "echo stop() {" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	kill -9 `cat \$NODEJS_PID`" >> /etc/init.d/nodejs
-	sudo sh -c "echo }" >> /etc/init.d/nodejs
-	sudo sh -c "echo case \"\$1\" in" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	start\)" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		start" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		;;" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	stop\)" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		stop" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		;;" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	restart)" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		start" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		stop" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		;;" >> /etc/init.d/nodejs
-	sudo sh -c "echo 	*\)" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		echo \"Usage: /etc/init.d/nodejs {start|stop|restart}\"" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		exit 1" >> /etc/init.d/nodejs
-	sudo sh -c "echo 		;;" >> /etc/init.d/nodejs
-	sudo sh -c "echo esac" >> /etc/init.d/nodejs
-	sudo sh -c "echo exit 0" >> /etc/init.d/nodejs
+	#Need to check
+	sudo sh -c "echo \#! /bin/bash >> /etc/init.d/nodejs"
+	sudo sh -c "echo \# /etc/init.d/nodejs >> /etc/init.d/nodejs"
+	sudo sh -c "echo \# >> /etc/init.d/nodejs"
+	sudo sh -c "echo export PATH=$PATH:/opt/node/bin >> /etc/init.d/nodejs"
+	sudo sh -c "echo NODEJS_PID=/var/run/nodejs.pid >> /etc/init.d/nodejs"
+	sudo sh -c "echo start() { >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	if [ -f \$NODEJS_PID ]; then >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		rm -f \$NODEJS_PID >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	fi >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000 >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	node $HOME/node/app.js > $HOME/node/output.log & >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	echo \$! >> \$NODEJS_PID >> /etc/init.d/nodejs"
+	sudo sh -c "echo } >> /etc/init.d/nodejs"
+	sudo sh -c "echo stop() { >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	kill -9 `cat \$NODEJS_PID` >> /etc/init.d/nodejs"
+	sudo sh -c "echo } >> /etc/init.d/nodejs"
+	sudo sh -c "echo case \"\$1\" in >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	start\) >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		start >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		;; >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	stop\) >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		stop >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		;; >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	restart) >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		start >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		stop >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		;; >> /etc/init.d/nodejs"
+	sudo sh -c "echo 	*\) >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		echo \"Usage: /etc/init.d/nodejs {start|stop|restart}\" >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		exit 1 >> /etc/init.d/nodejs"
+	sudo sh -c "echo 		;; >> /etc/init.d/nodejs"
+	sudo sh -c "echo esac >> /etc/init.d/nodejs"
+	sudo sh -c "echo exit 0 >> /etc/init.d/nodejs"
 	sudo chmod u+x /etc/init.d/nodejs
 
 	sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000
