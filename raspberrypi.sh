@@ -8,7 +8,7 @@ FREEDNS_PRIVATE_KEY=( `eval echo "$6"` )
 install_general() {
 	sudo apt-get update
 	sudo apt-get dist-upgrade -y
-	sudo apt-gete install -yf
+	sudo apt-get install -yf
 	sudo apt-get install -y git vim wget
 }
 
