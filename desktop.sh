@@ -1,5 +1,4 @@
 #!/bin/bash
-# create temp folder
 cd $HOME
 mkdir temp
 cd temp
@@ -10,35 +9,32 @@ detectedDistro="Unknown"
 regExpLsbInfo="Description:[[:space:]]*([^ ]*)"
 regExpLsbFile="/etc/(.*)[-_]"
 
-user=`eval whoami`
-
-if [ `which lsb_release 2>/dev/null` ]; then       # lsb_release available
-   lsbInfo=`lsb_release -d`
-   if [[ $lsbInfo =~ $regExpLsbInfo ]]; then
-      detectedDistro=${BASH_REMATCH[1]}
-   else
-      echo "??? Should not occur: Don't find distro name in lsb_release output ???"
-      exit 1
-   fi
-
-else                                               # lsb_release not available
-   etcFiles=`ls /etc/*[-_]{release,version} 2>/dev/null`
-   for file in $etcFiles; do
-      if [[ $file =~ $regExpLsbFile ]]; then
-         detectedDistro=${BASH_REMATCH[1]}
-         break
-      else
-         echo "??? Should not occur: Don't find any etcFiles ???"
-         exit 1
-      fi
-   done
+if [ `which lsb_release 2>/dev/null` ]; then
+	lsbInfo=`lsb_release -d`
+	if [[ $lsbInfo =~ $regExpLsbInfo ]]; then
+		detectedDistro=${BASH_REMATCH[1]}
+	else
+		echo "??? Should not occur: Don't find distro name in lsb_release output ???"
+		exit 1
+	fi
+else
+	etcFiles=`ls /etc/*[-_]{release,version} 2>/dev/null`
+	for file in $etcFiles; do
+		if [[ $file =~ $regExpLsbFile ]]; then
+			detectedDistro=${BASH_REMATCH[1]}
+			break
+		else
+			echo "??? Should not occur: Don't find any etcFiles ???"
+			exit 1
+		fi
+	done
 fi
 
 detectedDistro=`echo $detectedDistro | tr "[:upper:]" "[:lower:]"`
 
 case $detectedDistro in
 	suse) 	detectedDistro="opensuse" ;;
-        linux)	detectedDistro="linuxmint" ;;
+	linux)	detectedDistro="linuxmint" ;;
 esac
 
 # correct repos
@@ -72,7 +68,7 @@ fi
 # install all apps from repos
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
 then
-	packages="eclipse filezilla putty openjdk-6-jdk openjdk-7-jdk icedtea-6-plugin icedtea-7-plugin subversion gcc calibre apache2 php5 libapache2-mod-php5 mysql-server php5-mysql virtualbox git-core gnupg flex bison gperf build-essential zip curl libc6-dev libncurses5-dev:i386 x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-dev:i386 g++-multilib mingw32 tofrodos python-markdown libxml2-utils xsltproc zlib1g-dev:i386 samba libpam-smbpass unetbootin vim wget lynx cmus caca-utils finch hal"
+	packages="eclipse filezilla putty openjdk-6-jdk openjdk-7-jdk icedtea-6-plugin icedtea-7-plugin subversion gcc calibre apache2 php5 libapache2-mod-php5 mysql-server php5-mysql virtualbox git-core gnupg flex bison gperf build-essential zip curl libc6-dev libncurses5-dev:i386 x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-dev:i386 g++-multilib mingw32 tofrodos python-markdown libxml2-utils xsltproc zlib1g-dev:i386 samba libpam-smbpass unetbootin vim wget lynx cmus caca-utils finch"
 	command="sudo apt-get -yf install"
 elif [[ $detectedDistro == "fedora" ]]
 then
@@ -116,7 +112,7 @@ then
 	sudo yum -y install chromium VirtualBox-4.2
 	
 	service vboxdrv setup
-	usermod -a -G vboxusers $user
+	usermod -a -G vboxusers $USER
 fi
 	
 
@@ -160,7 +156,7 @@ then
 	else
 		wget -O dropbox.deb https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_1.6.0_i386.deb
 	fi
-sudo dpkg -i dropbox.deb
+	sudo dpkg -i dropbox.deb
 elif [[ $detectedDistro == "fedora" ]]
 then
 	if [[ $architecture == "x86_64" ]]
@@ -169,7 +165,7 @@ then
 	else
 		wget -O dropbox.rpm https://www.dropbox.com/download?dl=packages/fedora/nautilus-dropbox-1.6.0-1.fedora.i386.rpm
 	fi
-sudo rpm -i dropbox.rpm
+	sudo rpm -i dropbox.rpm
 else
 	if [[ $architecture == "x86_64" ]]
 	then
@@ -386,7 +382,7 @@ then
 	echo "Comment=IntelliJ Ulitmate" >> IntelliJ.desktop
 	echo "Icon=/opt/intellij/bin/idea.png" >> IntelliJ.desktop
 	chmod +x IntelliJ.desktop
-	mv IntelliJ.desktop $HOME/.local/share/applications/
+	mv IntelliJ.desktop $/usr/local/share/applications/
 fi
 
 # install Android sdk
@@ -431,10 +427,8 @@ then
 fi
 
 # setup git
-username=
-email=
-git config --global user.name "$username"
-git config --global user.email $email
+git config --global user.name "Benjamin Sproule"
+git config --global user.email benjaminsproule@gmail.com
 
 # install GoLang
 if [[ ! -d "/opt/go-lang" ]]
@@ -458,14 +452,47 @@ curl -L https://get.rvm.io | bash -s stable --ruby
 echo "source $HOME/.rvm/scripts/rvm" >> $HOME/.bashrc
 
 # install grails
-sudo add-apt-repository ppa:groovy-dev/grails
-sudo apt-get update
-sudo apt-get -yf install grails-ppa
-echo export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/ >> $HOME/.bashrc
+if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
+then
+	sudo add-apt-repository ppa:groovy-dev/grails
+	sudo apt-get update
+	sudo apt-get -yf install grails-ppa
+	echo export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/ >> $HOME/.bashrc
+fi
 
 # install Google Music
-wget -O google-music.deb https://dl.google.com/linux/direct/google-musicmanager-beta_current_amd64.deb
-sudo dpkg -i google-music.deb
+if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
+then
+	wget -O google-music.deb https://dl.google.com/linux/direct/google-musicmanager-beta_current_amd64.deb
+	sudo dpkg -i google-music.deb
+fi
+
+# install hal for DRM Flash videos
+if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
+then
+	sudo apt-get install hal
+	sudo mkdir /etc/hal/fdi/preprobe
+	sudo mkdir /etc/hal/fdi/information
+	/usr/sbin/hald --daemon=yes --verbose=yes
+	rm -rf ~/.adobe
+elif [[ $detectedDistro == "fedora" ]]
+then
+	wget http://linuxdownload.adobe.com/adobe-release/adobe-release-x86_64-1.0-1.noarch.rpm
+	sudo yum install -y adobe-release-x86_64-1.0-1.noarch.rpm
+	sudo yum install -y flash-plugin
+	sudo yum install -y policycoreutils-devel
+	wget http://togami.com/~warren/archive/2012/adobedrm.te
+	checkmodule -M -m -o adobedrm.mod adobedrm.te
+	sudo semodule_package -o adobedrm.pp -m adobedrm.mod
+	wget http://thinkingconcurrently.com/files/f19_flash/fakehal-0.5.14-7.fc19.x86_64.rpm
+	wget http://thinkingconcurrently.com/files/f19_flash/fakehal-libs-0.5.14-7.fc19.x86_64.rpm
+	sudo yum install -y fakehal-0.5.14-7.fc19.x86_64.rpm fakehal-libs-0.5.14-7.fc19.x86_64.rpm
+	rm -rf ~/.adobe/Flash_Player/
+	sudo mkdir -p /usr/share/hal/fdi/preprobe /usr/share/hal/fdi/information /usr/share/hal/fdi/policy/20thirdparty /var/cache/hald/
+	sudo ln -s /usr/share/hal /etc/hal
+	sudo touch /var/cache/hald/fdi-cache
+	sudo systemctl start haldaemon.service
+fi
 
 # install linux counter script
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
