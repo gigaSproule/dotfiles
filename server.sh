@@ -42,6 +42,9 @@ elif [[ $detectedDistro == "debian" ]]
 then
 	sudo aptitude update
 	sudo aptitude install -y vim vsftpd openssh-* wget perl rsync screen openjdk-6-jre
+elif [[ $detectedDistro == "fedora" ]]
+then
+	sudo yum install -y vim vsftpd openssh-* wget perl rsync screen java-1.7.0-openjdk
 fi
 
 # setup apache
@@ -113,9 +116,9 @@ then
 	sudo sh -c "echo         stop" >> /etc/init.d/nodejs
 	sudo sh -c "echo         ;;" >> /etc/init.d/nodejs
 	sudo sh -c "echo     restart)" >> /etc/init.d/nodejs
-    sudo sh -c "echo         start" >> /etc/init.d/nodejs
-    sudo sh -c "echo         stop" >> /etc/init.d/nodejs
-    sudo sh -c "echo         ;;" >> /etc/init.d/nodejs
+	sudo sh -c "echo         start" >> /etc/init.d/nodejs
+	sudo sh -c "echo         stop" >> /etc/init.d/nodejs
+	sudo sh -c "echo         ;;" >> /etc/init.d/nodejs
 	sudo sh -c "echo     *\)" >> /etc/init.d/nodejs
 	sudo sh -c "echo         echo \"Usage: /etc/init.d/nodejs {start|stop}\"" >> /etc/init.d/nodejs
 	sudo sh -c "echo         exit 1" >> /etc/init.d/nodejs
@@ -123,6 +126,9 @@ then
 	sudo sh -c "echo esac" >> /etc/init.d/nodejs
 	sudo sh -c "echo exit 0" >> /etc/init.d/nodejs
 	sudo chmod u+x /etc/init.d/nodejs
+elif [[ $detectedDistro == "fedora" ]]
+then
+	sudo yum install -y nodejs npm
 fi
 
 # setup minecraft server
@@ -179,6 +185,9 @@ then
 elif [[ $detectedDistro == "debian" ]]
 then
 	sudo /etc/init.d/vsftpd restart
+elif [[ $detectedDistro == "fedora" ]]
+then
+	sudo systemctl restart vsftpd
 fi
 
 # setup xbmc/auto login
@@ -215,23 +224,25 @@ then
 fi
 
 # setup samba with Media hard drive
-if [[ $detectedDistro == "ubuntu" ]]
+if [[ $detectedDistro == "fedora" ]]
 then
-	sudo mkdir /media/Media
-	sudo sh -c "echo [Media Share] >> /etc/samba/smb.conf"
-	sudo sh -c "echo comment = Media share on server >> /etc/samba/smb.conf"
-	sudo sh -c "echo read only = no >> /etc/samba/smb.conf"
-	sudo sh -c "echo locking = no >> sudo /etc/samba/smb.conf"
-	sudo sh -c "echo path = /media/Media >> /etc/samba/smb.conf"
-	sudo sh -c "echo guest ok = yes >> /etc/samba/smb.conf"
+	sudo systemctl start smb.service
+	sudo systemctl start nmb.service
+	sudo systemctl enable smb.service
+	sudo systemctl enable nmb.service
 fi
 
+sudo mkdir /media/Media
+sudo sh -c "echo [Media Share] >> /etc/samba/smb.conf"
+sudo sh -c "echo comment = Media share on server >> /etc/samba/smb.conf"
+sudo sh -c "echo read only = no >> /etc/samba/smb.conf"
+sudo sh -c "echo locking = no >> sudo /etc/samba/smb.conf"
+sudo sh -c "echo path = /media/Media >> /etc/samba/smb.conf"
+sudo sh -c "echo guest ok = yes >> /etc/samba/smb.conf"
+
 # auto mount extra hard drives
-if [[ $detectedDistro == "ubuntu" ]]
-then
-	sudo sh -c "echo UUID=3026518E0BD8945B	/media/Media	ntfsdefaults	0	0 >> /etc/fstab"
-	echo "Create directory in /media and add line to /etc/fstab using 'sudo blkid' to get UUID (eg. UUID=insert_uuid /media/Media ntfs defaults 0 0)"
-fi
+sudo sh -c "echo UUID=3026518E0BD8945B	/media/Media	ntfsdefaults	0	0 >> /etc/fstab"
+echo "Create directory in /media and add line to /etc/fstab using 'sudo blkid' to get UUID (eg. UUID=insert_uuid /media/Media ntfs defaults 0 0)"
 
 # install linux counter script
 if [[ $detectedDistro == "ubuntu" ]]
