@@ -68,16 +68,16 @@ fi
 # install all apps from repos
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
 then
-	packages="eclipse filezilla putty openjdk-6-jdk openjdk-7-jdk icedtea-6-plugin icedtea-7-plugin subversion gcc calibre apache2 php5 libapache2-mod-php5 mysql-server php5-mysql virtualbox git-core gnupg flex bison gperf build-essential zip curl libc6-dev libncurses5-dev:i386 x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-dev:i386 g++-multilib mingw32 tofrodos python-markdown libxml2-utils xsltproc zlib1g-dev:i386 samba libpam-smbpass unetbootin vim wget lynx cmus caca-utils finch"
+	packages="eclipse filezilla putty openjdk-6-jdk openjdk-7-jdk icedtea-6-plugin icedtea-7-plugin subversion gcc calibre apache2 php5 libapache2-mod-php5 mysql-server php5-mysql virtualbox git-core gnupg flex bison gperf build-essential zip curl libc6-dev libncurses5-dev:i386 x11proto-core-dev libx11-dev:i386 libreadline6-dev:i386 libgl1-mesa-dev:i386 g++-multilib mingw32 tofrodos python-markdown libxml2-utils xsltproc zlib1g-dev:i386 samba libpam-smbpass unetbootin vim wget lynx cmus caca-utils finch gtk2-engines-murrine gtk2-engines-pixbuf zip unzip"
 	command="sudo apt-get -yf install"
 elif [[ $detectedDistro == "fedora" ]]
 then
-	packages="eclipse filezilla putty git gimp gparted calibre gstreamer-plugins-bad gstreamer-plugins-ugly gstreamer-ffmpeg phonon-backend-gstreamer java-*-openjdk java-*-openjdk-plugin wget php mysql httpd vim"
+	packages="eclipse filezilla putty git gimp gparted calibre gstreamer-plugins-bad gstreamer-plugins-ugly gstreamer-ffmpeg phonon-backend-gstreamer java-*-openjdk java-*-openjdk-plugin wget php mysql httpd vim gtk-murrine-engine gtk2-engines zip unzip"
 	command="sudo yum -y install"
 elif [[ $detectedDistro == "opensuse" ]]
 then
 	## missing eclipse putty openjdk-6-jdk openjdk-7-jdk icedtea-7-plugin libapache2-mod-php5 mysql-server build-essential unetbootin
-	packages="chromium filezilla gimp calibre gcc subversion git apache2 php5 php5-mysql virtualbox curl wget samba vim"
+	packages="chromium filezilla gimp calibre gcc subversion git apache2 php5 php5-mysql virtualbox curl wget samba vim gtk-murrine-engine gtk2-engines zip unzip"
 	command="sudo zypper install"
 fi
 
@@ -493,6 +493,11 @@ then
 	sudo touch /var/cache/hald/fdi-cache
 	sudo systemctl start haldaemon.service
 fi
+
+wget -O Zukitwo.zip http://gnome-look.org/CONTENT/content-files/140562-Zukitwo.zip
+unzip -tq Zukitwo.zip
+sudo mv Zukitwo/ /usr/share/themes/
+sudo mv Zukitwo-Shell/ /usr/share/themes/
 
 # install linux counter script
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
