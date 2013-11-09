@@ -541,20 +541,9 @@ then
 		sudo apt-get -yf install bumblebee bumblebee-nvidia
 	elif [[ $detectedDistro == "fedora" ]]
 	then
-		sudo yum -y install libbsd-devel libbsd glibc-devel libX11-devel help2man autoconf git tar glib2 glib2-devel kernel-devel kernel-headers automake gcc
-		git clone https://github.com/Bumblebee-Project/Bumblebee.git
-		cd Bumblebee
-		autoreconf -fi
-		./configure --prefix=/opt/bumblebee
-		make
-		sudo make install
-		sudo groupadd bumblebee
-		sudo cp scripts/systemd/bumblebeed.service /lib/systemd/system/
-		sudo systemctl enable bumblebeed.service
-		git clone https://github.com/Bumblebee-Project/bbswitch.git
-		cd bbswitch
-		make
-		sudo make load
+		sudo yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora19/noarch/bumblebee-release-1.1-1.noarch.rpm
+		sudo yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee-nonfree/fedora19/noarch/bumblebee-nonfree-release-1.1-1.noarch.rpm
+		sudo yum -y install libbsd-devel libbsd glibc-devel libX11-devel help2man autoconf git tar glib2 glib2-devel kernel-devel kernel-headers automake gcc gtk2-devel VirtualGL VirtualGL.i686 glibc-devel bbswitch bumblebee bumblebee-nvidia primus primus.i686
 	fi
 	sudo usermod -a -G bumblebee $USER
 fi
