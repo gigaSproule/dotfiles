@@ -371,7 +371,7 @@ if [ ! -d "/opt/intellij" ]
 then
 	wget -O intellij.tar.gz http://download.jetbrains.com/idea/ideaIU-12.0.4.tar.gz
 	tar -zxof intellij.tar.gz -C $HOME
-	mv $HOME/idea-IU-* /opt/intellij
+	sudo mv $HOME/idea-IU-* /opt/intellij
 
 	echo "[Desktop Entry]" >> IntelliJ.desktop
 	echo "Name=IntelliJ" >> IntelliJ.desktop
