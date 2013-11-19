@@ -382,7 +382,7 @@ then
 	echo "Comment=IntelliJ Ulitmate" >> IntelliJ.desktop
 	echo "Icon=/opt/intellij/bin/idea.png" >> IntelliJ.desktop
 	chmod +x IntelliJ.desktop
-	mv IntelliJ.desktop $/usr/local/share/applications/
+	sudo mv IntelliJ.desktop /usr/local/share/applications/
 fi
 
 # install Android sdk
