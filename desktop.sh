@@ -423,7 +423,7 @@ then
 	sudo sh -c 'echo SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"0fce\", MODE=\"0666\" >> /etc/udev/rules.d/51-android.rules'
 	sudo sh -c 'echo SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"0930\", MODE=\"0666\" >> /etc/udev/rules.d/51-android.rules'
 	sudo sh -c 'echo SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"19d2\", MODE=\"0666\" >> /etc/udev/rules.d/51-android.rules'
-	chmod a+r /etc/udev/rules.d/51-android.rules
+	sudo chmod a+r /etc/udev/rules.d/51-android.rules
 fi
 
 # setup git
