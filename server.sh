@@ -140,13 +140,14 @@ then
 	then
 		mkdir minecraft
 	fi
-	wget http://www.britintel.co.uk/files/minecraft_server
-	sudo mv minecraft_server /etc/init.d/minecraft_server
-	sudo chmod 755 /etc/init.d/minecraft_server
-	sudo update-rc.d minecraft_server defaults
-	/etc/init.d/minecraft_server start
-	/etc/init.d/minecraft_server stop
-	/etc/init.d/minecraft_server update
+	
+	wget -O minecraft "http://minecraft.gamepedia.com/Tutorials/Server_startup_script/Script?action=raw"
+	sudo mv minecraft /etc/init.d/minecraft
+	sudo chmod 755 /etc/init.d/minecraft
+	sudo update-rc.d minecraft defaults
+	/etc/init.d/minecraft start
+	/etc/init.d/minecraft stop
+	/etc/init.d/minecraft update
 	
 	echo "gigaSproule" >> ops.txt
 	mv ops.txt $HOME/minecraft/
