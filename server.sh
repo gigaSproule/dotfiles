@@ -153,7 +153,7 @@ then
 	echo "gigaSproule" >> ops.txt
 	mv ops.txt $HOME/minecraft/
 
-	crontab -l > file; echo '0 4 * * * /etc/init.d/minecraft_server backup' >> file; crontab file
+	sudo crontab -u minecraft -l > file; echo '0 4 * * * /etc/init.d/minecraft_server backup' >> file; crontab file
 	rm file
 	
 	echo "To change memory values, go to lines 99/100"
