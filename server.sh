@@ -141,6 +141,7 @@ then
 		mkdir minecraft
 	fi
 	
+	sudo useradd minecraft
 	wget -O minecraft "http://minecraft.gamepedia.com/Tutorials/Server_startup_script/Script?action=raw"
 	sudo mv minecraft /etc/init.d/minecraft
 	sudo chmod 755 /etc/init.d/minecraft
