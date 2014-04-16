@@ -1,4 +1,5 @@
 #!/bin/bash
+
 cd $HOME
 mkdir temp
 cd temp

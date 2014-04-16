@@ -1,3 +1,5 @@
+#!/bin/bash
+
 SETUP_FREEDNS=${1:-false}
 SETUP_MAIL=${2:-false}
 SETUP_OWNCLOUD=${3:-false}
