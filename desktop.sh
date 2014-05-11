@@ -280,10 +280,6 @@ then
 	chmod +x minecraft.jar
 	sudo mv minecraft.jar /opt/minecraft/
 
-	wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft_server.jar
-	chmod +x minecraft_server.jar
-	sudo mv minecraft_server.jar /opt/minecraft_server/
-
 	echo "[Desktop Entry]" >> Minecraft.desktop
 	echo "Name=Minecraft" >> Minecraft.desktop
 	echo "Type=Application" >> Minecraft.desktop
@@ -294,17 +290,6 @@ then
 	echo "Icon=$HOME/Dropbox/Photos/Icons/minecraft.png" >> Minecraft.desktop
 	chmod +x Minecraft.desktop
 	sudo mv Minecraft.desktop /usr/local/share/applications/
-
-	echo "[Desktop Entry]" >> MinecraftServer.desktop
-	echo "Name=Minecraft Server" >> MinecraftServer.desktop
-	echo "Type=Application" >> MinecraftServer.desktop
-	echo "Exec=java -Xmx1024M -Xms1024M -jar /opt/minecraft/minecraft_server.jar" >> MinecraftServer.desktop
-	echo "Categories=Game;" >> MinecraftServer.desktop
-	echo "Terminal=false" >> MinecraftServer.desktop
-	echo "Comment=Minecraft Server" >> MinecraftServer.desktop
-	echo "Icon=$HOME/Dropbox/Photos/Icons/minecraft.png" >> MinecraftServer.desktop
-	chmod +x MinecraftServer.desktop
-	sudo mv MinecraftServer.desktop /usr/local/share/applications/
 fi
 
 # install Opera
