@@ -286,7 +286,7 @@ then
 	echo "[Desktop Entry]" >> Minecraft.desktop
 	echo "Name=Minecraft" >> Minecraft.desktop
 	echo "Type=Application" >> Minecraft.desktop
-	echo "Exec=optirun java -jar $HOME/minecraft/minecraft.jar" >> Minecraft.desktop
+	echo "Exec=primusrun java -jar $HOME/minecraft/minecraft.jar" >> Minecraft.desktop
 	echo "Categories=Game;" >> Minecraft.desktop
 	echo "Terminal=false" >> Minecraft.desktop
 	echo "Comment=Minecraft Client" >> Minecraft.desktop
