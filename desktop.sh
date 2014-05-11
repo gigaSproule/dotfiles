@@ -292,63 +292,14 @@ then
 	sudo mv Minecraft.desktop /usr/local/share/applications/
 fi
 
-# install Opera
-if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
-then
-	if [[ $architecture == "x86_64" ]]
-	then
-		wget -O opera.deb http://www.britintel.co.uk/files/operax64.deb
-	else
-		wget -O opera.deb http://www.britintel.co.uk/files/operax86.deb
-	fi
-	sudo dpkg -i opera.deb
-elif [[ $detectedDistro == "fedora" ]]
-then
-	if [[ $architecture == "x86_64" ]]
-	then
-		wget -O opera.rpm http://www.britintel.co.uk/files/operax64.rpm
-	else
-		wget -O opera.rpm http://www.britintel.co.uk/files/operax86.rpm
-	fi
-	sudo rpm -i opera.rpm
-fi
-
-## install Altitude
-#wget http://www.britintel.co.uk/files/altitude.sh
-#chmod +x altitude.sh
-#./altitude.sh
-
 # install Steam
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
 then
-	wget http://media.steampowered.com/client/installer/steam.deb
-	sudo dpkg -i steam.deb
+	sudo apt-get install steam-launcher
 elif [[ $detectedDistro == "fedora" ]]
 then
 	wget http://spot.fedorapeople.org/steam/steam.repo
 	sudo mv steam.repo /etc/yum.repos.d/steam.repo
-fi
-
-# install Data Modeler
-if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
-then
-	wget http://www.britintel.co.uk/files/datamodeler.deb
-	sudo dpkg -i datamodeler.deb
-elif [[ $detectedDistro == "fedora" ]]
-then
-	wget http://www.britintel.co.uk/files/datamodeler.rpm
-	sudo rpm -i datamodeler.rpm
-fi
-
-# install SQL Developer
-if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
-then
-	wget http://www.britintel.co.uk/files/sqldeveloper.deb
-	sudo dpkg -i sqldeveloper.deb
-elif [[ $detectedDistro == "fedora" ]]
-then
-	wget http://www.britintel.co.uk/files/sqldeveloper.rpm
-	sudo rpm -i sqldeveloper.rpm
 fi
 
 # install IntelliJ Ultimate
@@ -426,9 +377,6 @@ fi
 # install nodejs
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
 then
-	sudo apt-get -yf install python-software-properties
-	sudo add-apt-repository ppa:chris-lea/node.js
-	sudo apt-get update
 	sudo apt-get -yf install nodejs npm
 fi
 
@@ -443,13 +391,6 @@ then
 	sudo apt-get update
 	sudo apt-get -yf install grails-ppa
 	echo export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/ >> $HOME/.bashrc
-fi
-
-# install Google Music
-if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
-then
-	wget -O google-music.deb https://dl.google.com/linux/direct/google-musicmanager-beta_current_amd64.deb
-	sudo dpkg -i google-music.deb
 fi
 
 # install hal for DRM Flash videos
@@ -479,11 +420,6 @@ then
 	sudo systemctl start haldaemon.service
 fi
 
-wget -O Zukitwo.zip http://gnome-look.org/CONTENT/content-files/140562-Zukitwo.zip
-unzip -tq Zukitwo.zip
-sudo mv Zukitwo/ /usr/share/themes/
-sudo mv Zukitwo-Shell/ /usr/share/themes/
-
 # install linux counter script
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
 then
@@ -499,23 +435,6 @@ else
 	$HOME/lico-update.sh -ci
 fi
 
-# install wireless drivers
-if [[ `lspci|grep Network` == *BCM43* ]]
-then
-	if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
-	then
-		sudo apt-get -y remove bcmwl-kernel-source
-		sudo apt-get -yf install firmware-b43-installer
-	elif [[ $detectedDistro == "fedora" ]]
-	then
-		sudo yum -y install b43-fwcutter
-		wget http://downloads.openwrt.org/sources/broadcom-wl-4.150.10.5.tar.bz2
-		tar xjf broadcom-wl-4.150.10.5.tar.bz2
-		cd broadcom-wl-4.150.10.5/driver
-		sudo b43-fwcutter -w /lib/firmware wl_apsta_mimo.o
-	fi
-fi
-
 # install Optimus drivers
 if [[ `lspci | grep VGA` == *Intel* && `lspci | grep VGA` == *NVIDIA* ]]
 then
@@ -523,14 +442,13 @@ then
 	then
 		sudo add-apt-repository ppa:bumblebee/stable
 		sudo apt-get update
-		sudo apt-get -yf install bumblebee bumblebee-nvidia
+		sudo apt-get -yf install bumblebee bumblebee-nvidia primus linux-headers-generic
 	elif [[ $detectedDistro == "fedora" ]]
 	then
-		sudo yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora19/noarch/bumblebee-release-1.1-1.noarch.rpm
-		sudo yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee-nonfree/fedora19/noarch/bumblebee-nonfree-release-1.1-1.noarch.rpm
-		sudo yum -y install libbsd-devel libbsd glibc-devel libX11-devel help2man autoconf git tar glib2 glib2-devel kernel-devel kernel-headers automake gcc gtk2-devel VirtualGL VirtualGL.i686 glibc-devel bbswitch bumblebee bumblebee-nvidia primus primus.i686
+		sudo yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee/fedora20/noarch/bumblebee-release-1.1-1.noarch.rpm
+		sudo yum -y --nogpgcheck install http://install.linux.ncsu.edu/pub/yum/itecs/public/bumblebee-nonfree/fedora20/noarch/bumblebee-nonfree-release-1.1-1.noarch.rpm
+		sudo yum install -y libbsd-devel libbsd glibc-devel libX11-devel help2man autoconf git tar glib2 glib2-devel kernel-devel kernel-headers automake gcc gtk2-devel VirtualGL VirtualGL.i686 bbswitch bumblebee bumblebee-nvidia primus primus.i686
 	fi
-	sudo usermod -a -G bumblebee $USER
 fi
 
 # update system again
@@ -553,7 +471,6 @@ echo "export USE_CCACHE=1" >> $HOME/.bashrc
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
 then
 	sudo cp /usr/share/applications/skype.desktop $HOME/.config/autostart/
-	sudo cp /usr/share/applications/google-musicmanager.desktop $HOME/.config/autostart/
 fi
 
 echo "Everything should be installed"
