@@ -275,25 +275,26 @@ fi
 # install Minecraft
 if [ ! -d "$HOME/minecraft" ]
 then
-	cd $HOME
-	mkdir minecraft
-	cd minecraft
+	sudo mkdir /opt/minecraft
 	wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar
 	chmod +x minecraft.jar
-	wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft_server.jar
-	chmod +x minecraft_server.jar
+	sudo mv minecraft.jar /opt/minecraft/
 
 	echo "[Desktop Entry]" >> Minecraft.desktop
 	echo "Name=Minecraft" >> Minecraft.desktop
 	echo "Type=Application" >> Minecraft.desktop
-	echo "Exec=primusrun java -jar $HOME/minecraft/minecraft.jar" >> Minecraft.desktop
+	echo "Exec=primusrun java -jar /opt/minecraft/minecraft.jar" >> Minecraft.desktop
 	echo "Categories=Game;" >> Minecraft.desktop
 	echo "Terminal=false" >> Minecraft.desktop
 	echo "Comment=Minecraft Client" >> Minecraft.desktop
 	echo "Icon=$HOME/Dropbox/Photos/Icons/minecraft.png" >> Minecraft.desktop
 	chmod +x Minecraft.desktop
-	mv Minecraft.desktop $HOME/.local/share/applications/
+	sudo mv Minecraft.desktop /usr/local/share/applications/
 
+	sudo mkdir /opt/minecraft_server
+	wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft_server.jar
+	chmod +x minecraft_server.jar
+	sudo mv minecraft_server.jar /opt/minecraft_server/
 	echo "[Desktop Entry]" >> MinecraftServer.desktop
 	echo "Name=Minecraft Server" >> MinecraftServer.desktop
 	echo "Type=Application" >> MinecraftServer.desktop
@@ -303,9 +304,7 @@ then
 	echo "Comment=Minecraft Server" >> MinecraftServer.desktop
 	echo "Icon=$HOME/Dropbox/Photos/Icons/minecraft.png" >> MinecraftServer.desktop
 	chmod +x MinecraftServer.desktop
-	mv MinecraftServer.desktop $HOME/.local/share/applications/
-
-	cd $HOME/temp
+	sudo mv MinecraftServer.desktop /usr/local/share/applications/
 fi
 
 # install Opera
