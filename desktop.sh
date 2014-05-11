@@ -273,12 +273,16 @@ then
 fi
 
 # install Minecraft
-if [ ! -d "$HOME/minecraft" ]
+if [ ! -d "/opt/minecraft" ]
 then
 	sudo mkdir /opt/minecraft
 	wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft.jar
 	chmod +x minecraft.jar
 	sudo mv minecraft.jar /opt/minecraft/
+
+	wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft_server.jar
+	chmod +x minecraft_server.jar
+	sudo mv minecraft_server.jar /opt/minecraft_server/
 
 	echo "[Desktop Entry]" >> Minecraft.desktop
 	echo "Name=Minecraft" >> Minecraft.desktop
@@ -291,14 +295,10 @@ then
 	chmod +x Minecraft.desktop
 	sudo mv Minecraft.desktop /usr/local/share/applications/
 
-	sudo mkdir /opt/minecraft_server
-	wget https://s3.amazonaws.com/MinecraftDownload/launcher/minecraft_server.jar
-	chmod +x minecraft_server.jar
-	sudo mv minecraft_server.jar /opt/minecraft_server/
 	echo "[Desktop Entry]" >> MinecraftServer.desktop
 	echo "Name=Minecraft Server" >> MinecraftServer.desktop
 	echo "Type=Application" >> MinecraftServer.desktop
-	echo "Exec=java -Xmx1024M -Xms1024M -jar $HOME/minecraft/minecraft_server.jar" >> MinecraftServer.desktop
+	echo "Exec=java -Xmx1024M -Xms1024M -jar /opt/minecraft/minecraft_server.jar" >> MinecraftServer.desktop
 	echo "Categories=Game;" >> MinecraftServer.desktop
 	echo "Terminal=false" >> MinecraftServer.desktop
 	echo "Comment=Minecraft Server" >> MinecraftServer.desktop
