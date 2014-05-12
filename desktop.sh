@@ -451,6 +451,17 @@ then
 	fi
 fi
 
+# install WiFi Drivers
+if [[ `lspci | grep Intel.*Wireless ]]
+then
+	if [[ $detectedDistro == "debian" ]]
+	then
+		sudo sh -c 'echo "deb http://http.debian.net/debian/ wheezy main contrib non-free" >> /etc/apt/sources.list'
+		sudo apt-get update
+		sudo apt-get -yf install firmware-iwlwifi
+	fi
+fi
+
 # update system again
 if [[ $detectedDistro == "kubuntu" || $detectedDistro == "xubuntu" || $detectedDistro == "lubuntu" || $detectedDistro == "ubuntu" ]]
 then
