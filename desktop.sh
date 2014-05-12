@@ -452,13 +452,24 @@ then
 fi
 
 # install WiFi Drivers
-if [[ `lspci | grep Intel.*Wireless ]]
+if [[ `lspci | grep Intel.*Wireless` ]]
 then
 	if [[ $detectedDistro == "debian" ]]
 	then
 		sudo sh -c 'echo "deb http://http.debian.net/debian/ wheezy main contrib non-free" >> /etc/apt/sources.list'
 		sudo apt-get update
 		sudo apt-get -yf install firmware-iwlwifi
+	fi
+fi
+
+# install Ethernet Drivers
+if [[ `lspci | grep Realtek` ]]
+then
+	if [[ $detectedDistro == "debian" ]]
+	then
+		#sudo sh -c 'echo "deb http://http.debian.net/debian/ wheezy main contrib non-free" >> /etc/apt/sources.list'
+		sudo apt-get update
+		sudo apt-get -yf install firmware-realtek
 	fi
 fi
 
