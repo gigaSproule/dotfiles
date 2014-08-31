@@ -180,24 +180,18 @@ install_owncloud() {
 }
 
 install_nodejs() {
-	sudo mkdir /opt/node
-	wget -O node-source.tar.gz http://nodejs.org/dist/v0.10.12/node-v0.10.12-linux-arm-pi.tar.gz
-	tar xvzf node-source.tar.gz
-	sudo mv node-v0.10.12-linux-arm-pi/ /opt/node/
-	echo PATH=$PATH:/opt/node/bin >> $HOME/.bash_profile
-	echo export PATH >> $HOME/.bash_profile
+	wget http://node-arm.herokuapp.com/node_latest_armhf.deb
+	sudo dpkg -i node_latest_armhf.deb
 
 	#Need to check
 	sudo sh -c "echo \#! /bin/bash >> /etc/init.d/nodejs"
 	sudo sh -c "echo \# /etc/init.d/nodejs >> /etc/init.d/nodejs"
 	sudo sh -c "echo \# >> /etc/init.d/nodejs"
-	sudo sh -c "echo export PATH=$PATH:/opt/node/bin >> /etc/init.d/nodejs"
 	sudo sh -c "echo NODEJS_PID=/var/run/nodejs.pid >> /etc/init.d/nodejs"
 	sudo sh -c "echo start() { >> /etc/init.d/nodejs"
 	sudo sh -c "echo 	if [ -f \$NODEJS_PID ]; then >> /etc/init.d/nodejs"
 	sudo sh -c "echo 		rm -f \$NODEJS_PID >> /etc/init.d/nodejs"
 	sudo sh -c "echo 	fi >> /etc/init.d/nodejs"
-	sudo sh -c "echo 	iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000 >> /etc/init.d/nodejs"
 	sudo sh -c "echo 	node $HOME/node/app.js > $HOME/node/output.log & >> /etc/init.d/nodejs"
 	sudo sh -c "echo 	echo \$! >> \$NODEJS_PID >> /etc/init.d/nodejs"
 	sudo sh -c "echo } >> /etc/init.d/nodejs"
@@ -222,8 +216,6 @@ install_nodejs() {
 	sudo sh -c "echo esac >> /etc/init.d/nodejs"
 	sudo sh -c "echo exit 0 >> /etc/init.d/nodejs"
 	sudo chmod u+x /etc/init.d/nodejs
-
-	sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 3000
 }
 
 install_general
