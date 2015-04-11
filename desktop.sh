@@ -321,6 +321,40 @@ then
 	sudo mv IntelliJ.desktop /usr/local/share/applications/
 fi
 
+if [ ! -d "$HOME/mountnas.sh" ]
+then
+	echo "#! /bin/bash" >> $HOME/mountnas.sh
+	echo "if [ ! -d \"/media/benjamin/benjamin\" ]" >> $HOME/mountnas.sh
+	echo "then" >> $HOME/mountnas.sh
+        echo "sudo mkdir /media/benjamin/benjamin" >> $HOME/mountnas.sh
+	echo "fi" >> $HOME/mountnas.sh
+	echo "if [ ! -d \"/media/benjamin/shared\" ]" >> $HOME/mountnas.sh
+	echo "then" >> $HOME/mountnas.sh
+        echo "sudo mkdir /media/benjamin/shared" >> $HOME/mountnas.sh
+	echo "fi" >> $HOME/mountnas.sh
+	echo "sudo mount -t cifs //MYBOOKLIVEDUO/benjamin /media/benjamin/benjamin -o username=\"benjamin\",uid=\"1000\",credentials=\"$HOME/.smbcredentials\"" >> $HOME/mountnas.sh
+	echo "sudo mount -t cifs //MYBOOKLIVEDUO/shared /media/benjamin/shared -o username=\"benjamin\",uid=\"1000\",credentials=\"$HOME/.smbcredentials\"" >> $HOME/mountnas.sh
+	
+	chmod +x $HOME/mountnas.sh
+fi
+
+if [ ! -d "$HOME/unmountnas.sh" ]
+then
+	echo "#! /bin/bash" >> $HOME/unmountnas.sh
+	echo "sudo umount /media/benjamin/benjamin" >> $HOME/unmountnas.sh
+	echo "sudo umount /media/benjamin/shared" >> $HOME/unmountnas.sh
+	
+	chmod +x $HOME/unmountnas.sh
+fi
+
+
+
+if [ ! -d "$HOME/.smbcredentials" ]
+then
+	echo "username=" >> $HOME/.smbcredentials
+	echo "password=" >> $HOME/.smbcredentials
+fi
+
 # install Android sdk
 if [ ! -d "/opt/android-sdk" ]
 then
