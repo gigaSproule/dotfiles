@@ -35,6 +35,8 @@ task :install do
     end
     `ln -s "$PWD/#{linkable}" "#{target}"` if !skip_all
   end
+  
+  `curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh`
 end
 
 task :uninstall do
