@@ -1,4 +1,4 @@
-linux-app-installers
+dotfiles
 ===================
+A collection of configs and scripts to setup everything I need
 
-A collection of bash scripts to install everything I need for Linux
