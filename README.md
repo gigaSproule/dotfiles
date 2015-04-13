@@ -9,7 +9,7 @@ Install
 
   ```sh
   cd ~
-  git clone https://github.com/wmayner/dotfiles.git ~/dotfiles
+  git clone https://github.com/gigaSproule/dotfiles.git ~/dotfiles
   cd ~/dotfiles
   rake install
   ```
