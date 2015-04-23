@@ -1,0 +1,7 @@
+[core]
+    excludesfile = $HOME/.gitignore_global
+[init]
+    templatedir = $HOME/.git/templates
+[push]
+        default = simple
+
