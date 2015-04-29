@@ -347,8 +347,6 @@ then
 	chmod +x $HOME/unmountnas.sh
 fi
 
-
-
 if [ ! -d "$HOME/.smbcredentials" ]
 then
 	echo "username=" >> $HOME/.smbcredentials
