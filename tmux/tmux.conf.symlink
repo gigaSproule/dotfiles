@@ -46,3 +46,13 @@ bind ] paste-buffer
 
 # buffer
 bind Space choose-buffer
+
+set-option -g default-command "reattach-to-user-namespace -l zsh"
+
+set -g mouse on
+bind m set-option -g mouse on \; display 'Mouse: ON'
+bind M set-option -g mouse off \; display 'Mouse: OFF'
+bind -n WheelUpPane if-shell -F -t = "#{mouse_any_flag}" "send-keys -M" "if -Ft= '#{pane_in_mode}' 'send-keys -M' 'select-pane -t=; copy-mode -e; send-keys -M'"
+bind -n WheelDownPane select-pane -t= \; send-keys -M
+bind -t vi-copy    C-WheelUpPane   halfpage-up
+bind -t vi-copy    C-WheelDownPane halfpage-down
