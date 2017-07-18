@@ -79,5 +79,14 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-alias gfp="git fetch --prune"
-alias gco="git checkout"
+function gfp() {
+        git fetch --prune
+}
+
+function gco() {
+        git checkout
+}
+
+function grp() {
+        lsof -i :$1 -S
+}
