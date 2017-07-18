@@ -11,6 +11,11 @@ bind j select-pane -D
 bind k select-pane -U
 bind l select-pane -R
 
+bind C-h resize-pane -L 20
+bind C-j resize-pane -D 20
+bind C-k resize-pane -U 20
+bind C-l resize-pane -R 20
+
 # Define my custom menu bar
   # status bar colors
   set -g status-bg black
