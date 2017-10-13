@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ ! -d "$HOME/.smbcredentials" ]
+then
+	echo "username=" >> $HOME/.smbcredentials
+	echo "password=" >> $HOME/.smbcredentials
+fi
+
 if [[ ! -d "/media/nas" ]]
 then
   sudo mkdir /media/nas

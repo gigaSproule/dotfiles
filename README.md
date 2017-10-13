@@ -11,6 +11,6 @@ Install
   cd ~
   git clone https://github.com/gigaSproule/dotfiles.git ~/dotfiles
   cd ~/dotfiles
-  rake install
+  sudo ./install.py
   ```
 
