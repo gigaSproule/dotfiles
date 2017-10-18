@@ -5,8 +5,8 @@ import os
 import sys
 from shutil import copyfile
 
-from LinuxCommands import LinuxCommands
-from distroinstaller import DistroInstaller
+from LinuxCommands import execute
+from LinuxCommands import system
 
 
 def copy_symlink_files():
@@ -18,8 +18,16 @@ def copy_symlink_files():
         copyfile(file, target)
 
 
-def create_home_bin():
-    os.makedirs(os.environ['HOME'] + '/bin')
+def setup_user_bin():
+    os.makedirs(os.environ['HOME'] + '/bin', exist_ok=True)
+    os.makedirs(os.environ['HOME'] + '/.local/bin', exist_ok=True)
+
+
+def install_distro():
+    if execute(['pip3', '-V']) == 0:
+        execute(['pip3', 'install', 'distro'])
+    else:
+        execute(['pip', 'install', 'distro'])
 
 
 def main(argv):
@@ -44,12 +52,11 @@ def main(argv):
         print('install.py [-d] [-r] [-s]')
         exit(1)
 
-    create_home_bin()
+    setup_user_bin()
 
-    distro_installer = DistroInstaller()
-    distro_installer.install()
+    install_distro()
 
-    linux = LinuxCommands()
+    linux = system()
     linux.update_os()
     linux.install_distro_extras()
 
@@ -68,7 +75,9 @@ def main(argv):
         linux.install_intellij()
         linux.install_jq()
         linux.install_keepassxc()
+        linux.install_kubectl()
         linux.install_maven()
+        linux.install_minikube()
         linux.install_mcollective()
         linux.install_openvpn()
         linux.install_simplescreenrecorder()
@@ -86,7 +95,7 @@ def main(argv):
     if personal:
         linux.install_chromium()
         linux.install_dropbox()
-        linux.install_dvd_decoders()
+        linux.install_codecs()
         linux.install_keepassxc()
         linux.install_nextcloud_client()
         linux.install_openvpn()
