@@ -8,11 +8,6 @@ import urllib.request
 from distutils.version import StrictVersion
 from shutil import copyfile
 
-import distro
-
-from Arch import Arch
-from Ubuntu import Ubuntu
-
 pattern = re.compile(".*([0-9]+\.[0-9]+\.[0-9]+)$")
 
 
@@ -26,25 +21,24 @@ def execute(command):
         output = output + next_line
         sys.stdout.write(next_line)
         sys.stdout.flush()
-
     return {
         'code': proc.returncode,
         'output': output
     }
 
 
-def system():
-    if distro.name() == 'Ubuntu':
-        return Ubuntu()
-    elif distro.name() == 'Arch':
-        return Arch()
-    else:
-        return LinuxCommands()
+def recursively_chmod(path, permissions=stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO):
+    for directory in path:
+        for root, dirs, files in os.walk(directory):
+            for d in dirs:
+                os.chmod(os.path.join(root, d), permissions)
+            for f in files:
+                os.chmod(os.path.join(root, f), permissions)
 
 
 class LinuxCommands:
     def install_application(self, application):
-        self.install_application([application])
+        self.install_applications([application])
 
     def install_applications(self, applications):
         pass
@@ -80,13 +74,14 @@ class LinuxCommands:
                 match = pattern.match(line)
                 if match is not None:
                     versions.append(match.groups()[0])
-        versions = sorted(versions, key=StrictVersion)[0]
-        docker_compose_version = versions[len(versions) - 1]
+        docker_compose_version = sorted(versions, key=StrictVersion)[len(versions) - 1]
 
-        urllib.request.urlretrieve(
-            'https://github.com/docker/compose/releases/download/%s/docker-compose-%s-%s'
-            % (docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
+        urllib.request.urlretrieve('https://github.com/docker/compose/releases/download/%s/docker-compose-%s-%s' % (
+        docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
         os.chmod('/usr/local/bin/docker-compose', stat.S_IXOTH)
+
+        if not os.path.exists('/etc/docker'):
+            os.makedirs('/etc/docker')
 
         f = open('/etc/docker/daemon.json', 'w')
         f.write('{\n'
@@ -141,7 +136,7 @@ class LinuxCommands:
 
     def install_minikube(self):
         urllib.request.urlretrieve(
-            'minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64',
+            'https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64',
             '/usr/local/bin/minikube')
         execute(['chmod', '+x', '/usr/local/bin/minikube'])
 
@@ -173,6 +168,9 @@ class LinuxCommands:
         pass
 
     def install_tmux(self):
+        pass
+
+    def install_vm_tools(self):
         pass
 
     def install_zsh(self):

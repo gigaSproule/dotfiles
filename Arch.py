@@ -9,7 +9,9 @@ class Arch(LinuxCommands):
         super().__init__()
 
     def install_applications(self, applications):
-        execute(['yaourt', '-Sy', '--noconfirm', '--needed'].extend(applications))
+        command = ['yaourt', '-Sy', '--noconfirm', '--needed']
+        command.extend(applications)
+        execute(command)
 
     def install_chromium(self):
         self.install_application('chromium')
@@ -17,6 +19,9 @@ class Arch(LinuxCommands):
     def install_codecs(self):
         self.install_applications(['libdvdread', 'libdvdcss', 'libdvdnav', 'libbluray', 'libaacs'])
         super().setup_codecs()
+
+    def install_curl(self):
+        self.install_application('curl')
 
     def install_deb(self):
         print('TODO')

@@ -1,11 +1,10 @@
 import os
 import platform
-import stat
 import tarfile
 import urllib.request
 import zipfile
 
-from LinuxCommands import LinuxCommands
+from LinuxCommands import LinuxCommands, recursively_chmod
 from LinuxCommands import execute
 
 
@@ -14,7 +13,9 @@ class Ubuntu(LinuxCommands):
         super().__init__()
 
     def install_applications(self, applications):
-        execute(['apt', 'install', '-y'].extend(applications))
+        command = ['apt', 'install', '-y']
+        command.extend(applications)
+        execute(command)
 
     def install_chromium(self):
         self.install_application('chromium-browser')
@@ -22,6 +23,9 @@ class Ubuntu(LinuxCommands):
     def install_codecs(self):
         self.install_applications(['libdvd-pkg', 'libaacs0', 'libbluray-bdj', 'libbluray1'])
         super().setup_codecs()
+
+    def install_curl(self):
+        self.install_application('curl')
 
     def install_deb(self):
         pass
@@ -37,13 +41,16 @@ class Ubuntu(LinuxCommands):
         execute(['add-apt-repository', '-y',
                  '"deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"'])
         self.update_os_repo()
-        execute(['apt -y install docker-ce'])
+        self.install_application('install docker-ce')
         super().setup_docker()
 
     def install_dropbox(self):
         self.install_application('nautilus-dropbox')
 
     def install_eclipse(self):
+        if os.path.exists('/opt/eclipse'):
+            return
+
         os.makedirs('/opt/eclipse')
 
         urllib.request.urlretrieve(
@@ -56,10 +63,11 @@ class Ubuntu(LinuxCommands):
 
         os.remove('/tmp/eclipse.tar.gz')
 
-        os.chmod('/opt/eclipse/eclipse', stat.S_IXOTH)
-        os.chmod('/opt/eclipse', stat.S_IWOTH)
+        recursively_chmod('/opt/eclipse')
 
-        f = open('/usr/share/applications/eclipse.desktop')
+        os.makedirs('/usr/share/applications')
+
+        f = open('/usr/share/applications/eclipse.desktop', 'w')
         f.write('[Desktop Entry]\n'
                 'Version=1.0\n'
                 'Name=eclipse\n'
@@ -76,19 +84,41 @@ class Ubuntu(LinuxCommands):
         super().setup_git()
 
     def install_intellij(self):
+        if os.path.exists('/opt/intellij'):
+            return
+
         os.makedirs('/opt/intellij')
 
-        urllib.request.urlretrieve('https://download.jetbrains.com/idea/ideaIU-2017.1.4-no-jdk.tar.gz',
+        urllib.request.urlretrieve('https://download.jetbrains.com/idea/ideaIU-2017.2.6-no-jdk.tar.gz',
                                    '/tmp/intellij.tar.gz')
 
-        f = tarfile.open('/tmp/intellij.tar.gz')
-        f.extractall('/opt/intellij')
-        f.close()
+        def members(tf):
+            for member in tf.getmembers():
+                if member.isreg():
+                    file_name = member.name.split('/')
+                    del file_name[0]
+                    file_name = '/'.join(file_name)
+                    member.name = file_name
+                    yield member
+
+        with tarfile.open('/tmp/intellij.tar.gz') as tar:
+            tar.extractall('/opt/intellij', members(tar))
 
         os.remove('/tmp/intellij.tar.gz')
 
-        os.chmod('/opt/intellij/bin/idea.sh', stat.S_IXOTH)
-        os.chmod('/opt/intellij', stat.S_IWOTH)
+        recursively_chmod('/opt/intellij')
+
+        f = open('/usr/share/applications/intellij.desktop', 'w')
+        f.write('[Desktop Entry]\n'
+                'Version=1.0\n'
+                'Name=IntelliJ\n'
+                'Comment=Jetbrains IntelliJ IDE\n'
+                'Exec=/opt/intellij/bin/idea.sh\n'
+                'Icon=/opt/intellij/bin/idea.png\n'
+                'Terminal=false\n'
+                'Type=Application\n'
+                'Categories=Development;IDE;')
+        f.close()
 
         f = open('/etc/sysctl.d/intellij.conf', 'a')
         f.write('fs.inotify.max_user_watches = 524288')
@@ -129,7 +159,7 @@ class Ubuntu(LinuxCommands):
         self.install_application('nodejs')
 
     def install_openvpn(self):
-        self.install_application(['openvpn', 'network-manager-openvpn', 'network-manager-openvpn-gnome'])
+        self.install_applications(['openvpn', 'network-manager-openvpn'])  # , 'network-manager-openvpn-gnome'])
         super().setup_openvpn()
 
     def install_steam(self):
@@ -149,6 +179,9 @@ class Ubuntu(LinuxCommands):
 
     def install_tmux(self):
         self.install_application('tmux')
+
+    def install_vm_tools(self):
+        self.install_applications(['open-vm-tools', 'open-vm-tools-desktop'])
 
     def install_zsh(self):
         self.install_application('zsh')

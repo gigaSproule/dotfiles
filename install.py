@@ -5,8 +5,11 @@ import os
 import sys
 from shutil import copyfile
 
-from LinuxCommands import execute
-from LinuxCommands import system
+import distro
+
+from Arch import Arch
+from LinuxCommands import execute, LinuxCommands
+from Ubuntu import Ubuntu
 
 
 def copy_symlink_files():
@@ -24,16 +27,26 @@ def setup_user_bin():
 
 
 def install_distro():
-    if execute(['pip3', '-V']) == 0:
+    if execute(['pip3', '-V'])['code'] == 0:
         execute(['pip3', 'install', 'distro'])
     else:
         execute(['pip', 'install', 'distro'])
+
+
+def system():
+    if distro.name() == 'Ubuntu':
+        return Ubuntu()
+    elif distro.name() == 'Arch':
+        return Arch()
+    else:
+        return LinuxCommands()
 
 
 def main(argv):
     development = False
     personal = False
     server = False
+    vm = False
 
     try:
         opts, args = getopt.getopt(argv, 'dps',
@@ -48,6 +61,8 @@ def main(argv):
                 personal = True
             elif opt in ('-s', '--server'):
                 server = True
+            elif opt in ('-v', '--vm'):
+                vm = True
     except getopt.GetoptError:
         print('install.py [-d] [-r] [-s]')
         exit(1)
@@ -62,6 +77,7 @@ def main(argv):
 
     if development:
         linux.install_git()
+        linux.install_curl()
 
         linux.install_jdk()
         linux.install_groovy_gradle()
@@ -91,6 +107,7 @@ def main(argv):
         print('Remove keyboard shortcuts under Navigation for ctrl + alt + left/right')
         print('Remove keyboard shortcut under System for ctrl + alt + l')
         print('Remove keyboard shortcuts under Windows for ctrl + alt + s, alt + f7')
+        print('Shortcuts for LXQt can be found in ~/.config/openbox/lxqt-rc.xml')
 
     if personal:
         linux.install_chromium()
@@ -106,6 +123,9 @@ def main(argv):
     if server:
         linux.install_docker()
         linux.set_free_dns_cron()
+
+    if vm:
+        linux.install_vm_tools()
 
     copy_symlink_files()
 
