@@ -77,7 +77,7 @@ class LinuxCommands:
         docker_compose_version = sorted(versions, key=StrictVersion)[len(versions) - 1]
 
         urllib.request.urlretrieve('https://github.com/docker/compose/releases/download/%s/docker-compose-%s-%s' % (
-        docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
+            docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
         os.chmod('/usr/local/bin/docker-compose', stat.S_IXOTH)
 
         if not os.path.exists('/etc/docker'):
@@ -103,8 +103,9 @@ class LinuxCommands:
         pass
 
     def setup_git(self):
-        execute(['git', 'config', '--global', 'user.name', '"Benjamin Sproule"'])
+        execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
         execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
+        execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
         os.makedirs(os.environ['HOME'] + '/.git/hooks', exist_ok=True)
 
     def install_groovy_gradle(self):
