@@ -60,12 +60,16 @@ class Arch(LinuxCommands):
     def install_jdk(self):
         self.install_application('aur/jdk')
         execute(['archlinux-java', 'set', 'java-8-jdk'])
-        f = open(os.environ['HOME'] + '/.bashrc', 'a')
-        f.write('JAVA_HOME=/usr/lib/jvm/java-8-jdk')
-        f.close()
-        f = open(os.environ['HOME'] + '/.zshrc', 'a')
-        f.write('JAVA_HOME=/usr/lib/jvm/java-8-jdk')
-        f.close()
+
+        def set_java_home(file):
+            f = open(os.environ['HOME'] + '/' + file, 'a+')
+            contents = f.read()
+            if 'JAVA_HOME' not in contents:
+                f.write('export JAVA_HOME=/usr/lib/jvm/java-8-jdk')
+            f.close()
+
+        set_java_home('.zshrc')
+        set_java_home('.bashrc')
 
     def install_jq(self):
         self.install_application('aur/jq-git')

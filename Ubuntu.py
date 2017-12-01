@@ -135,6 +135,16 @@ class Ubuntu(LinuxCommands):
         self.install_applications(
             ['oracle-java8-installer', 'oracle-java8-unlimited-jce-policy', 'oracle-java8-set-default'])
 
+        def set_java_home(file):
+            f = open(os.environ['HOME'] + '/' + file, 'a+')
+            contents = f.read()
+            if 'JAVA_HOME' not in contents:
+                f.write('export JAVA_HOME=/usr/lib/jvm/java-8-oracle')
+            f.close()
+
+        set_java_home('.zshrc')
+        set_java_home('.bashrc')
+
     def install_jq(self):
         self.install_application('jq')
 
@@ -159,7 +169,7 @@ class Ubuntu(LinuxCommands):
         self.install_application('nodejs')
 
     def install_openvpn(self):
-        self.install_applications(['openvpn', 'network-manager-openvpn'])  # , 'network-manager-openvpn-gnome'])
+        self.install_applications(['openvpn', 'network-manager-openvpn', 'network-manager-openvpn-gnome'])
         super().setup_openvpn()
 
     def install_steam(self):
