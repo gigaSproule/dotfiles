@@ -9,6 +9,7 @@ import distro
 
 from Arch import Arch
 from LinuxCommands import execute, LinuxCommands
+from Lubuntu import Lubuntu
 from Ubuntu import Ubuntu
 
 
@@ -35,6 +36,9 @@ def install_distro():
 
 def system():
     if distro.name() == 'Ubuntu':
+        current_desktop = os.environ['XDG_CURRENT_DESKTOP']
+        if current_desktop == 'LXQt' or current_desktop == 'LXDE':
+            return Lubuntu()
         return Ubuntu()
     elif distro.name() == 'Arch':
         return Arch()

@@ -89,7 +89,7 @@ class Ubuntu(LinuxCommands):
 
         os.makedirs('/opt/intellij')
 
-        urllib.request.urlretrieve('https://download.jetbrains.com/idea/ideaIU-2017.2.6-no-jdk.tar.gz',
+        urllib.request.urlretrieve('https://download.jetbrains.com/idea/ideaIU-2017.3-no-jdk.tar.gz',
                                    '/tmp/intellij.tar.gz')
 
         def members(tf):
