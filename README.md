@@ -11,6 +11,7 @@ Install
   cd ~
   git clone https://github.com/gigaSproule/dotfiles.git ~/dotfiles
   cd ~/dotfiles
+  pip3 install distro lxml
   sudo ./install.py
   ```
 

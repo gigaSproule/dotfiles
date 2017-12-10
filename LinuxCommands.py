@@ -185,10 +185,7 @@ class LinuxCommands:
         execute(['chsh', '-s', '/usr/bin/zsh'])
 
     def set_development_shortcuts(self):
-        if execute(['gnome-session', '--version']) == 0:
-            # Allow for alt dragging the cursor (rather than the window)
-            execute(['dconf', 'write', '/org/gnome/desktop/wm/preferences/mouse-button-modifier',
-                     '\'"<Shift><Control><Alt><Super>Button20"\''])
+        pass
 
     def set_free_dns_cron(self):
         copyfile('dynIpUpdate.sh', '/opt/')

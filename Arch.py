@@ -107,6 +107,14 @@ class Arch(LinuxCommands):
         self.install_applications(['zsh', 'zsh-completions'])
         super().setup_zsh()
 
+    def set_development_shortcuts(self):
+        # Allow for alt dragging the cursor (rather than the window)
+        execute(['dconf', 'write', '/org/gnome/desktop/wm/preferences/mouse-button-modifier',
+                 '\'"<Shift><Control><Alt><Super>Button20"\''])
+        print('Remove keyboard shortcuts under Navigation for ctrl + alt + left/right')
+        print('Remove keyboard shortcut under System for ctrl + alt + l')
+        print('Remove keyboard shortcuts under Windows for ctrl + alt + s, alt + f7')
+
     def update_os(self):
         self.update_os_repo()
         execute(['pacman' '-Syu', '--noconfirm'])

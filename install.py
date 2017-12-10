@@ -8,9 +8,10 @@ from shutil import copyfile
 import distro
 
 from Arch import Arch
+from Kubuntu import Kubuntu
 from LinuxCommands import execute, LinuxCommands
 from Lubuntu import Lubuntu
-from Ubuntu import Ubuntu
+from Xubuntu import Xubuntu
 
 
 def copy_symlink_files():
@@ -37,9 +38,12 @@ def install_distro():
 def system():
     if distro.name() == 'Ubuntu':
         current_desktop = os.environ['XDG_CURRENT_DESKTOP']
-        if current_desktop == 'LXQt' or current_desktop == 'LXDE':
+        if current_desktop == 'Plasma' or current_desktop == 'KDE':
+            return Kubuntu()
+        elif current_desktop == 'LXQt' or current_desktop == 'LXDE':
             return Lubuntu()
-        return Ubuntu()
+        elif current_desktop == 'XFCE':
+            return Xubuntu()
     elif distro.name() == 'Arch':
         return Arch()
     else:
@@ -107,11 +111,6 @@ def main(argv):
         linux.install_zsh()
 
         linux.set_development_shortcuts()
-
-        print('Remove keyboard shortcuts under Navigation for ctrl + alt + left/right')
-        print('Remove keyboard shortcut under System for ctrl + alt + l')
-        print('Remove keyboard shortcuts under Windows for ctrl + alt + s, alt + f7')
-        print('Shortcuts for LXQt can be found in ~/.config/openbox/lxqt-rc.xml')
 
     if personal:
         linux.install_chromium()
