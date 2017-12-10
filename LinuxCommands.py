@@ -27,13 +27,42 @@ def execute(command):
     }
 
 
-def recursively_chmod(path, permissions=stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO):
-    for directory in path:
-        for root, dirs, files in os.walk(directory):
-            for d in dirs:
-                os.chmod(os.path.join(root, d), permissions)
-            for f in files:
-                os.chmod(os.path.join(root, f), permissions)
+def download_file(url, downloaded_file):
+    def reporthook(blocknum, blocksize, totalsize):
+        readsofar = blocknum * blocksize
+        if totalsize > 0:
+            percent = readsofar * 1e2 / totalsize
+            s = "\r%5.1f%% %*d / %d" % (
+                percent, len(str(totalsize)), readsofar, totalsize)
+            sys.stderr.write(s)
+            if readsofar >= totalsize: # near the end
+                sys.stderr.write("\n")
+        else: # total size is unknown
+            sys.stderr.write("read %d\n" % (readsofar,))
+
+    urllib.request.urlretrieve(url, downloaded_file, reporthook)
+
+
+def untar_rename_root(src, dest):
+    def members(tf):
+        for member in tf.getmembers():
+            if member.isreg():
+                file_name = member.name.split('/')
+                del file_name[0]
+                file_name = '/'.join(file_name)
+                member.name = file_name
+                yield member
+
+    with tarfile.open(src) as tar:
+        tar.extractall(dest, members(tar))
+
+
+def recursively_chmod(path, directory_permission=0o777, file_permission=0o777):
+    os.chmod(path, directory_permission)
+    for dirname, subdirs, files in os.walk(path):
+        os.chmod(dirname, directory_permission)
+        for f in files:
+            os.chmod(os.path.join(dirname, f), file_permission)
 
 
 class LinuxCommands:

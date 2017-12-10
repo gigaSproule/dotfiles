@@ -28,9 +28,9 @@ def setup_user_bin():
     os.makedirs(os.environ['HOME'] + '/.local/bin', exist_ok=True)
 
 
-def install_distro():
+def install_required_dependencies():
     if execute(['pip3', '-V'])['code'] == 0:
-        execute(['pip3', 'install', 'distro'])
+        execute(['pip3', 'install', 'distro', 'lxml'])
     else:
         execute(['pip', 'install', 'distro'])
 
@@ -38,7 +38,7 @@ def install_distro():
 def system():
     if distro.name() == 'Ubuntu':
         current_desktop = os.environ['XDG_CURRENT_DESKTOP']
-        if current_desktop == 'Plasma' or current_desktop == 'KDE':
+        if current_desktop == 'KDE':
             return Kubuntu()
         elif current_desktop == 'LXQt' or current_desktop == 'LXDE':
             return Lubuntu()
@@ -77,57 +77,94 @@ def main(argv):
 
     setup_user_bin()
 
-    install_distro()
+    install_required_dependencies()
 
     linux = system()
     linux.update_os()
+    print("Installing Distro Specific Extras")
     linux.install_distro_extras()
 
     if development:
+        print("Installing Git")
         linux.install_git()
+        print("Installing Curl")
         linux.install_curl()
 
-        linux.install_jdk()
+        print("Installing Java")
+#        linux.install_jdk()
+        print("Installing Groovy & Gradle")
         linux.install_groovy_gradle()
+        print("Installing NodeJS")
         linux.install_nodejs()
 
+        print("Installing Chromium")
         linux.install_chromium()
+        print("Installing Deb")
         linux.install_deb()
+        print("Installing Docker")
         linux.install_docker()
+        print("Installing Eclipse")
         linux.install_eclipse()
+        print("Installing ecryptfs")
         linux.install_ecryptfs()
+        print("Installing IntelliJ")
         linux.install_intellij()
+        print("Installing jq")
         linux.install_jq()
+        print("Installing KeepassXC")
         linux.install_keepassxc()
+        print("Installing Kubectl")
         linux.install_kubectl()
+        print("Installing Maven")
         linux.install_maven()
+        print("Installing Minikube")
         linux.install_minikube()
+        print("Installing mcollective")
         linux.install_mcollective()
+        print("Installing OpenVPN")
         linux.install_openvpn()
+        print("Installing SimpleScreenRecorder")
         linux.install_simplescreenrecorder()
+        print("Installing RPM")
         linux.install_rpm()
+        print("Installing terraform")
         linux.install_terraform()
+        print("Installing tmux")
         linux.install_tmux()
+        print("Installing ZSH")
         linux.install_zsh()
 
+        print("Setting development specific shortcuts")
         linux.set_development_shortcuts()
 
     if personal:
+        print("Installing Chromium")
         linux.install_chromium()
+        print("Installing Dropbox")
         linux.install_dropbox()
+        print("Installing Codecs")
         linux.install_codecs()
+        print("Installing KeepassXC")
         linux.install_keepassxc()
+        print("Installing Nextcloud Client")
         linux.install_nextcloud_client()
+        print("Installing OpenVPN")
         linux.install_openvpn()
+        print("Installing Steam")
         linux.install_steam()
+        print("Installing tmux")
         linux.install_tmux()
+        print("Installing ZSH")
         linux.install_zsh()
 
     if server:
+        print("Installing Docker")
         linux.install_docker()
+        print("Installing Free DNS Cron")
         linux.set_free_dns_cron()
 
     if vm:
+        print("Installing VM Tools")
         linux.install_vm_tools()
 
     copy_symlink_files()

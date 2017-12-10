@@ -11,7 +11,7 @@ Install
   cd ~
   git clone https://github.com/gigaSproule/dotfiles.git ~/dotfiles
   cd ~/dotfiles
-  pip3 install distro lxml
+  sudo XDG_CURRENT_DESKTOP=$XDG_CURRENT_DESKTOP su -c 'pip3 install distro lxml && ./install.py'
   sudo ./install.py
   ```
 

@@ -4,8 +4,7 @@ import tarfile
 import urllib.request
 import zipfile
 
-from LinuxCommands import LinuxCommands, recursively_chmod
-from LinuxCommands import execute
+from LinuxCommands import LinuxCommands, execute, download_file, untar_rename_root, recursively_chmod
 
 
 class Ubuntu(LinuxCommands):
@@ -13,7 +12,7 @@ class Ubuntu(LinuxCommands):
         super().__init__()
 
     def install_applications(self, applications):
-        command = ['apt', 'install', '-y']
+        command = ['apt-get', 'install', '-y']
         command.extend(applications)
         execute(command)
 
@@ -53,19 +52,18 @@ class Ubuntu(LinuxCommands):
 
         os.makedirs('/opt/eclipse')
 
-        urllib.request.urlretrieve(
+        download_file(
             'http://ftp.fau.de/eclipse/technology/epp/downloads/release/oxygen/R/eclipse-jee-oxygen-R-linux-gtk-' +
             platform.machine() + '.tar.gz', '/tmp/eclipse.tar.gz')
 
-        f = tarfile.open('/tmp/eclipse.tar.gz')
-        f.extractall('/opt/eclipse')
-        f.close()
+        untar_rename_root('/tmp/eclipse.tar.gz', '/opt/eclipse')
 
         os.remove('/tmp/eclipse.tar.gz')
 
         recursively_chmod('/opt/eclipse')
 
-        os.makedirs('/usr/share/applications')
+        if not os.path.exists('/usr/share/applications'):
+            os.makedirs('/usr/share/applications')
 
         f = open('/usr/share/applications/eclipse.desktop', 'w')
         f.write('[Desktop Entry]\n'
@@ -89,20 +87,9 @@ class Ubuntu(LinuxCommands):
 
         os.makedirs('/opt/intellij')
 
-        urllib.request.urlretrieve('https://download.jetbrains.com/idea/ideaIU-2017.3-no-jdk.tar.gz',
-                                   '/tmp/intellij.tar.gz')
+        download_file('https://download.jetbrains.com/idea/ideaIU-2017.3-no-jdk.tar.gz', '/tmp/intellij.tar.gz')
 
-        def members(tf):
-            for member in tf.getmembers():
-                if member.isreg():
-                    file_name = member.name.split('/')
-                    del file_name[0]
-                    file_name = '/'.join(file_name)
-                    member.name = file_name
-                    yield member
-
-        with tarfile.open('/tmp/intellij.tar.gz') as tar:
-            tar.extractall('/opt/intellij', members(tar))
+        untar_rename_root('/tmp/intellij.tar.gz', '/opt/intellij')
 
         os.remove('/tmp/intellij.tar.gz')
 
@@ -149,7 +136,7 @@ class Ubuntu(LinuxCommands):
         self.install_application('jq')
 
     def install_keepassxc(self):
-        urllib.request.urlretrieve(
+        download_file(
             'https://github.com/magkopian/keepassxc-debian/releases/download/2.2.1-1/keepassxc_2.2.1-1_amd64_stable_stretch.deb',
             'keepassxc.deb')
         execute(['dpkg', '-i', 'keepassxc.deb'])
@@ -179,7 +166,7 @@ class Ubuntu(LinuxCommands):
         self.install_application('rpm')
 
     def install_terraform(self):
-        urllib.request.urlretrieve(
+        download_file(
             'https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_linux_amd64.zip', '/tmp/terraform.zip')
         f = zipfile.ZipFile('/tmp/terraform.zip', 'r')
         f.extractall('/usr/local/bin')
@@ -207,7 +194,7 @@ class Ubuntu(LinuxCommands):
 
     def update_os(self):
         self.update_os_repo()
-        execute(['apt', '-y', 'full-upgrade'])
+        execute(['apt-get', '-y', 'full-upgrade'])
 
     def update_os_repo(self):
-        execute(['apt', 'update'])
+        execute(['apt-get', 'update'])
