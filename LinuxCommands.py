@@ -4,6 +4,7 @@ import re
 import stat
 import subprocess
 import sys
+import tarfile
 import urllib.request
 from distutils.version import StrictVersion
 from shutil import copyfile
@@ -35,9 +36,9 @@ def download_file(url, downloaded_file):
             s = "\r%5.1f%% %*d / %d" % (
                 percent, len(str(totalsize)), readsofar, totalsize)
             sys.stderr.write(s)
-            if readsofar >= totalsize: # near the end
+            if readsofar >= totalsize:  # near the end
                 sys.stderr.write("\n")
-        else: # total size is unknown
+        else:  # total size is unknown
             sys.stderr.write("read %d\n" % (readsofar,))
 
     urllib.request.urlretrieve(url, downloaded_file, reporthook)

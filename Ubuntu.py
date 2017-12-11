@@ -1,7 +1,5 @@
 import os
 import platform
-import tarfile
-import urllib.request
 import zipfile
 
 from LinuxCommands import LinuxCommands, execute, download_file, untar_rename_root, recursively_chmod
