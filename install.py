@@ -91,7 +91,7 @@ def main(argv):
         linux.install_curl()
 
         print("Installing Java")
-#        linux.install_jdk()
+        linux.install_jdk()
         print("Installing Groovy & Gradle")
         linux.install_groovy_gradle()
         print("Installing NodeJS")
@@ -111,8 +111,6 @@ def main(argv):
         linux.install_intellij()
         print("Installing jq")
         linux.install_jq()
-        print("Installing KeepassXC")
-        linux.install_keepassxc()
         print("Installing Kubectl")
         linux.install_kubectl()
         print("Installing Maven")
