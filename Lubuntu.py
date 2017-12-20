@@ -9,6 +9,10 @@ class Lubuntu(Ubuntu):
     def __init__(self):
         super().__init__()
 
+    def install_lutris(self):
+        self.install_application('x11-xserver-utils')
+        super().lustris()
+
     def set_development_shortcuts(self):
         with open('%s/.config/openbox/lxqt-rc.xml' % os.environ['HOME'], 'r') as f:
             doc = le.parse(f)
