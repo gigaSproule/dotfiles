@@ -144,6 +144,8 @@ def main(argv):
         linux.install_codecs()
         print("Installing KeepassXC")
         linux.install_keepassxc()
+        print("Installing Lutris")
+        linux.install_lutris()
         print("Installing Nextcloud Client")
         linux.install_nextcloud_client()
         print("Installing OpenVPN")

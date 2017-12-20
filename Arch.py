@@ -27,17 +27,15 @@ class Arch(LinuxCommands):
         print('TODO')
 
     def install_distro_extras(self):
-        f = open('/etc/pacman.conf', 'r')
-        lines = []
-        for line in f.readlines('/etc/pacman.conf'):
-            if line.startswith('#Include = /etc/pacman.d/mirrorlist'):
-                line = line.replace('#', '', 1)
-            lines.append(line)
-        f.close()
+        with open('/etc/pacman.conf', 'r') as f:
+            lines = []
+            for line in f.readlines('/etc/pacman.conf'):
+                if line.startswith('#Include = /etc/pacman.d/mirrorlist'):
+                    line = line.replace('#', '', 1)
+                lines.append(line)
         lines.extend(['[archlinuxfr]\n', 'SigLevel = Never\n', 'Server = http://repo.archlinux.fr/\$arch'])
-        f = open('/etc/pacman.conf', 'w')
-        f.writelines(lines)
-        f.close()
+        with open('/etc/pacman.conf', 'w') as f:
+            f.writelines(lines)
         execute(['pacman', '-Sy', '--noconfirm', 'yaourt', 'firefox', 'wget'])
 
     def install_docker(self):
@@ -61,15 +59,8 @@ class Arch(LinuxCommands):
         self.install_application('aur/jdk')
         execute(['archlinux-java', 'set', 'java-8-jdk'])
 
-        def set_java_home(file):
-            f = open(os.environ['HOME'] + '/' + file, 'a+')
-            contents = f.read()
-            if 'JAVA_HOME' not in contents:
-                f.write('export JAVA_HOME=/usr/lib/jvm/java-8-jdk')
-            f.close()
-
-        set_java_home('.zshrc')
-        set_java_home('.bashrc')
+        self.set_java_home('.zshrc', '/usr/lib/jvm/java-8-jdk')
+        self.set_java_home('.bashrc', '/usr/lib/jvm/java-8-jdk')
 
     def install_jq(self):
         self.install_application('aur/jq-git')
@@ -79,6 +70,9 @@ class Arch(LinuxCommands):
 
     def install_mcollective(self):
         print('TODO')
+
+    def install_lutris(self):
+        self.install_application('aur/lutris')
 
     def install_nextcloud_client(self):
         self.install_application('aur/nextcloud-client')

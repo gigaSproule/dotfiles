@@ -2,12 +2,26 @@ import os
 import platform
 import zipfile
 
+import distro
+
 from LinuxCommands import LinuxCommands, execute, download_file, untar_rename_root, recursively_chmod
 
 
 class Ubuntu(LinuxCommands):
     def __init__(self):
         super().__init__()
+
+    def add_apt_key(self, url):
+        key = execute(['curl', '-fsSL', url])['output']
+        execute(['apt-key add %s' % key])
+
+    def add_apt_repo(self, file_name, urls):
+        with open('/etc/apt/sources.list.d/%s.list' % file_name, 'w') as f:
+            for url in urls:
+                f.write(url)
+
+    def add_ppa(self, ppa):
+        execute(['sudo', 'add-apt-repository', '-y', 'ppa:%s' % ppa])
 
     def install_applications(self, applications):
         command = ['apt-get', 'install', '-y']
@@ -31,12 +45,10 @@ class Ubuntu(LinuxCommands):
         self.install_application('ubuntu-restricted-extras')
 
     def install_docker(self):
-        execute(['curl', '-fsSL', 'https://download.docker.com/linux/ubuntu/gpg | apt-key add -'])
-        execute(['apt-key', 'fingerprint', '0EBFCD88'])
-        execute(['add-apt-repository', '-y',
-                 '"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"'])
-        execute(['add-apt-repository', '-y',
-                 '"deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"'])
+        self.add_apt_key('https://download.docker.com/linux/ubuntu/gpg')
+        self.add_apt_repo('docker', [
+            'deb [arch=amd64] https://download.docker.com/linux/ubuntu %s stable'
+            % distro.lsb_release_info()['codename']])
         self.update_os_repo()
         self.install_application('install docker-ce')
         super().setup_docker()
@@ -63,17 +75,16 @@ class Ubuntu(LinuxCommands):
         if not os.path.exists('/usr/share/applications'):
             os.makedirs('/usr/share/applications')
 
-        f = open('/usr/share/applications/eclipse.desktop', 'w')
-        f.write('[Desktop Entry]\n'
-                'Version=1.0\n'
-                'Name=eclipse\n'
-                'Comment=Eclipse IDE\n'
-                'Exec=/opt/eclipse/eclipse\n'
-                'Icon=/opt/eclipse/icon.xpm\n'
-                'Terminal=false\n'
-                'Type=Application\n'
-                'Categories=Development;IDE;')
-        f.close()
+        with open('/usr/share/applications/eclipse.desktop', 'w') as f:
+            f.write('[Desktop Entry]\n'
+                    'Version=1.0\n'
+                    'Name=eclipse\n'
+                    'Comment=Eclipse IDE\n'
+                    'Exec=/opt/eclipse/eclipse\n'
+                    'Icon=/opt/eclipse/icon.xpm\n'
+                    'Terminal=false\n'
+                    'Type=Application\n'
+                    'Categories=Development;IDE;')
 
     def install_git(self):
         self.install_applications(['git', 'git-flow'])
@@ -93,25 +104,24 @@ class Ubuntu(LinuxCommands):
 
         recursively_chmod('/opt/intellij')
 
-        f = open('/usr/share/applications/intellij.desktop', 'w')
-        f.write('[Desktop Entry]\n'
-                'Version=1.0\n'
-                'Name=IntelliJ\n'
-                'Comment=Jetbrains IntelliJ IDE\n'
-                'Exec=/opt/intellij/bin/idea.sh\n'
-                'Icon=/opt/intellij/bin/idea.png\n'
-                'Terminal=false\n'
-                'Type=Application\n'
-                'Categories=Development;IDE;')
-        f.close()
+        with open('/usr/share/applications/intellij.desktop', 'w') as f:
+            f.write('[Desktop Entry]\n'
+                    'Version=1.0\n'
+                    'Name=IntelliJ\n'
+                    'Comment=Jetbrains IntelliJ IDE\n'
+                    'Exec=/opt/intellij/bin/idea.sh\n'
+                    'Icon=/opt/intellij/bin/idea.png\n'
+                    'Terminal=false\n'
+                    'Type=Application\n'
+                    'Categories=Development;IDE;')
 
-        f = open('/etc/sysctl.d/intellij.conf', 'a')
-        f.write('fs.inotify.max_user_watches = 524288')
-        f.close()
+        with open('/etc/sysctl.d/intellij.conf', 'a') as f:
+            f.write('fs.inotify.max_user_watches = 524288')
+
         execute(['sysctl', '-p', '--system'])
 
     def install_jdk(self):
-        execute(['sudo', 'add-apt-repository', '-y', 'ppa:webupd8team/java'])
+        self.add_ppa('webupd8team/java')
         self.update_os_repo()
         execute(['echo', '"oracle-java8-installer shared/accepted-oracle-license-v1-1 select true"', '|',
                  'debconf-set-selections'])
@@ -120,15 +130,8 @@ class Ubuntu(LinuxCommands):
         self.install_applications(
             ['oracle-java8-installer', 'oracle-java8-unlimited-jce-policy', 'oracle-java8-set-default'])
 
-        def set_java_home(file):
-            f = open(os.environ['HOME'] + '/' + file, 'a+')
-            contents = f.read()
-            if 'JAVA_HOME' not in contents:
-                f.write('export JAVA_HOME=/usr/lib/jvm/java-8-oracle')
-            f.close()
-
-        set_java_home('.zshrc')
-        set_java_home('.bashrc')
+        self.set_java_home('.zshrc', '/usr/lib/jvm/java-8-oracle')
+        self.set_java_home('.bashrc', '/usr/lib/jvm/java-8-oracle')
 
     def install_jq(self):
         self.install_application('jq')
@@ -140,11 +143,19 @@ class Ubuntu(LinuxCommands):
         execute(['dpkg', '-i', 'keepassxc.deb'])
         os.remove('keepassxc.deb')
 
+    def install_lutris(self):
+        self.add_apt_repo('lutris', [
+            'deb http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/ ./' % distro.version()])
+        self.add_apt_key(
+            'http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/Release.key' % distro.version())
+        self.update_os_repo()
+        self.install_application('lutris')
+
     def install_mcollective(self):
         self.install_application('mcollective')
 
     def install_nextcloud_client(self):
-        execute(['add-apt-repository', 'ppa:nextcloud-devs/client'])
+        self.add_ppa('nextcloud-devs/client')
         self.update_os_repo()
         self.install_application('nextcloud-client')
 
@@ -166,9 +177,8 @@ class Ubuntu(LinuxCommands):
     def install_terraform(self):
         download_file(
             'https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_linux_amd64.zip', '/tmp/terraform.zip')
-        f = zipfile.ZipFile('/tmp/terraform.zip', 'r')
-        f.extractall('/usr/local/bin')
-        f.close()
+        with zipfile.ZipFile('/tmp/terraform.zip', 'r') as f:
+            f.extractall('/usr/local/bin')
         os.remove('/tmp/terraform.zip')
         execute(['sysctl', '-p', '--system'])
 

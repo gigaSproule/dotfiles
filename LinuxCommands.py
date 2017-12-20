@@ -113,11 +113,10 @@ class LinuxCommands:
         if not os.path.exists('/etc/docker'):
             os.makedirs('/etc/docker')
 
-        f = open('/etc/docker/daemon.json', 'w')
-        f.write('{\n'
-                '"dns": ["10.14.98.21", "10.14.98.22", "8.8.8.8"]\n'
-                '}')
-        f.close()
+        with open('/etc/docker/daemon.json', 'w') as f:
+            f.write('{\n'
+                    '"dns": ["10.14.98.21", "10.14.98.22", "8.8.8.8"]\n'
+                    '}')
 
     def install_dropbox(self):
         pass
@@ -147,6 +146,12 @@ class LinuxCommands:
     def install_jdk(self):
         pass
 
+    def set_java_home(self, file, jdk_path):
+        with open(os.environ['HOME'] + '/' + file, 'a+') as f:
+            contents = f.read()
+            if 'JAVA_HOME' not in contents:
+                f.write('export JAVA_HOME=%s' % jdk_path)
+
     def install_jq(self):
         pass
 
@@ -161,6 +166,9 @@ class LinuxCommands:
         urllib.request.urlretrieve(
             'https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl' % kubectl_version,
             '/usr/local/bin/kubectl')
+
+    def install_lutris(self):
+        pass
 
     def install_maven(self):
         self.install_application('maven')
