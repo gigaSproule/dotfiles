@@ -73,6 +73,9 @@ class LinuxCommands:
     def install_applications(self, applications):
         pass
 
+    def install_atom(self):
+        pass
+
     def install_chromium(self):
         pass
 

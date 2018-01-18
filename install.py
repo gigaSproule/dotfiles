@@ -97,6 +97,8 @@ def main(argv):
         print("Installing NodeJS")
         linux.install_nodejs()
 
+        print("Installing Atom")
+        linux.install_atom()
         print("Installing Chromium")
         linux.install_chromium()
         print("Installing Deb")

@@ -28,6 +28,12 @@ class Ubuntu(LinuxCommands):
         command.extend(applications)
         execute(command)
 
+    def install_atom(self):
+        self.add_apt_key('https://packagecloud.io/AtomEditor/atom/gpgkey')
+        self.add_apt_repo('atom', 'deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main')
+        self.update_os_repo()
+        self.install_application('atom')
+
     def install_chromium(self):
         self.install_application('chromium-browser')
 
@@ -50,7 +56,7 @@ class Ubuntu(LinuxCommands):
             'deb [arch=amd64] https://download.docker.com/linux/ubuntu %s stable'
             % distro.lsb_release_info()['codename']])
         self.update_os_repo()
-        self.install_application('install docker-ce')
+        self.install_application('docker-ce')
         super().setup_docker()
 
     def install_dropbox(self):

@@ -1,5 +1,3 @@
-import os
-
 from LinuxCommands import LinuxCommands
 from LinuxCommands import execute
 
@@ -12,6 +10,9 @@ class Arch(LinuxCommands):
         command = ['yaourt', '-Sy', '--noconfirm', '--needed']
         command.extend(applications)
         execute(command)
+
+    def install_atom(self):
+        self.install_application('atom')
 
     def install_chromium(self):
         self.install_application('chromium')
