@@ -26,6 +26,10 @@ function gitCurrentBranch() {
     git rev-parse --abbrev-ref HEAD
 }
 
+function gitGraph() {
+    git log --graph --oneline --all
+}
+
 function migrateGitRepo() {
     if [ -z $1 ]; then
         echo "Please provide the new git repo URL"
