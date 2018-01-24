@@ -9,7 +9,7 @@ import urllib.request
 from distutils.version import StrictVersion
 from shutil import copyfile
 
-pattern = re.compile(".*([0-9]+\.[0-9]+\.[0-9]+)$")
+pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
 
 
 def execute(command):
@@ -33,7 +33,7 @@ def download_file(url, downloaded_file):
         readsofar = blocknum * blocksize
         if totalsize > 0:
             percent = readsofar * 1e2 / totalsize
-            s = "\r%5.1f%% %*d / %d" % (
+            s = '\r%5.1f%% %*d / %d' % (
                 percent, len(str(totalsize)), readsofar, totalsize)
             sys.stderr.write(s)
             if readsofar >= totalsize:  # near the end
@@ -176,13 +176,19 @@ class LinuxCommands:
     def install_maven(self):
         self.install_application('maven')
 
+    def install_makemkv(self):
+        pass
+
+    def install_mcollective(self):
+        pass
+
     def install_minikube(self):
         urllib.request.urlretrieve(
             'https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64',
             '/usr/local/bin/minikube')
         execute(['chmod', '+x', '/usr/local/bin/minikube'])
 
-    def install_mcollective(self):
+    def install_mkvtoolnix(self):
         pass
 
     def install_nextcloud_client(self):

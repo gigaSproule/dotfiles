@@ -69,8 +69,14 @@ class Arch(LinuxCommands):
     def install_keepassxc(self):
         self.install_application('keepassxc')
 
+    def install_makemkv(self):
+        self.install_application('aur/makemkv')
+
     def install_mcollective(self):
         print('TODO')
+
+    def install_mkvtoolnix(self):
+        self.install_applications([' mkvtoolnix-cli', 'mkvtoolnix-gui'])
 
     def install_lutris(self):
         self.install_application('aur/lutris')

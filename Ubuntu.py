@@ -54,7 +54,8 @@ class Ubuntu(LinuxCommands):
         self.add_apt_key('https://download.docker.com/linux/ubuntu/gpg')
         self.add_apt_repo('docker', [
             'deb [arch=amd64] https://download.docker.com/linux/ubuntu %s stable'
-            % distro.lsb_release_info()['codename']])
+            % distro.lsb_release_info()['codename']
+        ])
         self.update_os_repo()
         self.install_application('docker-ce')
         super().setup_docker()
@@ -151,14 +152,45 @@ class Ubuntu(LinuxCommands):
 
     def install_lutris(self):
         self.add_apt_repo('lutris', [
-            'deb http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/ ./' % distro.version()])
+            'deb http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/ ./' % distro.version()
+        ])
         self.add_apt_key(
             'http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/Release.key' % distro.version())
         self.update_os_repo()
         self.install_application('lutris')
 
+    def install_makemkv(self):
+        self.install_applications([
+            'build-essentiel', 'pkg-config', 'libc6-dev', 'libssl-dev', 'libexpat1-dev', 'libavcodec-dev',
+            'libgl1-mesa-dev', 'libqt4-dev'
+        ])
+
+        makemkv_version = '1.10.10'
+
+        download_file('http://www.makemkv.com/download/makemkv-oss-%s.tar.gz' % makemkv_version, 'makemkv-oss.tar.gz')
+        untar_rename_root('makemkv-oss.tar.gz', 'makemkv-oss')
+        execute('cd makemkv-oss && ./configure')
+        execute('cd makemkv-oss && make')
+        execute('cd makemkv-oss && sudo make install')
+        os.remove('makemkv-oss')
+
+        download_file('http://www.makemkv.com/download/makemkv-bin-%s.tar.gz' % makemkv_version, 'makemkv-bin.tar.gz')
+        untar_rename_root('makemkv-bin.tar.gz', 'makemkv-bin')
+        execute('cd makemkv-bin && make')
+        execute('cd makemkv-bin && sudo make install')
+        os.remove('makemkv-bin')
+
     def install_mcollective(self):
         self.install_application('mcollective')
+
+    def install_mkvtoolnix(self):
+        self.add_apt_repo('mkvtoolnix', [
+            'deb https://mkvtoolnix.download/ubuntu/%s/ ./' % distro.lsb_release_info()['codename'],
+            'deb-src https://mkvtoolnix.download/ubuntu/%s/ ./' % distro.lsb_release_info()['codename']
+        ])
+        self.add_apt_key('https://mkvtoolnix.download/gpg-pub-moritzbunkus.txt')
+        self.update_os_repo()
+        self.install_applications(['mkvtoolnix', 'mkvtoolnix-gui'])
 
     def install_nextcloud_client(self):
         self.add_ppa('nextcloud-devs/client')
