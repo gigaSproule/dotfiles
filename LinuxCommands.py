@@ -1,6 +1,7 @@
 import os
 import platform
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -30,19 +31,15 @@ def execute(command, directory='.'):
 
 
 def download_file(url, downloaded_file):
-    def reporthook(blocknum, blocksize, totalsize):
-        readsofar = blocknum * blocksize
-        if totalsize > 0:
-            percent = readsofar * 1e2 / totalsize
-            s = '\r%5.1f%% %*d / %d' % (
-                percent, len(str(totalsize)), readsofar, totalsize)
-            sys.stderr.write(s)
-            if readsofar >= totalsize:  # near the end
-                sys.stderr.write("\n")
-        else:  # total size is unknown
-            sys.stderr.write("read %d\n" % (readsofar,))
-
-    urllib.request.urlretrieve(url, downloaded_file, reporthook)
+    req = urllib.request.Request(
+        url,
+        data=None,
+        headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+        }
+    )
+    with urllib.request.urlopen(req) as response, open(downloaded_file, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
 
 
 def untar_rename_root(src, dest):
