@@ -161,7 +161,7 @@ class Ubuntu(LinuxCommands):
 
     def install_makemkv(self):
         self.install_applications([
-            'build-essentiel', 'pkg-config', 'libc6-dev', 'libssl-dev', 'libexpat1-dev', 'libavcodec-dev',
+            'build-essential', 'pkg-config', 'libc6-dev', 'libssl-dev', 'libexpat1-dev', 'libavcodec-dev',
             'libgl1-mesa-dev', 'libqt4-dev'
         ])
 
@@ -169,15 +169,15 @@ class Ubuntu(LinuxCommands):
 
         download_file('http://www.makemkv.com/download/makemkv-oss-%s.tar.gz' % makemkv_version, 'makemkv-oss.tar.gz')
         untar_rename_root('makemkv-oss.tar.gz', 'makemkv-oss')
-        execute('cd makemkv-oss && ./configure')
-        execute('cd makemkv-oss && make')
-        execute('cd makemkv-oss && sudo make install')
+        execute('./configure', 'makemkv-oss')
+        execute('make', 'makemkv-oss')
+        execute('make install', 'makemkv-oss')
         os.remove('makemkv-oss')
 
         download_file('http://www.makemkv.com/download/makemkv-bin-%s.tar.gz' % makemkv_version, 'makemkv-bin.tar.gz')
         untar_rename_root('makemkv-bin.tar.gz', 'makemkv-bin')
-        execute('cd makemkv-bin && make')
-        execute('cd makemkv-bin && sudo make install')
+        execute('make', 'makemkv-bin')
+        execute('make install', 'makemkv-bin')
         os.remove('makemkv-bin')
 
     def install_mcollective(self):

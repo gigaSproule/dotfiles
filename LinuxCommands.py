@@ -12,8 +12,9 @@ from shutil import copyfile
 pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
 
 
-def execute(command):
-    proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+def execute(command, directory='.'):
+    proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
+                            cwd=directory)
     output = ''
     while True:
         next_line = proc.stdout.readline().decode('UTF-8')
