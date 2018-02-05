@@ -16,7 +16,7 @@ class Lubuntu(Ubuntu):
                 'Name=Dropbox\n'
                 'GenericName=File Synchronizer\n'
                 'Comment=Sync your files across computers and to the web\n'
-                'Exec=dropbox start -i\n'
+                'Exec=dbus-launch dropbox start\n'
                 'Terminal=false\n'
                 'Type=Application\n'
                 'Icon=dropbox\n'
