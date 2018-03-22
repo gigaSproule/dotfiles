@@ -202,6 +202,9 @@ class Ubuntu(LinuxCommands):
         self.update_os_repo()
         self.install_application('nodejs')
 
+    def install_nss(self):
+        self.install_application('libnss3-tools')
+
     def install_openvpn(self):
         self.install_applications(['openvpn', 'network-manager-openvpn', 'network-manager-openvpn-gnome'])
         super().setup_openvpn()

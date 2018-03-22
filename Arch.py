@@ -87,6 +87,9 @@ class Arch(LinuxCommands):
     def install_nodejs(self):
         self.install_applications(['npm', 'nodejs'])
 
+    def install_nss(self):
+        self.install_application('nss')
+
     def install_openvpn(self):
         self.install_applications(['openvpn', 'networkmanager-openvpn'])
         super().setup_openvpn()

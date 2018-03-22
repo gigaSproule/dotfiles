@@ -124,6 +124,8 @@ def main(argv):
         linux.install_minikube()
         print('Installing mcollective')
         linux.install_mcollective()
+        print('Install NSS')
+        linux.install_nss()
         print('Installing OpenVPN')
         linux.install_openvpn()
         print('Installing SimpleScreenRecorder')

@@ -195,6 +195,9 @@ class LinuxCommands:
     def install_nodejs(self):
         pass
 
+    def install_nss(self):
+        pass
+
     def install_openvpn(self):
         pass
 
