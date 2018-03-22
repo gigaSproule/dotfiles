@@ -29,7 +29,7 @@ sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT
 ```
 
 ### Firefox
-1. Go to `Preferences > Privacy & Security > View Certificates`
+1. Go to `Preferences/Options > Privacy & Security > View Certificates > Authorities`
 2. Click on `Import`
 3. Navigate to `/usr/share/ca-certificates/extra`
 4. Select `${CERT_NAME}.crt`
