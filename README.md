@@ -45,6 +45,13 @@ sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT
 5. Check `Trust this certificate for identifying websites`
 6. Click `OK`
 
+### IntelliJ
+1. Go to `File > Settings > Tools > Server Certificates > Accpeted Certificates`
+2. Click on the `+`
+3. Navigate to `/usr/share/ca-certificates/extra`
+4. Select `${CERT_NAME}.crt`
+5. Click `OK`
+
 ### AWS CLI
 ```bash
 export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
