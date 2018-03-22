@@ -24,7 +24,7 @@ sudo mkdir extra
 sudo cp ~/Downloads/${CERT_NAME}.pem ./extra
 sudo openssl x509 -in root-ca.pem -inform PEM -out ${CERT_NAME}.crt
 sudo dpkg-reconfigure ca-certificates
-sudo keytool -keystore cacerts -importcert -alias ${CERT_NAME} -file /usr/share/ca-certificates/extra/${CERT_NAME}.crt
+sudo keytool -keystore ${JAVA_HOME}/jre/lib/security/cacerts -importcert -alias ${CERT_NAME} -file /usr/share/ca-certificates/extra/${CERT_NAME}.crt
 sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT_NAME} 
 ```
 
