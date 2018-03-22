@@ -9,6 +9,20 @@ class Lubuntu(Ubuntu):
     def __init__(self):
         super().__init__()
 
+    def install_dropbox(self):
+        super().install_dropbox()
+        with open('%s/.config/autostart/dropbox.desktop' % os.environ['HOME'], 'w') as f:
+            f.write('[Desktop Entry]\n'
+                'Name=Dropbox\n'
+                'GenericName=File Synchronizer\n'
+                'Comment=Sync your files across computers and to the web\n'
+                'Exec=dbus-launch dropbox start\n'
+                'Terminal=false\n'
+                'Type=Application\n'
+                'Icon=dropbox\n'
+                'Categories=Network;FileTransfer;\n'
+                'StartupNotify=false\n')
+
     def install_lutris(self):
         self.install_application('x11-xserver-utils')
         super().install_lutris()

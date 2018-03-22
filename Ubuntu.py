@@ -195,7 +195,7 @@ class Ubuntu(LinuxCommands):
     def install_nextcloud_client(self):
         self.add_ppa('nextcloud-devs/client')
         self.update_os_repo()
-        self.install_application('nextcloud-client')
+        self.install_applications(['nextcloud-client', 'appmenu-qt'])
 
     def install_nodejs(self):
         execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
