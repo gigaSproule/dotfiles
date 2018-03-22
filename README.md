@@ -27,3 +27,20 @@ sudo dpkg-reconfigure ca-certificates
 sudo keytool -keystore cacerts -importcert -alias ${CERT_NAME} -file /usr/share/ca-certificates/extra/${CERT_NAME}.crt
 sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT_NAME} 
 ```
+
+### Firefox
+1. Go to `Preferences > Privacy & Security > View Certificates`
+2. Click on `Import`
+3. Navigate to `/usr/share/ca-certificates/extra`
+4. Select `${CERT_NAME}.crt`
+5. Check `Trust this CA to identify websites`
+6. Click `OK`
+7. Click `OK`
+
+### Chrome/Chromium
+1. Go to `Settings > Advanced > Manage certificates > Authorities`
+2. Click on `Import`
+3. Navigate to `/usr/share/ca-certificates/extra`
+4. Select `${CERT_NAME}.crt`
+5. Check `Trust this certificate for identifying websites`
+6. Click `OK`
