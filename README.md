@@ -44,3 +44,13 @@ sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT
 4. Select `${CERT_NAME}.crt`
 5. Check `Trust this certificate for identifying websites`
 6. Click `OK`
+
+### AWS CLI
+```bash
+export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+```
+
+### Azure CLI
+```bash
+export AZURE_CLI_DISABLE_CONNECTION_VERIFICATION=1
+```
