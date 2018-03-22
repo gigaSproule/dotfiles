@@ -1,9 +1,7 @@
-dotfiles
-===================
+# dotfiles
 A collection of configs and scripts to setup everything I need
 
-Install
--------
+## Install
 This requires python 3 and pip (for installing distro and lxml)
 
 1. Run
@@ -15,3 +13,18 @@ This requires python 3 and pip (for installing distro and lxml)
   sudo XDG_CURRENT_DESKTOP=$XDG_CURRENT_DESKTOP su -c 'pip3 install distro lxml && ./install.py [-d | --development | -p | --personal | -s | --server | -v | --vm | -h | --help]'
   sudo ./install.py
   ```
+
+## Install Root CA
+### Ubuntu based OS
+1. Visit the website with the required root certificate
+2. `view certificate > details > select intermediate root CA > export` save as `~/Downloads/${CERT_NAME}.pem`
+
+```bash
+cd /usr/share/ca-certificates
+sudo mkdir extra
+sudo cp ~/Downloads/${CERT_NAME}.pem ./extra
+sudo openssl x509 -in root-ca.pem -inform PEM -out ${CERT_NAME}.crt
+sudo dpkg-reconfigure ca-certificates
+sudo keytool -keystore cacerts -importcert -alias ${CERT_NAME} -file /usr/share/ca-certificates/extra/${CERT_NAME}.crt
+sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT_NAME} 
+```

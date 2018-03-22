@@ -58,8 +58,8 @@ def main(argv):
     vm = False
 
     try:
-        opts, args = getopt.getopt(argv, 'dpsm',
-                                   ['development', 'personal', 'server', 'media'])
+        opts, args = getopt.getopt(argv, 'hd:p:s:m:',
+                                   ['help', 'development', 'personal', 'server', 'media'])
         for opt, arg in opts:
             if opt in ('-h', '--help'):
                 print('install.py [-d] [-p] [-r] [-s]')

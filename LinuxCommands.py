@@ -12,7 +12,7 @@ from shutil import copyfile
 pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
 
 
-def execute(command, directory='.'):
+def execute(command, directory=os.path.dirname(os.path.realpath(__file__))):
     proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                             cwd=directory)
     output = ''
