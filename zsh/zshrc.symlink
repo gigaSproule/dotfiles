@@ -30,6 +30,10 @@ function gitGraph() {
     git log --graph --oneline --all
 }
 
+function gitDummyCommit() {
+    git commit --allow-empty -m ${1}
+}
+
 function migrateGitRepo() {
     if [ -z $1 ]; then
         echo "Please provide the new git repo URL"
