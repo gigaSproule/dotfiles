@@ -34,6 +34,14 @@ function gitDummyCommit() {
     git commit --allow-empty -m ${1}
 }
 
+function gitDeleteRemote() {
+    git push -d origin ${1}
+}
+
+function gitDeleteLocal() {
+    git branch -d ${1}
+}
+
 function migrateGitRepo() {
     if [ -z $1 ]; then
         echo "Please provide the new git repo URL"
