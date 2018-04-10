@@ -45,9 +45,6 @@ class Ubuntu(Linux):
     def install_curl(self):
         self.install_application('curl')
 
-    def install_deb(self):
-        pass
-
     def install_system_extras(self):
         self.install_application('ubuntu-restricted-extras')
 
