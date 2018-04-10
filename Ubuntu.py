@@ -4,10 +4,11 @@ import zipfile
 
 import distro
 
-from LinuxCommands import LinuxCommands, execute, download_file, untar_rename_root, recursively_chmod
+from System import execute, download_file, untar_rename_root, recursively_chmod
+from Linux import Linux
 
 
-class Ubuntu(LinuxCommands):
+class Ubuntu(Linux):
     def __init__(self):
         super().__init__()
 
@@ -47,7 +48,7 @@ class Ubuntu(LinuxCommands):
     def install_deb(self):
         pass
 
-    def install_distro_extras(self):
+    def install_system_extras(self):
         self.install_application('ubuntu-restricted-extras')
 
     def install_docker(self):

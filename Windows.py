@@ -1,75 +1,24 @@
 import os
 import platform
 import re
-import shutil
 import stat
-import subprocess
-import sys
-import tarfile
 import urllib.request
 from distutils.version import StrictVersion
 from shutil import copyfile
 
+from System import System, execute, download_file
+
 pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
 
 
-def execute(command, directory=os.path.dirname(os.path.realpath(__file__))):
-    proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
-                            cwd=directory)
-    output = ''
-    while True:
-        next_line = proc.stdout.readline().decode('UTF-8')
-        if next_line == '' and proc.poll() is not None:
-            break
-        output = output + next_line
-        sys.stdout.write(next_line)
-        sys.stdout.flush()
-    return {
-        'code': proc.returncode,
-        'output': output
-    }
-
-
-def download_file(url, downloaded_file):
-    req = urllib.request.Request(
-        url,
-        data=None,
-        headers={
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
-        }
-    )
-    with urllib.request.urlopen(req) as response, open(downloaded_file, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
-
-
-def untar_rename_root(src, dest):
-    def members(tf):
-        for member in tf.getmembers():
-            if member.isreg():
-                file_name = member.name.split('/')
-                del file_name[0]
-                file_name = '/'.join(file_name)
-                member.name = file_name
-                yield member
-
-    with tarfile.open(src) as tar:
-        tar.extractall(dest, members(tar))
-
-
-def recursively_chmod(path, directory_permission=0o777, file_permission=0o777):
-    os.chmod(path, directory_permission)
-    for dirname, subdirs, files in os.walk(path):
-        os.chmod(dirname, directory_permission)
-        for f in files:
-            os.chmod(os.path.join(dirname, f), file_permission)
-
-
-class LinuxCommands:
+class Windows(System):
     def install_application(self, application):
         self.install_applications([application])
 
     def install_applications(self, applications):
-        pass
+        command = ['choco', 'install', '-y']
+        command.extend(applications)
+        execute(command)
 
     def install_atom(self):
         pass
@@ -86,9 +35,6 @@ class LinuxCommands:
                                    os.environ['HOME'] + '/.config/aacs')
 
     def install_deb(self):
-        pass
-
-    def install_distro_extras(self):
         pass
 
     def install_docker(self):
@@ -210,6 +156,13 @@ class LinuxCommands:
     def install_steam(self):
         pass
 
+    def install_system_extras(self):
+        pass
+
+    def install_system_dependencies(self):
+        download_file('https://chocolatey.org/install.ps1', 'install.ps1')
+        execute(['iex', 'install.ps1'])
+
     def install_rpm(self):
         pass
 
@@ -217,13 +170,13 @@ class LinuxCommands:
         pass
 
     def install_tmux(self):
-        pass
+        self.install_application('tmux')
 
     def install_vm_tools(self):
         pass
 
     def install_zsh(self):
-        pass
+        self.install_application('zsh')
 
     def setup_zsh(self):
         execute(['sh', '-c',
@@ -235,6 +188,11 @@ class LinuxCommands:
     def set_development_shortcuts(self):
         pass
 
+    def set_development_environment_settings(self):
+        print('Setting mmapfs limit for Elasticsearch')
+        with open('/etc/sysctl.conf', 'a') as f:
+            f.write('vm.max_map_count=262144')
+
     def set_free_dns_cron(self):
         copyfile('dynIpUpdate.sh', '/opt/')
         execute(['crontab', '-l', '>', 'file;', 'echo', "'0 5 * * * /opt/dynIpUpdate.sh.sh >/dev/null 2>&1'", '>>',
@@ -242,7 +200,8 @@ class LinuxCommands:
         os.remove('file')
 
     def update_os(self):
-        pass
+        self.update_os_repo()
+        execute(['choco', 'upgrade', 'chocolatey'])
 
     def update_os_repo(self):
-        pass
+        execute(['choco', 'update'])

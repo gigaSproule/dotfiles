@@ -5,12 +5,12 @@ import os
 import sys
 from shutil import copyfile
 
-import distro
-
 from Arch import Arch
 from Kubuntu import Kubuntu
-from LinuxCommands import execute, LinuxCommands
+from Linux import execute, Linux
 from Lubuntu import Lubuntu
+from Mac import Mac
+from Windows import Windows
 from Xubuntu import Xubuntu
 
 
@@ -35,19 +35,27 @@ def install_required_dependencies():
         execute(['pip', 'install', 'distro'])
 
 
-def system():
-    if distro.name() == 'Ubuntu':
-        current_desktop = os.environ['XDG_CURRENT_DESKTOP']
-        if current_desktop == 'KDE':
-            return Kubuntu()
-        elif current_desktop == 'LXQt' or current_desktop == 'LXDE':
-            return Lubuntu()
-        elif current_desktop == 'XFCE':
-            return Xubuntu()
-    elif distro.name() == 'Arch':
-        return Arch()
+def get_system():
+    if sys.platform == 'linux' or sys.platform == 'linux2':
+        import distro
+        if distro.name() == 'Ubuntu':
+            current_desktop = os.environ['XDG_CURRENT_DESKTOP']
+            if current_desktop == 'KDE':
+                return Kubuntu()
+            elif current_desktop == 'LXQt' or current_desktop == 'LXDE':
+                return Lubuntu()
+            elif current_desktop == 'XFCE':
+                return Xubuntu()
+        elif distro.name() == 'Arch':
+            return Arch()
+        else:
+            return Linux()
+    elif sys.platform == 'darwin':
+        return Mac()
+    elif sys.platform == 'win32':
+        return Windows()
     else:
-        return LinuxCommands()
+        EnvironmentError('Unknown operating system')
 
 
 def main(argv):
@@ -82,103 +90,107 @@ def main(argv):
 
     install_required_dependencies()
 
-    linux = system()
-    linux.update_os()
+    system = get_system()
+    system.install_system_dependencies()
+    system.update_os()
     print('Installing Distro Specific Extras')
-    linux.install_distro_extras()
+    system.install_system_extras()
 
     if development:
         print('Installing Git')
-        linux.install_git()
+        system.install_git()
         print('Installing Curl')
-        linux.install_curl()
+        system.install_curl()
 
         print('Installing Java')
-        linux.install_jdk()
+        system.install_jdk()
         print('Installing Groovy & Gradle')
-        linux.install_groovy_gradle()
+        system.install_groovy_gradle()
         print('Installing NodeJS')
-        linux.install_nodejs()
+        system.install_nodejs()
 
         print('Installing Atom')
-        linux.install_atom()
+        system.install_atom()
         print('Installing Chromium')
-        linux.install_chromium()
+        system.install_chromium()
         print('Installing Deb')
-        linux.install_deb()
+        system.install_deb()
         print('Installing Docker')
-        linux.install_docker()
+        system.install_docker()
         print('Installing Eclipse')
-        linux.install_eclipse()
+        system.install_eclipse()
         print('Installing ecryptfs')
-        linux.install_ecryptfs()
+        system.install_ecryptfs()
         print('Installing IntelliJ')
-        linux.install_intellij()
+        system.install_intellij()
         print('Installing jq')
-        linux.install_jq()
+        system.install_jq()
         print('Installing Kubectl')
-        linux.install_kubectl()
+        system.install_kubectl()
         print('Installing Maven')
-        linux.install_maven()
+        system.install_maven()
         print('Installing Minikube')
-        linux.install_minikube()
+        system.install_minikube()
         print('Installing mcollective')
-        linux.install_mcollective()
+        system.install_mcollective()
         print('Install NSS')
-        linux.install_nss()
+        system.install_nss()
         print('Installing OpenVPN')
-        linux.install_openvpn()
+        system.install_openvpn()
         print('Installing SimpleScreenRecorder')
-        linux.install_simplescreenrecorder()
+        system.install_simplescreenrecorder()
         print('Installing RPM')
-        linux.install_rpm()
+        system.install_rpm()
         print('Installing terraform')
-        linux.install_terraform()
+        system.install_terraform()
         print('Installing tmux')
-        linux.install_tmux()
+        system.install_tmux()
         print('Installing ZSH')
-        linux.install_zsh()
+        system.install_zsh()
 
         print('Setting development specific shortcuts')
-        linux.set_development_shortcuts()
+        system.set_development_shortcuts()
+
+        print('Setting development environment settings')
+        system.set_development_environment_settings()
 
     if personal:
         print('Installing Chromium')
-        linux.install_chromium()
+        system.install_chromium()
         print('Installing Dropbox')
-        linux.install_dropbox()
+        system.install_dropbox()
         print('Installing Codecs')
-        linux.install_codecs()
+        system.install_codecs()
         print('Installing KeepassXC')
-        linux.install_keepassxc()
+        system.install_keepassxc()
         print('Installing Lutris')
-        linux.install_lutris()
+        system.install_lutris()
         print('Installing Nextcloud Client')
-        linux.install_nextcloud_client()
+        system.install_nextcloud_client()
         print('Installing OpenVPN')
-        linux.install_openvpn()
+        system.install_openvpn()
         print('Installing Steam')
-        linux.install_steam()
+        system.install_steam()
         print('Installing tmux')
-        linux.install_tmux()
+        system.install_tmux()
         print('Installing ZSH')
-        linux.install_zsh()
+        system.install_zsh()
 
     if media:
         print('Installing MakeMKV')
-        linux.install_makemkv()
+        system.install_makemkv()
         print('Installing MKVToolNix')
-        linux.install_mkvtoolnix()
+        system.install_mkvtoolnix()
 
     if server:
         print('Installing Docker')
-        linux.install_docker()
+        system.install_docker()
         print('Installing Free DNS Cron')
-        linux.set_free_dns_cron()
+        system.set_free_dns_cron()
 
     if vm:
         print('Installing VM Tools')
-        linux.install_vm_tools()
+        system.install_vm_tools()
 
     copy_symlink_files()
 

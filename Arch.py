@@ -1,8 +1,8 @@
-from LinuxCommands import LinuxCommands
-from LinuxCommands import execute
+from Linux import Linux
+from Linux import execute
 
 
-class Arch(LinuxCommands):
+class Arch(Linux):
     def __init__(self):
         super().__init__()
 
@@ -27,7 +27,7 @@ class Arch(LinuxCommands):
     def install_deb(self):
         print('TODO')
 
-    def install_distro_extras(self):
+    def install_system_extras(self):
         with open('/etc/pacman.conf', 'r') as f:
             lines = []
             for line in f.readlines('/etc/pacman.conf'):
