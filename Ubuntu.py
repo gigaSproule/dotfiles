@@ -5,8 +5,8 @@ import zipfile
 
 import distro
 
-from System import execute, download_file, untar_rename_root, recursively_chmod
 from Linux import Linux
+from System import execute, download_file, untar_rename_root, recursively_chmod
 
 
 class Ubuntu(Linux):
@@ -97,34 +97,7 @@ class Ubuntu(Linux):
         super().setup_git()
 
     def install_intellij(self):
-        if os.path.exists('/opt/intellij'):
-            return
-
-        os.makedirs('/opt/intellij')
-
-        download_file('https://download.jetbrains.com/idea/ideaIU-2018.1.1-no-jdk.tar.gz', '/tmp/intellij.tar.gz')
-
-        untar_rename_root('/tmp/intellij.tar.gz', '/opt/intellij')
-
-        os.remove('/tmp/intellij.tar.gz')
-
-        recursively_chmod('/opt/intellij')
-
-        with open('/usr/share/applications/intellij.desktop', 'w') as f:
-            f.write('[Desktop Entry]\n'
-                    'Version=1.0\n'
-                    'Name=IntelliJ\n'
-                    'Comment=Jetbrains IntelliJ IDE\n'
-                    'Exec=/opt/intellij/bin/idea.sh\n'
-                    'Icon=/opt/intellij/bin/idea.png\n'
-                    'Terminal=false\n'
-                    'Type=Application\n'
-                    'Categories=Development;IDE;')
-
-        with open('/etc/sysctl.d/intellij.conf', 'a') as f:
-            f.write('fs.inotify.max_user_watches = 524288')
-
-        execute(['sysctl', '-p', '--system'])
+        execute(['snap', 'install', 'intellij-idea-ultimate', '--classic'])
 
     def install_jdk(self):
         self.add_ppa('webupd8team/java')
