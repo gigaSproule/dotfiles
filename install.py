@@ -10,6 +10,7 @@ from Kubuntu import Kubuntu
 from Linux import execute, Linux
 from Lubuntu import Lubuntu
 from Mac import Mac
+from Ubuntu import Ubuntu
 from Windows import Windows
 from Xubuntu import Xubuntu
 
@@ -46,6 +47,8 @@ def get_system():
                 return Lubuntu()
             elif current_desktop == 'XFCE':
                 return Xubuntu()
+            else:
+                return Ubuntu()
         elif distro.name() == 'Arch':
             return Arch()
         else:
