@@ -105,7 +105,7 @@ class Ubuntu(Linux):
 
         os.makedirs('/opt/intellij')
 
-        download_file('https://download.jetbrains.com/idea/ideaIU-2017.3-no-jdk.tar.gz', '/tmp/intellij.tar.gz')
+        download_file('https://download.jetbrains.com/idea/ideaIU-2018.1.1-no-jdk.tar.gz', '/tmp/intellij.tar.gz')
 
         untar_rename_root('/tmp/intellij.tar.gz', '/opt/intellij')
 
