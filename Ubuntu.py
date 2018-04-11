@@ -129,10 +129,7 @@ class Ubuntu(Linux):
     def install_jdk(self):
         self.add_ppa('webupd8team/java')
         self.update_os_repo()
-        execute(['echo', '"oracle-java8-installer shared/accepted-oracle-license-v1-1 select true"', '|',
-                 'debconf-set-selections'])
-        execute(['echo', '"oracle-java8-installer shared/accepted-oracle-license-v1-1 seen true"', '|',
-                 'debconf-set-selections'])
+        self.set_debconf('oracle-java8-installer', 'shared/accepted-oracle-license-v1-1')
         self.install_applications(
             ['oracle-java8-installer', 'oracle-java8-unlimited-jce-policy', 'oracle-java8-set-default'])
 
@@ -215,8 +212,7 @@ class Ubuntu(Linux):
         self.install_application('steam-installer')
 
     def install_system_extras(self):
-        execute(['echo', '"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"', '|',
-                 'debconf-set-selections'])
+        self.set_debconf('ttf-mscorefonts-installer', 'msttcorefonts/accepted-mscorefonts-eula')
         self.install_application('ubuntu-restricted-extras')
 
     def install_terraform(self):
@@ -236,6 +232,14 @@ class Ubuntu(Linux):
     def install_zsh(self):
         self.install_application('zsh')
         super().setup_zsh()
+
+    def set_debconf(installer, conf, value='true'):
+        debconf_file = '%s.debconf' % uuid.uuid4()
+        with open(debconf_file, 'w') as f:
+            f.write('%s %s select %s\n' % (installer, conf, value))
+            f.write('%s %s seen %s\n' % (installer, conf, value))
+        execute(['debconf-set-selections', debconf_file])
+        os.remove(debconf_file)
 
     def set_development_shortcuts(self):
         # Allow for alt dragging the cursor (rather than the window)
