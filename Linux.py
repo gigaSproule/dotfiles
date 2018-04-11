@@ -6,7 +6,7 @@ import urllib.request
 from distutils.version import StrictVersion
 from shutil import copyfile
 
-from System import execute
+from System import execute, download_file, recursively_chmod
 from Unix import Unix
 
 pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
@@ -51,6 +51,8 @@ class Linux(Unix):
         execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
         execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
         os.makedirs(os.environ['HOME'] + '/.git/hooks', exist_ok=True)
+        self.copy_config('git/gitconfig.symlink', '.git/gitconfig')
+        self.copy_config('git/post-checkout.symlink', '.git/post-checkout')
 
     def set_java_home(self, file, jdk_path):
         with open(os.environ['HOME'] + '/' + file, 'a+') as f:
@@ -66,6 +68,7 @@ class Linux(Unix):
         urllib.request.urlretrieve(
             'https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl' % kubectl_version,
             '/usr/local/bin/kubectl')
+        recursively_chmod('/usr/local/bin/kubectl', file_permission=0o755)
 
     def install_minikube(self):
         urllib.request.urlretrieve(
@@ -76,12 +79,15 @@ class Linux(Unix):
     def setup_openvpn(self):
         os.makedirs(os.environ['HOME'] + '/.openvpn')
 
+    def setup_tux(self):
+        self.copy_config('tmux/tmux.conf.symlink', '.tmux.conf')
+
     def setup_zsh(self):
-        execute(['sh', '-c',
-                 '"$(curl -fsSL https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh)"',
-                 '-s', '--batch', '||', '{', 'echo', '"Could not install Oh My Zsh"', '>/dev/stderr', 'exit', '1',
-                 '}'])
-        execute(['chsh', '-s', '/usr/bin/zsh'])
+        download_file('https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh',
+                      'oh-my-zsh.sh')
+        recursively_chmod('./oh-my-zsh.sh')
+        execute(['./oh-my-zsh.sh'])
+        self.copy_config('zsh/zshrc.symlink', '.zshrc')
 
     def set_development_environment_settings(self):
         print('Setting mmapfs limit for Elasticsearch')

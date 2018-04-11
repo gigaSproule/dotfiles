@@ -43,7 +43,7 @@ sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT
 ### Firefox
 #### Using certutil
 ```bash
-certutil -d ~/.mozilla/firefox/*.default -A -i ~/Downloads/${CERT_NAME}.crt -n "${NICKNAME}" -t C,,
+certutil -d "$HOME/.mozilla/firefox/*.default" -A -i ~/Downloads/${CERT_NAME}.crt -n "${NICKNAME}" -t C,,
 ```
 
 #### Manual

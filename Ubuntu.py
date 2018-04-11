@@ -140,11 +140,7 @@ class Ubuntu(Linux):
         self.install_application('jq')
 
     def install_keepassxc(self):
-        download_file(
-            'https://github.com/magkopian/keepassxc-debian/releases/download/2.2.1-1/keepassxc_2.2.1-1_amd64_stable_stretch.deb',
-            'keepassxc.deb')
-        execute(['dpkg', '-i', 'keepassxc.deb'])
-        os.remove('keepassxc.deb')
+        self.install_application('keepassxc')
 
     def install_lutris(self):
         self.add_apt_repo('lutris', [
@@ -225,6 +221,7 @@ class Ubuntu(Linux):
 
     def install_tmux(self):
         self.install_application('tmux')
+        super().setup_tux()
 
     def install_vm_tools(self):
         self.install_applications(['open-vm-tools', 'open-vm-tools-desktop'])
@@ -242,12 +239,11 @@ class Ubuntu(Linux):
         os.remove(debconf_file)
 
     def set_development_shortcuts(self):
-        # Allow for alt dragging the cursor (rather than the window)
-        execute(['dconf', 'write', '/org/gnome/desktop/wm/preferences/mouse-button-modifier',
-                 '\'"<Shift><Control><Alt><Super>Button20"\''])
-        print('Remove keyboard shortcuts under Navigation for ctrl + alt + left/right')
-        print('Remove keyboard shortcut under System for ctrl + alt + l')
-        print('Remove keyboard shortcuts under Windows for ctrl + alt + s, alt + f7')
+        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
+        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
+        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
+        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
+        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
 
     def update_os(self):
         self.update_os_repo()

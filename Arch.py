@@ -106,6 +106,7 @@ class Arch(Linux):
     def install_tmux(self):
         self.install_application('tmux')
         self.install_application('aur/tmux-bash-completion')
+        super().setup_tux()
 
     def install_zsh(self):
         self.install_applications(['zsh', 'zsh-completions'])

@@ -128,6 +128,8 @@ def main(argv):
         system.install_intellij()
         print('Installing jq')
         system.install_jq()
+        print('Installing KeepassXC')
+        system.install_keepassxc()
         print('Installing Kubectl')
         system.install_kubectl()
         print('Installing Maven')

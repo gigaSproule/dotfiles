@@ -1,10 +1,16 @@
 import os
+import shutil
 from shutil import copyfile
 
 from System import System, execute
 
 
 class Unix(System):
+    def copy_config(self, src, dst):
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copyfile('%s/%s' % (os.path.dirname(os.path.realpath(__file__)), src),
+                        '%s/%s' % (os.environ['HOME'], dst))
+
     def setup_git(self):
         execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
         execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
