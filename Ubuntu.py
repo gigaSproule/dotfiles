@@ -49,9 +49,6 @@ class Ubuntu(Linux):
     def install_curl(self):
         self.install_application('curl')
 
-    def install_system_extras(self):
-        self.install_application('ubuntu-restricted-extras')
-
     def install_docker(self):
         self.add_apt_key('https://download.docker.com/linux/ubuntu/gpg')
         self.add_apt_repo('docker', [
@@ -211,11 +208,16 @@ class Ubuntu(Linux):
         self.install_applications(['openvpn', 'network-manager-openvpn', 'network-manager-openvpn-gnome'])
         super().setup_openvpn()
 
+    def install_rpm(self):
+        self.install_application('rpm')
+
     def install_steam(self):
         self.install_application('steam-installer')
 
-    def install_rpm(self):
-        self.install_application('rpm')
+    def install_system_extras(self):
+        execute(['echo', '"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"', '|',
+                 'debconf-set-selections'])
+        self.install_application('ubuntu-restricted-extras')
 
     def install_terraform(self):
         download_file(
