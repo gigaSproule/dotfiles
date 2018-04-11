@@ -1,5 +1,6 @@
 import os
 import platform
+import uuid
 import zipfile
 
 import distro
@@ -13,8 +14,11 @@ class Ubuntu(Linux):
         super().__init__()
 
     def add_apt_key(self, url):
-        key = execute(['curl', '-fsSL', url])['output']
-        execute(['apt-key add %s' % key])
+        apt_file = '%s.apt' % uuid.uuid4()
+        with open(apt_file, 'w') as f:
+            f.write(execute(['curl', '-fsSL', url])['output'])
+        execute(['apt-key', 'add', apt_file])
+        os.remove(apt_file)
 
     def add_apt_repo(self, file_name, urls):
         with open('/etc/apt/sources.list.d/%s.list' % file_name, 'w') as f:
