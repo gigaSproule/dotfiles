@@ -11,12 +11,6 @@ class Arch(Linux):
         command.extend(applications)
         execute(command)
 
-    def install_atom(self):
-        self.install_application('atom')
-
-    def install_chromium(self):
-        self.install_application('chromium')
-
     def install_codecs(self):
         self.install_applications(['libdvdread', 'libdvdcss', 'libdvdnav', 'libbluray', 'libaacs'])
         super().setup_codecs()
@@ -53,9 +47,6 @@ class Arch(Linux):
         self.install_application('git')
         super().setup_git()
 
-    def install_intellij(self):
-        self.install_application('aur/intellij-idea-ultimate-edition')
-
     def install_jdk(self):
         self.install_application('aur/jdk')
         execute(['archlinux-java', 'set', 'java-8-jdk'])
@@ -75,14 +66,8 @@ class Arch(Linux):
     def install_mcollective(self):
         print('TODO')
 
-    def install_mkvtoolnix(self):
-        self.install_applications([' mkvtoolnix-cli', 'mkvtoolnix-gui'])
-
     def install_lutris(self):
         self.install_application('aur/lutris')
-
-    def install_nextcloud_client(self):
-        self.install_application('aur/nextcloud-client')
 
     def install_nodejs(self):
         self.install_applications(['npm', 'nodejs'])
@@ -99,6 +84,9 @@ class Arch(Linux):
 
     def install_rpm(self):
         print('TODO')
+
+    def install_system_dependencies(self):
+        self.install_applications('snapd')
 
     def install_terraform(self):
         self.install_application('aur/terraform')

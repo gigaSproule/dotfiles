@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 import getopt
-import glob
 import os
 import sys
-from shutil import copyfile
 
 from Arch import Arch
 from Kubuntu import Kubuntu
@@ -13,15 +11,6 @@ from Mac import Mac
 from Ubuntu import Ubuntu
 from Windows import Windows
 from Xubuntu import Xubuntu
-
-
-def copy_symlink_files():
-    files = glob.glob('**/*.symlink')
-    for file in files:
-        file_name = file.replace('.symlink', '').split('/')
-        file_name = file_name[len(file_name) - 1]
-        target = os.environ['HOME'] + '/.' + file_name
-        copyfile(file, target)
 
 
 def setup_user_bin():
@@ -146,6 +135,8 @@ def main(argv):
         system.install_simplescreenrecorder()
         print('Installing RPM')
         system.install_rpm()
+        print('Installing Slack')
+        system.install_slack()
         print('Installing terraform')
         system.install_terraform()
         print('Installing tmux')
@@ -174,6 +165,8 @@ def main(argv):
         system.install_nextcloud_client()
         print('Installing OpenVPN')
         system.install_openvpn()
+        print('Installing Spotify')
+        system.install_spotify()
         print('Installing Steam')
         system.install_steam()
         print('Installing tmux')
@@ -196,8 +189,6 @@ def main(argv):
     if vm:
         print('Installing VM Tools')
         system.install_vm_tools()
-
-    copy_symlink_files()
 
 
 if __name__ == '__main__':

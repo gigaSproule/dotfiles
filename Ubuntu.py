@@ -33,15 +33,6 @@ class Ubuntu(Linux):
         command.extend(applications)
         execute(command)
 
-    def install_atom(self):
-        self.add_apt_key('https://packagecloud.io/AtomEditor/atom/gpgkey')
-        self.add_apt_repo('atom', 'deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main')
-        self.update_os_repo()
-        self.install_application('atom')
-
-    def install_chromium(self):
-        self.install_application('chromium-browser')
-
     def install_codecs(self):
         self.install_applications(['libdvd-pkg', 'libaacs0', 'libbluray-bdj', 'libbluray1'])
         super().setup_codecs()
@@ -96,9 +87,6 @@ class Ubuntu(Linux):
         self.install_applications(['git', 'git-flow'])
         super().setup_git()
 
-    def install_intellij(self):
-        execute(['snap', 'install', 'intellij-idea-ultimate', '--classic'])
-
     def install_jdk(self):
         self.add_ppa('webupd8team/java')
         self.update_os_repo()
@@ -147,20 +135,6 @@ class Ubuntu(Linux):
 
     def install_mcollective(self):
         self.install_application('mcollective')
-
-    def install_mkvtoolnix(self):
-        self.add_apt_repo('mkvtoolnix', [
-            'deb https://mkvtoolnix.download/ubuntu/%s/ ./' % distro.lsb_release_info()['codename'],
-            'deb-src https://mkvtoolnix.download/ubuntu/%s/ ./' % distro.lsb_release_info()['codename']
-        ])
-        self.add_apt_key('https://mkvtoolnix.download/gpg-pub-moritzbunkus.txt')
-        self.update_os_repo()
-        self.install_applications(['mkvtoolnix', 'mkvtoolnix-gui'])
-
-    def install_nextcloud_client(self):
-        self.add_ppa('nextcloud-devs/client')
-        self.update_os_repo()
-        self.install_applications(['nextcloud-client', 'appmenu-qt'])
 
     def install_nodejs(self):
         execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])

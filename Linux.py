@@ -1,7 +1,6 @@
 import os
 import platform
 import re
-import stat
 import urllib.request
 from distutils.version import StrictVersion
 from shutil import copyfile
@@ -15,6 +14,67 @@ pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
 class Linux(Unix):
     def install_application(self, application):
         self.install_applications([application])
+
+    def install_atom(self):
+        self.snap_install_application('atom', True)
+
+    def install_chromium(self):
+        self.snap_install_application('chromium')
+
+    def install_ecryptfs(self):
+        self.install_application('ecryptfs')
+        execute(['modprobe', 'ecryptfs'])
+
+    def install_groovy_gradle(self):
+        self.install_applications(['groovy', 'gradle'])
+
+    def install_intellij(self):
+        self.snap_install_application('intellij-idea-ultimate', True)
+
+    def install_kubectl(self):
+        kubectl_version = urllib.request.urlopen('https://storage.googleapis.com/kubernetes-release/release/stable.txt') \
+            .read() \
+            .decode('utf-8') \
+            .replace('\n', '')
+        urllib.request.urlretrieve(
+            'https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl' % kubectl_version,
+            '/usr/local/bin/kubectl')
+        recursively_chmod('/usr/local/bin/kubectl', file_permission=0o755)
+
+    def install_maven(self):
+        self.install_application('maven')
+
+    def install_minikube(self):
+        urllib.request.urlretrieve(
+            'https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64',
+            '/usr/local/bin/minikube')
+        execute(['chmod', '+x', '/usr/local/bin/minikube'])
+
+    def install_mkvtoolnix(self):
+        self.snap_install_application('matroska-tools')
+
+    def install_nextcloud_client(self):
+        self.snap_install_application('nextcloud-client')
+
+    def install_simplescreenrecorder(self):
+        self.install_application('simplescreenrecorder')
+
+    def install_spotify(self):
+        self.snap_install_application('spotify')
+
+    def install_slack(self):
+        self.snap_install_application('slack')
+
+    def set_development_environment_settings(self):
+        print('Setting mmapfs limit for Elasticsearch')
+        with open('/etc/sysctl.conf', 'a') as f:
+            f.write('vm.max_map_count=262144')
+
+    def set_free_dns_cron(self):
+        copyfile('dynIpUpdate.sh', '/opt/')
+        execute(['crontab', '-l', '>', 'file;', 'echo', "'0 5 * * * /opt/dynIpUpdate.sh.sh >/dev/null 2>&1'", '>>',
+                 'file;', 'crontab', 'file'])
+        os.remove('file')
 
     def setup_codecs(self):
         os.makedirs(os.environ['HOME'] + '/.config/aacs')
@@ -36,7 +96,7 @@ class Linux(Unix):
 
         urllib.request.urlretrieve('https://github.com/docker/compose/releases/download/%s/docker-compose-%s-%s' % (
             docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
-        os.chmod('/usr/local/bin/docker-compose', stat.S_IXOTH)
+        recursively_chmod('/usr/local/bin/docker-compose', 0o755)
 
         if not os.path.exists('/etc/docker'):
             os.makedirs('/etc/docker')
@@ -60,22 +120,6 @@ class Linux(Unix):
             if 'JAVA_HOME' not in contents:
                 f.write('export JAVA_HOME=%s' % jdk_path)
 
-    def install_kubectl(self):
-        kubectl_version = urllib.request.urlopen('https://storage.googleapis.com/kubernetes-release/release/stable.txt') \
-            .read() \
-            .decode('utf-8') \
-            .replace('\n', '')
-        urllib.request.urlretrieve(
-            'https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl' % kubectl_version,
-            '/usr/local/bin/kubectl')
-        recursively_chmod('/usr/local/bin/kubectl', file_permission=0o755)
-
-    def install_minikube(self):
-        urllib.request.urlretrieve(
-            'https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64',
-            '/usr/local/bin/minikube')
-        execute(['chmod', '+x', '/usr/local/bin/minikube'])
-
     def setup_openvpn(self):
         os.makedirs(os.environ['HOME'] + '/.openvpn')
 
@@ -89,13 +133,8 @@ class Linux(Unix):
         execute(['./oh-my-zsh.sh'])
         self.copy_config('zsh/zshrc.symlink', '.zshrc')
 
-    def set_development_environment_settings(self):
-        print('Setting mmapfs limit for Elasticsearch')
-        with open('/etc/sysctl.conf', 'a') as f:
-            f.write('vm.max_map_count=262144')
-
-    def set_free_dns_cron(self):
-        copyfile('dynIpUpdate.sh', '/opt/')
-        execute(['crontab', '-l', '>', 'file;', 'echo', "'0 5 * * * /opt/dynIpUpdate.sh.sh >/dev/null 2>&1'", '>>',
-                 'file;', 'crontab', 'file'])
-        os.remove('file')
+    def snap_install_application(self, application, classic=False):
+        commands = ['snap', 'install', application]
+        if classic:
+            commands.append('--classic')
+        execute(commands)
