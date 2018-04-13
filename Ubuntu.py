@@ -156,7 +156,7 @@ class Ubuntu(Linux):
 
     def install_system_extras(self):
         self.set_debconf('ttf-mscorefonts-installer', 'msttcorefonts/accepted-mscorefonts-eula')
-        self.install_application('ubuntu-restricted-extras')
+        self.install_applications(['ubuntu-restricted-extras', 'chrome-gnome-shell', 'gnome-tweaks'])
 
     def install_terraform(self):
         download_file(
