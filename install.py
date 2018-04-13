@@ -153,6 +153,8 @@ def main(argv):
     if personal:
         print('Installing Chromium')
         system.install_chromium()
+        print('Installing Discord')
+        system.install_discord()
         print('Installing Dropbox')
         system.install_dropbox()
         print('Installing Codecs')
@@ -165,6 +167,8 @@ def main(argv):
         system.install_nextcloud_client()
         print('Installing OpenVPN')
         system.install_openvpn()
+        print('Installing Retroarch')
+        system.install_retroarch()
         print('Installing Spotify')
         system.install_spotify()
         print('Installing Steam')

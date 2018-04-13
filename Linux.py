@@ -21,6 +21,9 @@ class Linux(Unix):
     def install_chromium(self):
         self.snap_install_application('chromium')
 
+    def install_discord(self):
+        self.snap_install_application('discord')
+
     def install_ecryptfs(self):
         self.install_application('ecryptfs')
         execute(['modprobe', 'ecryptfs'])
@@ -55,6 +58,9 @@ class Linux(Unix):
 
     def install_nextcloud_client(self):
         self.snap_install_application('nextcloud-client')
+
+    def install_retroarch(self):
+        self.snap_install_application('retroarch')
 
     def install_simplescreenrecorder(self):
         self.install_application('simplescreenrecorder')

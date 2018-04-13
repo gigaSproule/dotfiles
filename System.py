@@ -84,6 +84,9 @@ class System:
     def install_deb(self):
         pass
 
+    def install_discord(self):
+        pass
+
     def install_docker(self):
         pass
 
@@ -160,6 +163,9 @@ class System:
         pass
 
     def setup_openvpn(self):
+        pass
+
+    def install_retroarch(self):
         pass
 
     def install_simplescreenrecorder(self):
