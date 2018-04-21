@@ -139,7 +139,7 @@ class Ubuntu(Linux):
     def install_nodejs(self):
         execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
         self.update_os_repo()
-        self.install_application('nodejs')
+        self.install_applications(['npm', 'nodejs'])
 
     def install_nss(self):
         self.install_application('libnss3-tools')
