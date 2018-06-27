@@ -36,8 +36,8 @@ sudo update-ca-certificates
 
 ### Java
 ```bash
-sudo keytool -keystore ${JAVA_HOME}/jre/lib/security/cacerts -importcert -alias ${CERT_NAME} -file /usr/local/share/ca-certificates/${CERT_NAME}.crt
-sudo keytool -list -keystore ${JAVA_HOME}/jre/lib/security/cacerts | grep ${CERT_NAME}
+sudo keytool -keystore ${JAVA_HOME}/lib/security/cacerts -importcert -alias ${CERT_NAME} -file /usr/local/share/ca-certificates/${CERT_NAME}.crt
+sudo keytool -list -keystore ${JAVA_HOME}/lib/security/cacerts | grep ${CERT_NAME}
 ```
 
 ### Firefox
