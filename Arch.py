@@ -40,12 +40,12 @@ class Arch(Linux):
     def install_dropbox(self):
         self.install_applications(['aur/dropbox', 'aur/nautilus-dropbox'])
 
-    def install_eclipse(self):
-        self.install_application('eclipse-jee')
-
     def install_git(self):
         self.install_application('git')
         super().setup_git()
+
+    def install_gpg(self):
+        self.install_application('seahorse-nautilus')
 
     def install_jdk(self):
         self.install_application('aur/jdk')

@@ -24,6 +24,9 @@ class Linux(Unix):
     def install_discord(self):
         self.snap_install_application('discord')
 
+    def install_eclipse(self):
+        self.snap_install_application('eclipse', True)
+
     def install_ecryptfs(self):
         self.install_application('ecryptfs')
         execute(['modprobe', 'ecryptfs'])
@@ -33,6 +36,9 @@ class Linux(Unix):
 
     def install_intellij(self):
         self.snap_install_application('intellij-idea-ultimate', True)
+
+    def install_keepassxc(self):
+        self.snap_install_application('keepassxc')
 
     def install_kubectl(self):
         kubectl_version = urllib.request.urlopen('https://storage.googleapis.com/kubernetes-release/release/stable.txt') \
@@ -58,6 +64,9 @@ class Linux(Unix):
 
     def install_nextcloud_client(self):
         self.snap_install_application('nextcloud-client')
+
+    def install_nordvpn(self):
+        pass
 
     def install_retroarch(self):
         self.snap_install_application('retroarch')

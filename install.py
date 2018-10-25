@@ -58,11 +58,11 @@ def main(argv):
     vm = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hd:p:s:m:',
-                                   ['help', 'development', 'personal', 'server', 'media'])
+        opts, args = getopt.getopt(argv, 'hd:p:s:m:v:',
+                                   ['help', 'development', 'personal', 'server', 'media', 'vm'])
         for opt, arg in opts:
             if opt in ('-h', '--help'):
-                print('install.py [-d] [-p] [-r] [-s]')
+                print('install.py [-d] [-p] [-r] [-s] [-m] [-v]')
                 exit(0)
             elif opt in ('-d', '--development'):
                 development = True
@@ -75,7 +75,7 @@ def main(argv):
             elif opt in ('-v', '--vm'):
                 vm = True
     except getopt.GetoptError:
-        print('install.py [-d] [-r] [-s]')
+        print('install.py [-d] [-r] [-s] [-m] [-v]')
         exit(1)
 
     setup_user_bin()
@@ -113,6 +113,8 @@ def main(argv):
         system.install_eclipse()
         print('Installing ecryptfs')
         system.install_ecryptfs()
+        print('Installing GPG')
+        system.install_gpg()
         print('Installing IntelliJ')
         system.install_intellij()
         print('Installing jq')
@@ -131,6 +133,8 @@ def main(argv):
         system.install_nss()
         print('Installing OpenVPN')
         system.install_openvpn()
+        print('Installing NordVPN')
+        system.install_nordvpn()
         print('Installing RPM')
         system.install_rpm()
         print('Installing SimpleScreenRecorder')
@@ -159,6 +163,8 @@ def main(argv):
         system.install_dropbox()
         print('Installing Codecs')
         system.install_codecs()
+        print('Installing GPG')
+        system.install_gpg()
         print('Installing KeepassXC')
         system.install_keepassxc()
         print('Installing Lutris')
@@ -167,6 +173,8 @@ def main(argv):
         system.install_nextcloud_client()
         print('Installing OpenVPN')
         system.install_openvpn()
+        print('Installing NordVPN')
+        system.install_nordvpn()
         print('Installing Retroarch')
         system.install_retroarch()
         print('Installing Spotify')

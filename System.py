@@ -111,6 +111,9 @@ class System:
         execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
         os.makedirs(os.environ['HOME'] + '/.git/hooks', exist_ok=True)
 
+    def install_gpg(self):
+        pass
+
     def install_groovy_gradle(self):
         pass
 

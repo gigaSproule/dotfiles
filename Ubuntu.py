@@ -53,39 +53,12 @@ class Ubuntu(Linux):
     def install_dropbox(self):
         self.install_application('nautilus-dropbox')
 
-    def install_eclipse(self):
-        if os.path.exists('/opt/eclipse'):
-            return
-
-        os.makedirs('/opt/eclipse')
-
-        download_file(
-            'http://ftp.fau.de/eclipse/technology/epp/downloads/release/oxygen/R/eclipse-jee-oxygen-R-linux-gtk-' +
-            platform.machine() + '.tar.gz', '/tmp/eclipse.tar.gz')
-
-        untar_rename_root('/tmp/eclipse.tar.gz', '/opt/eclipse')
-
-        os.remove('/tmp/eclipse.tar.gz')
-
-        recursively_chmod('/opt/eclipse')
-
-        if not os.path.exists('/usr/share/applications'):
-            os.makedirs('/usr/share/applications')
-
-        with open('/usr/share/applications/eclipse.desktop', 'w') as f:
-            f.write('[Desktop Entry]\n'
-                    'Version=1.0\n'
-                    'Name=eclipse\n'
-                    'Comment=Eclipse IDE\n'
-                    'Exec=/opt/eclipse/eclipse\n'
-                    'Icon=/opt/eclipse/icon.xpm\n'
-                    'Terminal=false\n'
-                    'Type=Application\n'
-                    'Categories=Development;IDE;')
-
     def install_git(self):
         self.install_applications(['git', 'git-flow'])
         super().setup_git()
+
+    def install_gpg(self):
+        self.install_application('seahorse-nautilus')
 
     def install_jdk(self):
         self.add_ppa('webupd8team/java')
@@ -101,6 +74,8 @@ class Ubuntu(Linux):
         self.install_application('jq')
 
     def install_keepassxc(self):
+        self.add_apt_repo('keepassxc', [
+            'deb http://ppa.launchpad.net/phoerious/keepassxc/ubuntu %s main' % distro.lsb_release_info()['codename']])
         self.install_application('keepassxc')
 
     def install_lutris(self):
@@ -140,6 +115,13 @@ class Ubuntu(Linux):
         execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
         self.update_os_repo()
         self.install_applications(['npm', 'nodejs'])
+
+    def install_nordvpn(self):
+        download_file('https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb',
+                      'nordvpn.deb')
+        self.install_application('./nordvpn.deb')
+        self.update_os_repo()
+        self.install_application('nordvpn')
 
     def install_nss(self):
         self.install_application('libnss3-tools')
