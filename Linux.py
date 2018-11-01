@@ -26,6 +26,7 @@ class Linux(Unix):
 
     def install_eclipse(self):
         self.snap_install_application('eclipse', True)
+        self.setup_eclipse()
 
     def install_ecryptfs(self):
         self.install_application('ecryptfs')
@@ -120,6 +121,19 @@ class Linux(Unix):
             f.write('{\n'
                     '"dns": ["10.14.98.21", "10.14.98.22", "8.8.8.8"]\n'
                     '}')
+            
+    def setup_eclipse(self):
+        if not os.path.exists('/opt/eclipse'):
+            os.makedirs('/opt/eclipse')
+        
+        urllib.request.urlretrieve(
+            'https://projectlombok.org/downloads/lombok.jar',
+            '/opt/eclipse/lombok.jar')
+        
+        copyfile('/snap/eclipse/current/eclipse.ini', '/opt/eclipse/eclipse.ini')
+        
+        with open('/opt/eclipse/eclipse.ini', 'a') as f:
+            f.write('-javaagent:/opt/eclipse/lombok.jar')
 
     def setup_git(self):
         execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
