@@ -181,6 +181,8 @@ def main(argv):
         system.install_spotify()
         print('Installing Steam')
         system.install_steam()
+        print('Installing SweetHome3D')
+        system.install_sweet_home_3d()
         print('Installing tmux')
         system.install_tmux()
         print('Installing ZSH')

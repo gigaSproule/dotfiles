@@ -182,6 +182,9 @@ class System:
 
     def install_steam(self):
         pass
+    
+    def install_sweet_home_3d(self):
+        pass
 
     def install_system_extras(self):
         pass

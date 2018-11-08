@@ -65,6 +65,7 @@ class Linux(Unix):
 
     def install_nextcloud_client(self):
         self.snap_install_application('nextcloud-client')
+        self.setup_nextcloud_client()
 
     def install_nordvpn(self):
         pass
@@ -75,11 +76,16 @@ class Linux(Unix):
     def install_simplescreenrecorder(self):
         self.install_application('simplescreenrecorder')
 
-    def install_spotify(self):
-        self.snap_install_application('spotify')
-
     def install_slack(self):
         self.snap_install_application('slack')
+
+    def install_spotify(self):
+        self.snap_install_application('spotify')
+        self.setup_spotify()
+
+    def install_sweet_home_3d(self):
+        self.snap_install_application('sweethome3d-homedesign')
+        self.setup_sweet_home_3d()
 
     def set_development_environment_settings(self):
         print('Setting mmapfs limit for Elasticsearch')
@@ -149,8 +155,20 @@ class Linux(Unix):
             if 'JAVA_HOME' not in contents:
                 f.write('export JAVA_HOME=%s' % jdk_path)
 
+    def setup_nextcloud_client(self):
+        execute(['snap', 'connect', 'nextcloud-client:network'])
+        execute(['snap', 'connect', 'nextcloud-client:home'])
+        execute(['snap', 'connect', 'nextcloud-client:password-manager-service'])
+
     def setup_openvpn(self):
         os.makedirs(os.environ['HOME'] + '/.openvpn')
+
+    def setup_spotify(self):
+        execute(['snap', 'connect', 'spotify:network'])
+
+    def setup_sweet_home_3d(self):
+        execute(['snap', 'connect', 'sweethome3d-homedesign:removable-media'])
+        execute(['snap', 'connect', 'sweethome3d-homedesign:home'])
 
     def setup_tux(self):
         self.copy_config('tmux/tmux.conf.symlink', '.tmux.conf')
