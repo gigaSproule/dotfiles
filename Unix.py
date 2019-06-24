@@ -1,6 +1,7 @@
 import os
 import shutil
 from shutil import copyfile
+from typing import AnyStr
 
 from System import System, execute
 
@@ -17,7 +18,7 @@ class Unix(System):
         execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
         os.makedirs(os.environ['HOME'] + '/.git/hooks', exist_ok=True)
 
-    def set_java_home(self, file, jdk_path):
+    def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
         with open(os.environ['HOME'] + '/' + file, 'a+') as f:
             contents = f.read()
             if 'JAVA_HOME' not in contents:

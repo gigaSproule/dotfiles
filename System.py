@@ -5,11 +5,17 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+from typing import List, AnyStr
 
 pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
 
 
-def execute(command, directory=os.path.dirname(os.path.realpath(__file__))):
+def execute(command: List[AnyStr], directory: AnyStr = os.path.dirname(os.path.realpath(__file__)), root=False):
+    current_gid = os.getgid()
+    current_uid = os.getuid()
+    if root:
+        os.setgid(0)
+        os.setuid(0)
     proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                             cwd=directory)
     output = ''
@@ -20,13 +26,16 @@ def execute(command, directory=os.path.dirname(os.path.realpath(__file__))):
         output = output + next_line
         sys.stdout.write(next_line)
         sys.stdout.flush()
+    if root:
+        os.setgid(current_gid)
+        os.setuid(current_uid)
     return {
         'code': proc.returncode,
         'output': output
     }
 
 
-def download_file(url, downloaded_file):
+def download_file(url: AnyStr, downloaded_file: AnyStr):
     req = urllib.request.Request(
         url,
         data=None,
@@ -61,13 +70,10 @@ def recursively_chmod(path, directory_permission=0o777, file_permission=0o777):
 
 
 class System:
-    def install_application(self, application):
+    def install_application(self, application: AnyStr):
         self.install_applications([application])
 
-    def install_applications(self, applications):
-        pass
-
-    def install_atom(self):
+    def install_applications(self, applications: List[AnyStr]):
         pass
 
     def install_chromium(self):
@@ -81,7 +87,7 @@ class System:
         urllib.request.urlretrieve('http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg',
                                    os.environ['HOME'] + '/.config/aacs')
 
-    def install_deb(self):
+    def install_curl(self):
         pass
 
     def install_discord(self):
@@ -99,7 +105,10 @@ class System:
     def install_eclipse(self):
         pass
 
-    def install_ecryptfs(self):
+    def install_firefox(self):
+        pass
+
+    def install_firmware_updater(self):
         pass
 
     def install_git(self):
@@ -114,6 +123,12 @@ class System:
     def install_gpg(self):
         pass
 
+    def install_graphic_card_tools(self):
+        pass
+
+    def install_graphic_card_tools_laptop(self):
+        pass
+
     def install_groovy_gradle(self):
         pass
 
@@ -123,10 +138,7 @@ class System:
     def install_jdk(self):
         pass
 
-    def set_java_home(self, file, jdk_path):
-        pass
-
-    def install_jq(self):
+    def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
         pass
 
     def install_keepassxc(self):
@@ -144,7 +156,7 @@ class System:
     def install_makemkv(self):
         pass
 
-    def install_mcollective(self):
+    def install_microcode(self):
         pass
 
     def install_minikube(self):
@@ -159,16 +171,7 @@ class System:
     def install_nodejs(self):
         pass
 
-    def install_nss(self):
-        pass
-
-    def install_openvpn(self):
-        pass
-
-    def setup_openvpn(self):
-        pass
-
-    def install_retroarch(self):
+    def install_powertop(self):
         pass
 
     def install_simplescreenrecorder(self):
@@ -182,26 +185,26 @@ class System:
 
     def install_steam(self):
         pass
-    
+
     def install_sweet_home_3d(self):
         pass
 
     def install_system_extras(self):
         pass
 
-    def install_system_dependencies(self):
-        pass
-
-    def install_rpm(self):
-        pass
-
-    def install_terraform(self):
+    def install_tlp(self):
         pass
 
     def install_tmux(self):
         pass
 
     def install_vm_tools(self):
+        pass
+
+    def install_vscode(self):
+        pass
+
+    def install_window_manager(self):
         pass
 
     def install_zsh(self):
@@ -217,6 +220,9 @@ class System:
         pass
 
     def set_free_dns_cron(self):
+        pass
+
+    def setup_power_saving_tweaks(self):
         pass
 
     def update_os(self):

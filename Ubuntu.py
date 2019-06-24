@@ -2,6 +2,7 @@ import os
 import platform
 import uuid
 import zipfile
+from typing import AnyStr, List
 
 import distro
 
@@ -28,17 +29,17 @@ class Ubuntu(Linux):
     def add_ppa(self, ppa):
         execute(['sudo', 'add-apt-repository', '-y', 'ppa:%s' % ppa])
 
-    def install_applications(self, applications):
+    def install_applications(self, applications: List[AnyStr]):
         command = ['apt-get', 'install', '-y']
         command.extend(applications)
-        execute(command)
+        execute(command, root=True)
+
+    def install_chromium(self):
+        self.install_application('chromium-browser')
 
     def install_codecs(self):
         self.install_applications(['libdvd-pkg', 'libaacs0', 'libbluray-bdj', 'libbluray1'])
         super().setup_codecs()
-
-    def install_curl(self):
-        self.install_application('curl')
 
     def install_docker(self):
         self.add_apt_key('https://download.docker.com/linux/ubuntu/gpg')
@@ -53,8 +54,15 @@ class Ubuntu(Linux):
     def install_dropbox(self):
         self.install_application('nautilus-dropbox')
 
+    def install_eclipse(self):
+        self.flatpak_install_application('eclipse')
+        self.setup_eclipse()
+
+    def install_flatpak(self):
+        self.install_application('flatpak')
+
     def install_git(self):
-        self.install_applications(['git', 'git-flow'])
+        self.install_application('git')
         super().setup_git()
 
     def install_gpg(self):
@@ -69,9 +77,6 @@ class Ubuntu(Linux):
 
         self.set_java_home('.zshrc', '/usr/lib/jvm/java-8-oracle')
         self.set_java_home('.bashrc', '/usr/lib/jvm/java-8-oracle')
-
-    def install_jq(self):
-        self.install_application('jq')
 
     def install_keepassxc(self):
         self.add_apt_repo('keepassxc', [
@@ -108,8 +113,11 @@ class Ubuntu(Linux):
         execute('make install', 'makemkv-bin')
         os.remove('makemkv-bin')
 
-    def install_mcollective(self):
-        self.install_application('mcollective')
+    def install_microcode(self):
+        # if cat /proc/cpuinfo | grep 'vendor' | uniq == "GenuineIntel":
+        self.install_application('intel-microcode')
+        # else:
+        # self.install_application('amd-microcode')
 
     def install_nodejs(self):
         execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
@@ -123,16 +131,6 @@ class Ubuntu(Linux):
         self.update_os_repo()
         self.install_application('nordvpn')
 
-    def install_nss(self):
-        self.install_application('libnss3-tools')
-
-    def install_openvpn(self):
-        self.install_applications(['openvpn', 'network-manager-openvpn', 'network-manager-openvpn-gnome'])
-        super().setup_openvpn()
-
-    def install_rpm(self):
-        self.install_application('rpm')
-
     def install_steam(self):
         self.install_application('steam-installer')
 
@@ -140,17 +138,9 @@ class Ubuntu(Linux):
         self.set_debconf('ttf-mscorefonts-installer', 'msttcorefonts/accepted-mscorefonts-eula')
         self.install_applications(['ubuntu-restricted-extras', 'chrome-gnome-shell', 'gnome-tweaks'])
 
-    def install_terraform(self):
-        download_file(
-            'https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_linux_amd64.zip', '/tmp/terraform.zip')
-        with zipfile.ZipFile('/tmp/terraform.zip', 'r') as f:
-            f.extractall('/usr/local/bin')
-        os.remove('/tmp/terraform.zip')
-        execute(['sysctl', '-p', '--system'])
-
     def install_tmux(self):
         self.install_application('tmux')
-        super().setup_tux()
+        super().setup_tmux()
 
     def install_vm_tools(self):
         self.install_applications(['open-vm-tools', 'open-vm-tools-desktop'])
@@ -159,7 +149,7 @@ class Ubuntu(Linux):
         self.install_application('zsh')
         super().setup_zsh()
 
-    def set_debconf(installer, conf, value='true'):
+    def set_debconf(self, installer, conf, value='true'):
         debconf_file = '%s.debconf' % uuid.uuid4()
         with open(debconf_file, 'w') as f:
             f.write('%s %s select %s\n' % (installer, conf, value))
@@ -176,7 +166,7 @@ class Ubuntu(Linux):
 
     def update_os(self):
         self.update_os_repo()
-        execute(['apt-get', '-y', 'full-upgrade'])
+        execute(['apt-get', '-y', 'full-upgrade'], root=True)
 
     def update_os_repo(self):
-        execute(['apt-get', 'update'])
+        execute(['apt-get', 'update'], root=True)

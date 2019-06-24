@@ -22,7 +22,7 @@ def install_required_dependencies():
     if execute(['pip3', '-V'])['code'] == 0:
         execute(['pip3', 'install', 'distro', 'lxml'])
     else:
-        execute(['pip', 'install', 'distro'])
+        execute(['pip', 'install', 'distro', 'lxml'])
 
 
 def get_system():
@@ -51,25 +51,23 @@ def get_system():
 
 
 def main(argv):
-    development = False
     personal = False
-    media = False
+    docker = False
+    laptop = False
     server = False
     vm = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hd:p:s:m:v:',
-                                   ['help', 'development', 'personal', 'server', 'media', 'vm'])
+        opts, args = getopt.getopt(argv, 'hd:p:s:v:',
+                                   ['help', 'docker', 'personal', 'server', 'vm'])
         for opt, arg in opts:
             if opt in ('-h', '--help'):
-                print('install.py [-d] [-p] [-r] [-s] [-m] [-v]')
+                print('install.py [-d] [-p] [-r] [-s] [-v]')
                 exit(0)
-            elif opt in ('-d', '--development'):
-                development = True
+            elif opt in ('-d', '--docker'):
+                docker = True
             elif opt in ('-p', '--personal'):
                 personal = True
-            elif opt in ('-m', '--media'):
-                media = True
             elif opt in ('-s', '--server'):
                 server = True
             elif opt in ('-v', '--vm'):
@@ -83,12 +81,16 @@ def main(argv):
     install_required_dependencies()
 
     system = get_system()
-    system.install_system_dependencies()
-    system.update_os()
     print('Installing Distro Specific Extras')
     system.install_system_extras()
+    system.update_os()
 
-    if development:
+    if personal:
+        print('Installing GNOME')
+        system.install_window_manager()
+        print('Installing Graphic Card Tools')
+        system.install_graphic_card_tools()
+
         print('Installing Git')
         system.install_git()
         print('Installing Curl')
@@ -101,50 +103,50 @@ def main(argv):
         print('Installing NodeJS')
         system.install_nodejs()
 
-        print('Installing Atom')
-        system.install_atom()
         print('Installing Chromium')
         system.install_chromium()
-        print('Installing Deb')
-        system.install_deb()
-        print('Installing Docker')
-        system.install_docker()
+        print('Installing Codecs')
+        system.install_codecs()
+        print('Installing Discord')
+        system.install_discord()
+        print('Installing Dropbox')
+        system.install_dropbox()
         print('Installing Eclipse')
         system.install_eclipse()
-        print('Installing ecryptfs')
-        system.install_ecryptfs()
+        print('Installing Firefox')
+        system.install_firefox()
         print('Installing GPG')
         system.install_gpg()
         print('Installing IntelliJ')
         system.install_intellij()
-        print('Installing jq')
-        system.install_jq()
         print('Installing KeepassXC')
         system.install_keepassxc()
-        print('Installing Kubectl')
-        system.install_kubectl()
+        print('Installing Lutris')
+        system.install_lutris()
+        print('Installing MakeMKV')
+        system.install_makemkv()
         print('Installing Maven')
         system.install_maven()
-        print('Installing Minikube')
-        system.install_minikube()
-        print('Installing mcollective')
-        system.install_mcollective()
-        print('Install NSS')
-        system.install_nss()
-        print('Installing OpenVPN')
-        system.install_openvpn()
+        print('Installing MKVToolNix')
+        system.install_mkvtoolnix()
+        print('Installing Nextcloud Client')
+        system.install_nextcloud_client()
         print('Installing NordVPN')
         system.install_nordvpn()
-        print('Installing RPM')
-        system.install_rpm()
         print('Installing SimpleScreenRecorder')
         system.install_simplescreenrecorder()
         print('Installing Slack')
         system.install_slack()
-        print('Installing terraform')
-        system.install_terraform()
+        print('Installing Spotify')
+        system.install_spotify()
+        print('Installing Steam')
+        system.install_steam()
+        print('Installing SweetHome3D')
+        system.install_sweet_home_3d()
         print('Installing tmux')
         system.install_tmux()
+        print('Installing VSCode')
+        system.install_vscode()
         print('Installing ZSH')
         system.install_zsh()
 
@@ -154,51 +156,33 @@ def main(argv):
         print('Setting development environment settings')
         system.set_development_environment_settings()
 
-    if personal:
-        print('Installing Chromium')
-        system.install_chromium()
-        print('Installing Discord')
-        system.install_discord()
-        print('Installing Dropbox')
-        system.install_dropbox()
-        print('Installing Codecs')
-        system.install_codecs()
-        print('Installing GPG')
-        system.install_gpg()
-        print('Installing KeepassXC')
-        system.install_keepassxc()
-        print('Installing Lutris')
-        system.install_lutris()
-        print('Installing Nextcloud Client')
-        system.install_nextcloud_client()
-        print('Installing OpenVPN')
-        system.install_openvpn()
-        print('Installing NordVPN')
-        system.install_nordvpn()
-        print('Installing Retroarch')
-        system.install_retroarch()
-        print('Installing Spotify')
-        system.install_spotify()
-        print('Installing Steam')
-        system.install_steam()
-        print('Installing SweetHome3D')
-        system.install_sweet_home_3d()
-        print('Installing tmux')
-        system.install_tmux()
-        print('Installing ZSH')
-        system.install_zsh()
+    if docker:
+        print('Installing Docker')
+        system.install_docker()
+        print('Installing Kubectl')
+        system.install_kubectl()
+        print('Installing Minikube')
+        system.install_minikube()
 
-    if media:
-        print('Installing MakeMKV')
-        system.install_makemkv()
-        print('Installing MKVToolNix')
-        system.install_mkvtoolnix()
+    if laptop:
+        print('Installing Graphic Card Tools')
+        system.install_graphic_card_tools()
+        print('Installing Graphics Card Tools for Laptop')
+        system.install_graphic_card_tools_laptop()
+        print('Installing Microcode')
+        system.install_microcode()
+        print('Installing Powertop')
+        system.install_powertop()
+        print('Installing TLP')
+        system.install_tlp()
+        print('Setup power saving tweaks')
+        system.setup_power_saving_tweaks()
+        print('Installing FWUPD')
+        system.install_firmware_updater()
 
     if server:
         print('Installing Docker')
         system.install_docker()
-        print('Installing Free DNS Cron')
-        system.set_free_dns_cron()
 
     if vm:
         print('Installing VM Tools')
