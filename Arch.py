@@ -248,23 +248,23 @@ class Arch(Linux):
         self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
 
     def setup_power_saving_tweaks(self):
-        # if contents of /sys/devices/virtual/dmi/id/product_name is "XPS 15 9570"
         device_name = ''
         with open('/sys/devices/virtual/dmi/id/product_name', 'r') as f:
             for line in f.readlines():
                 device_name = line
 
         if device_name == 'XPS 15 9570':
-            # Set contents of /sys/power/mem_sleep to "s2idle [deep]"
             with open('/sys/power/mem_sleep', 'w') as f:
                 f.write('s2idle [deep]')
 
-            # Set GRUB_CMDLINE_LINUX_DEFAULT="mem_sleep_default=deep" in /etc/default/grub
             with open('/etc/default/grub', 'r') as f:
                 lines = []
                 for line in f.readlines():
-                    if line.startswith('#Include = /etc/pacman.d/mirrorlist'):
-                        line = line.replace('#', '', 1)
+                    if line.startswith('GRUB_CMDLINE_LINUX_DEFAULT='):
+                        split_line = line.split('=')
+                        value = split_line[1].replace('"', '')
+                        value += ' mem_sleep_default=deep'
+                        line = '%s="%s"' % (split_line[0], value)
                     lines.append(line)
             with open('/etc/default/grub', 'w') as f:
                 f.writelines(lines)
