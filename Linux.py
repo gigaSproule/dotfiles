@@ -6,25 +6,16 @@ from distutils.version import StrictVersion
 from shutil import copyfile
 from typing import AnyStr
 
-from System import execute, download_file, recursively_chmod
 from Unix import Unix
-
-pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
 
 
 class Linux(Unix):
-
-    def install_chromium(self):
-        pass
 
     def install_curl(self):
         self.install_application('curl')
 
     def install_discord(self):
         self.flatpak_install_application('com.discordapp.Discord')
-
-    def install_eclipse(self):
-        pass
 
     def install_flatpak(self):
         pass
@@ -46,16 +37,16 @@ class Linux(Unix):
         urllib.request.urlretrieve(
             'https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl' % kubectl_version,
             '/usr/local/bin/kubectl')
-        recursively_chmod('/usr/local/bin/kubectl', file_permission=0o755)
+        self.recursively_chmod('/usr/local/bin/kubectl', file_permission=0o755, super_user=True)
 
     def install_maven(self):
         self.install_application('maven')
 
     def install_minikube(self):
-        urllib.request.urlretrieve(
+        self.download_file(
             'https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64',
-            '/usr/local/bin/minikube')
-        execute(['chmod', '+x', '/usr/local/bin/minikube'])
+            '/usr/local/bin/minikube', super_user=True)
+        self.execute(['chmod', '+x', '/usr/local/bin/minikube'], super_user=True)
 
     def install_mkvtoolnix(self):
         self.flatpak_install_application('org.bunkus.mkvtoolnix-gui')
@@ -65,9 +56,6 @@ class Linux(Unix):
 
     def install_powertop(self):
         self.install_application('powertop')
-
-    def install_nordvpn(self):
-        pass
 
     def install_simplescreenrecorder(self):
         self.install_application('simplescreenrecorder')
@@ -95,23 +83,18 @@ class Linux(Unix):
         with open('/etc/sysctl.conf', 'a') as f:
             f.write('vm.max_map_count=262144')
 
-    def set_free_dns_cron(self):
-        copyfile('dynIpUpdate.sh', '/opt/')
-        execute(['crontab', '-l', '>', 'file;', 'echo', "'0 5 * * * /opt/dynIpUpdate.sh.sh >/dev/null 2>&1'", '>>',
-                 'file;', 'crontab', 'file'])
-        os.remove('file')
-
     def setup_codecs(self):
-        os.makedirs(os.environ['HOME'] + '/.config/aacs')
+        self.make_directory(os.environ['HOME'] + '/.config/aacs')
         urllib.request.urlretrieve('http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg',
                                    os.environ['HOME'] + '/.config/aacs')
 
     def setup_docker(self):
-        execute(['usermod', '-a', '-G', 'docker', os.environ['USER']])
+        self.execute(['usermod', '-a', '-G', 'docker', os.environ['USER']], super_user=True)
 
-        output = execute(['git', 'ls-remote', 'https://github.com/docker/compose'])['output']
+        output = self.execute(['git', 'ls-remote', 'https://github.com/docker/compose'])['output']
         output = output.split('\n')
         versions = []
+        pattern = re.compile('.*([0-9]+\.[0-9]+\.[0-9]+)$')
         for line in output:
             if 'refs/tags' in line:
                 match = pattern.match(line)
@@ -121,10 +104,10 @@ class Linux(Unix):
 
         urllib.request.urlretrieve('https://github.com/docker/compose/releases/download/%s/docker-compose-%s-%s' % (
             docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
-        recursively_chmod('/usr/local/bin/docker-compose', 0o755)
+        self.recursively_chmod('/usr/local/bin/docker-compose', 0o755, super_user=True)
 
         if not os.path.exists('/etc/docker'):
-            os.makedirs('/etc/docker')
+            self.make_directory('/etc/docker', super_user=True)
 
         with open('/etc/docker/daemon.json', 'w') as f:
             f.write('{\n'
@@ -133,7 +116,7 @@ class Linux(Unix):
 
     def setup_eclipse(self):
         if not os.path.exists('/opt/eclipse'):
-            os.makedirs('/opt/eclipse')
+            self.make_directory('/opt/eclipse', super_user=True)
 
         urllib.request.urlretrieve(
             'https://projectlombok.org/downloads/lombok.jar',
@@ -145,10 +128,10 @@ class Linux(Unix):
             f.write('-javaagent:/opt/eclipse/lombok.jar')
 
     def setup_git(self):
-        execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
-        execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
-        execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
-        os.makedirs(os.environ['HOME'] + '/.git/hooks', exist_ok=True)
+        self.execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
+        self.execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
+        self.execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
+        self.make_directory(os.environ['HOME'] + '/.git/hooks')
         self.copy_config('git/gitconfig.symlink', '.git/gitconfig')
         self.copy_config('git/post-checkout.symlink', '.git/post-checkout')
 
@@ -162,12 +145,12 @@ class Linux(Unix):
         self.copy_config('tmux/tmux.conf', '.tmux.conf')
 
     def setup_zsh(self):
-        download_file('https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh',
-                      'oh-my-zsh.sh')
-        recursively_chmod('./oh-my-zsh.sh')
-        execute(['./oh-my-zsh.sh'])
+        self.download_file('https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh',
+                           'oh-my-zsh.sh')
+        self.recursively_chmod('./oh-my-zsh.sh')
+        self.execute(['./oh-my-zsh.sh'])
         self.copy_config('zsh/zshrc', '.zshrc')
 
     def flatpak_install_application(self, application):
         commands = ['flatpak', 'install', 'flathub', '-y', application]
-        execute(commands)
+        self.execute(commands)

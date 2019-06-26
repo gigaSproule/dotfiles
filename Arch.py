@@ -1,10 +1,6 @@
-import os
-from shutil import copyfile
 from typing import List, AnyStr
 
 from Linux import Linux
-from Linux import execute
-from System import download_file
 
 
 class Arch(Linux):
@@ -17,23 +13,27 @@ class Arch(Linux):
     def aur_install_applications(self, applications: List[AnyStr]):
         for application in applications:
             output_file = '%s.tar.gz' % application
-            download_file('https://aur.archlinux.org/cgit/aur.git/snapshot/%s.tar.gz' % application,
-                          output_file)
-            execute(['tar', '-xvf', output_file])
-            execute(['makepkg', '-Acsi', '--noconfirm'], application, True)
-            os.remove(output_file)
-            os.remove(application)
+            self.download_file('https://aur.archlinux.org/cgit/aur.git/snapshot/%s.tar.gz' % application,
+                               output_file)
+            self.execute(['tar', '-xvf', output_file])
+            self.execute(['makepkg', '-Acsi', '--noconfirm'], application)
+            self.delete_file(output_file)
+            self.delete_file(application)
 
     def enable_service(self, service: AnyStr):
-        execute(['systemctl', 'enable', service], root=True)
+        self.execute(['systemctl', 'enable', service], super_user=True)
 
     def install_applications(self, applications: List[AnyStr]):
         command = ['pacman', '-Sy', '--noconfirm', '--needed']
         command.extend(applications)
-        execute(command, root=True)
+        self.execute(command, super_user=True)
 
-    def install_chromium(self):
-        self.install_application('chromium')
+    def install_bluetooth(self):
+        self.install_applications(['bluez', 'bluez-utils'])
+        self.enable_service('bluetooth')
+
+    def install_chrome(self):
+        self.aur_install_application('google-chrome')
 
     def install_codecs(self):
         self.install_applications(['libdvdread', 'libdvdcss', 'libdvdnav', 'libbluray', 'libaacs'])
@@ -189,21 +189,25 @@ class Arch(Linux):
     def install_system_extras(self):
         self.install_flatpak()
         self.install_applications(['base-devel'])
-        with open('/etc/pacman.conf', 'r') as f:
-            lines = []
-            enable_multilib = False
-            for line in f.readlines():
-                if line.startswith('#[multilib]'):
-                    line = line.replace('#', '', 1)
-                    enable_multilib = True
-                if enable_multilib and line.startswith('#Include = /etc/pacman.d/mirrorlist'):
-                    line = line.replace('#', '', 1)
-                    enable_multilib = False
-                lines.append(line)
-        lines.extend(['[archlinuxfr]\n', 'SigLevel = Never\n', 'Server = http://repo.archlinux.fr/\$arch'])
-        with open('/etc/pacman.conf', 'w') as f:
-            f.writelines(lines)
-        execute(['pacman', '-Sy', '--noconfirm', 'yaourt', 'firefox', 'wget'])
+
+        def edit_file():
+            with open('/etc/pacman.conf', 'r') as f:
+                lines = []
+                enable_multilib = False
+                for line in f.readlines():
+                    if line.startswith('#[multilib]'):
+                        line = line.replace('#', '', 1)
+                        enable_multilib = True
+                    if enable_multilib and line.startswith('#Include = /etc/pacman.d/mirrorlist'):
+                        line = line.replace('#', '', 1)
+                        enable_multilib = False
+                    lines.append(line)
+            lines.extend(['[archlinuxfr]\n', 'SigLevel = Never\n', 'Server = http://repo.archlinux.fr/\$arch'])
+            with open('/etc/pacman.conf', 'w') as f:
+                f.writelines(lines)
+
+        self.run_as_super_user(edit_file)
+        self.execute(['pacman', '-Sy', '--noconfirm', 'yaourt', 'firefox', 'wget'], super_user=True)
 
     def install_tlp(self):
         super().install_tlp()
@@ -217,6 +221,13 @@ class Arch(Linux):
     def install_vscode(self):
         self.install_application('code')
 
+    def install_wifi(self):
+        self.copy_file('/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin',
+                       '/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak', super_user=True)
+        self.download_file(
+            'https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035',
+            '/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin', super_user=True)
+
     def install_window_manager(self):
         self.install_applications(['gnome', 'libcanberra'])
         self.enable_service('gdm')
@@ -227,14 +238,14 @@ class Arch(Linux):
         super().setup_zsh()
 
     def reload_service_daemons(self):
-        execute(['systemctl', 'daemon-reload'], root=True)
+        self.execute(['systemctl', 'daemon-reload'], super_user=True)
 
     def set_development_shortcuts(self):
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
 
     def setup_power_saving_tweaks(self):
         # if contents of /sys/devices/virtual/dmi/id/product_name is "XPS 15 9570"
@@ -260,7 +271,7 @@ class Arch(Linux):
 
     def update_os(self):
         self.update_os_repo()
-        execute(['pacman' '-Syu', '--noconfirm'], root=True)
+        self.execute(['pacman' '-Syu', '--noconfirm'], super_user=True)
 
     def update_os_repo(self):
-        execute(['pacman' '-S'], root=True)
+        self.execute(['pacman' '-S'], super_user=True)

@@ -5,9 +5,10 @@ import sys
 
 from Arch import Arch
 from Kubuntu import Kubuntu
-from Linux import execute, Linux
+from Linux import Linux
 from Lubuntu import Lubuntu
 from Mac import Mac
+from System import System
 from Ubuntu import Ubuntu
 from Windows import Windows
 from Xubuntu import Xubuntu
@@ -19,10 +20,10 @@ def setup_user_bin():
 
 
 def install_required_dependencies():
-    if execute(['pip3', '-V'])['code'] == 0:
-        execute(['pip3', 'install', 'distro', 'lxml'])
+    if System().execute(['pip3', '-V'])['code'] == 0:
+        System().execute(['pip3', 'install', 'distro', 'lxml'])
     else:
-        execute(['pip', 'install', 'distro', 'lxml'])
+        System().execute(['pip', 'install', 'distro', 'lxml'])
 
 
 def get_system():
@@ -81,6 +82,13 @@ def main(argv):
     install_required_dependencies()
 
     system = get_system()
+    if not system.is_super_user():
+        print(
+            'This needs to be run as root, so the script can dynamically switch between what is run as root and what is not.')
+        exit(1)
+    else:
+        system.set_user_as_normal_user()
+
     print('Installing Distro Specific Extras')
     system.install_system_extras()
     system.update_os()
@@ -103,8 +111,8 @@ def main(argv):
         print('Installing NodeJS')
         system.install_nodejs()
 
-        print('Installing Chromium')
-        system.install_chromium()
+        print('Installing Chrome')
+        system.install_chrome()
         print('Installing Codecs')
         system.install_codecs()
         print('Installing Discord')
@@ -165,6 +173,10 @@ def main(argv):
         system.install_minikube()
 
     if laptop:
+        print('Installing Bluetooth')
+        system.install_bluetooth()
+        print('Installing FWUPD')
+        system.install_firmware_updater()
         print('Installing Graphic Card Tools')
         system.install_graphic_card_tools()
         print('Installing Graphics Card Tools for Laptop')
@@ -175,10 +187,10 @@ def main(argv):
         system.install_powertop()
         print('Installing TLP')
         system.install_tlp()
+        print('Install WiFi')
+        system.install_wifi()
         print('Setup power saving tweaks')
         system.setup_power_saving_tweaks()
-        print('Installing FWUPD')
-        system.install_firmware_updater()
 
     if server:
         print('Installing Docker')

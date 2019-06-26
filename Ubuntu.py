@@ -1,13 +1,9 @@
-import os
-import platform
 import uuid
-import zipfile
 from typing import AnyStr, List
 
 import distro
 
 from Linux import Linux
-from System import execute, download_file, untar_rename_root, recursively_chmod
 
 
 class Ubuntu(Linux):
@@ -17,9 +13,9 @@ class Ubuntu(Linux):
     def add_apt_key(self, url):
         apt_file = '%s.apt' % uuid.uuid4()
         with open(apt_file, 'w') as f:
-            f.write(execute(['curl', '-fsSL', url])['output'])
-        execute(['apt-key', 'add', apt_file])
-        os.remove(apt_file)
+            f.write(self.execute(['curl', '-fsSL', url])['output'])
+        self.execute(['apt-key', 'add', apt_file], super_user=True)
+        self.delete_file(apt_file)
 
     def add_apt_repo(self, file_name, urls):
         with open('/etc/apt/sources.list.d/%s.list' % file_name, 'w') as f:
@@ -27,15 +23,18 @@ class Ubuntu(Linux):
                 f.write(url)
 
     def add_ppa(self, ppa):
-        execute(['sudo', 'add-apt-repository', '-y', 'ppa:%s' % ppa])
+        self.execute(['add-apt-repository', '-y', 'ppa:%s' % ppa], super_user=True)
 
     def install_applications(self, applications: List[AnyStr]):
         command = ['apt-get', 'install', '-y']
         command.extend(applications)
-        execute(command, root=True)
+        self.execute(command, super_user=True)
 
-    def install_chromium(self):
-        self.install_application('chromium-browser')
+    def install_chrome(self):
+        self.download_file('https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb',
+                           'google-chrome.deb')
+        self.execute(['dpkg', '-i', 'google-chrome-stable_current_amd64.deb'], super_user=True)
+        self.delete_file('google-chrome.deb')
 
     def install_codecs(self):
         self.install_applications(['libdvd-pkg', 'libaacs0', 'libbluray-bdj', 'libbluray1'])
@@ -100,18 +99,20 @@ class Ubuntu(Linux):
 
         makemkv_version = '1.10.10'
 
-        download_file('http://www.makemkv.com/download/makemkv-oss-%s.tar.gz' % makemkv_version, 'makemkv-oss.tar.gz')
-        untar_rename_root('makemkv-oss.tar.gz', 'makemkv-oss')
-        execute('./configure', 'makemkv-oss')
-        execute('make', 'makemkv-oss')
-        execute('make install', 'makemkv-oss')
-        os.remove('makemkv-oss')
+        self.download_file('http://www.makemkv.com/download/makemkv-oss-%s.tar.gz' % makemkv_version,
+                           'makemkv-oss.tar.gz')
+        self.untar_rename_root('makemkv-oss.tar.gz', 'makemkv-oss')
+        self.execute('./configure', 'makemkv-oss')
+        self.execute('make', 'makemkv-oss')
+        self.execute('make install', 'makemkv-oss')
+        self.delete_file('makemkv-oss')
 
-        download_file('http://www.makemkv.com/download/makemkv-bin-%s.tar.gz' % makemkv_version, 'makemkv-bin.tar.gz')
-        untar_rename_root('makemkv-bin.tar.gz', 'makemkv-bin')
-        execute('make', 'makemkv-bin')
-        execute('make install', 'makemkv-bin')
-        os.remove('makemkv-bin')
+        self.download_file('http://www.makemkv.com/download/makemkv-bin-%s.tar.gz' % makemkv_version,
+                           'makemkv-bin.tar.gz')
+        self.untar_rename_root('makemkv-bin.tar.gz', 'makemkv-bin')
+        self.execute('make', 'makemkv-bin')
+        self.execute('make install', 'makemkv-bin')
+        self.delete_file('makemkv-bin')
 
     def install_microcode(self):
         # if cat /proc/cpuinfo | grep 'vendor' | uniq == "GenuineIntel":
@@ -120,13 +121,13 @@ class Ubuntu(Linux):
         # self.install_application('amd-microcode')
 
     def install_nodejs(self):
-        execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
+        self.execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
         self.update_os_repo()
         self.install_applications(['npm', 'nodejs'])
 
     def install_nordvpn(self):
-        download_file('https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb',
-                      'nordvpn.deb')
+        self.download_file('https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb',
+                           'nordvpn.deb')
         self.install_application('./nordvpn.deb')
         self.update_os_repo()
         self.install_application('nordvpn')
@@ -154,19 +155,19 @@ class Ubuntu(Linux):
         with open(debconf_file, 'w') as f:
             f.write('%s %s select %s\n' % (installer, conf, value))
             f.write('%s %s seen %s\n' % (installer, conf, value))
-        execute(['debconf-set-selections', debconf_file])
-        os.remove(debconf_file)
+        self.execute(['debconf-set-selections', debconf_file])
+        self.delete_file(debconf_file)
 
     def set_development_shortcuts(self):
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
-        execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
 
     def update_os(self):
         self.update_os_repo()
-        execute(['apt-get', '-y', 'full-upgrade'], root=True)
+        self.execute(['apt-get', '-y', 'full-upgrade'], super_user=True)
 
     def update_os_repo(self):
-        execute(['apt-get', 'update'], root=True)
+        self.execute(['apt-get', 'update'], super_user=True)

@@ -32,7 +32,7 @@ class Lubuntu(Ubuntu):
 
     def install_system_extras(self):
         self.set_debconf('ttf-mscorefonts-installer', 'msttcorefonts/accepted-mscorefonts-eula')
-        self.install_applications('ubuntu-restricted-extras')
+        self.install_application('ubuntu-restricted-extras')
 
     def set_development_shortcuts(self):
         with open('%s/.config/openbox/lxqt-rc.xml' % os.environ['HOME'], 'r') as f:
