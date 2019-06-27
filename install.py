@@ -155,6 +155,8 @@ def main(argv):
         system.install_tmux()
         print('Installing VSCode')
         system.install_vscode()
+        print('Installing Wine')
+        system.install_wine()
         print('Installing ZSH')
         system.install_zsh()
 

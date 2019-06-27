@@ -78,6 +78,9 @@ class Linux(Unix):
     def install_vscode(self):
         self.flatpak_install_application('com.visualstudio.code')
 
+    def install_wine(self):
+        self.install_application('wine')
+
     def set_development_environment_settings(self):
         print('Setting mmapfs limit for Elasticsearch')
         with open('/etc/sysctl.conf', 'a') as f:

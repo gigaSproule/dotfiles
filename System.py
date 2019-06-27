@@ -260,6 +260,9 @@ class System:
     def install_window_manager(self):
         pass
 
+    def install_wine(self):
+        pass
+
     def install_zsh(self):
         pass
 
