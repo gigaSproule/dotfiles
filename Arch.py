@@ -39,9 +39,6 @@ class Arch(Linux):
         self.install_applications(['libdvdread', 'libdvdcss', 'libdvdnav', 'libbluray', 'libaacs'])
         super().setup_codecs()
 
-    def install_curl(self):
-        self.install_application('curl')
-
     def install_docker(self):
         self.install_application('docker')
         super().setup_docker()

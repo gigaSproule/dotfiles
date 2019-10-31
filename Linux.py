@@ -4,7 +4,6 @@ import re
 import urllib.request
 from distutils.version import StrictVersion
 from shutil import copyfile
-from typing import AnyStr
 
 from Unix import Unix
 
@@ -20,14 +19,14 @@ class Linux(Unix):
     def install_flatpak(self):
         pass
 
-    def install_groovy_gradle(self):
-        self.install_applications(['groovy', 'gradle'])
+    def install_gradle(self):
+        self.install_application('gradle')
+
+    def install_groovy(self):
+        self.install_application('groovy')
 
     def install_intellij(self):
         self.flatpak_install_application('com.jetbrains.IntelliJ-IDEA-Ultimate')
-
-    def install_keepassxc(self):
-        self.flatpak_install_application('keepassxc')
 
     def install_kubectl(self):
         kubectl_version = urllib.request.urlopen('https://storage.googleapis.com/kubernetes-release/release/stable.txt') \
@@ -86,11 +85,6 @@ class Linux(Unix):
         with open('/etc/sysctl.conf', 'a') as f:
             f.write('vm.max_map_count=262144')
 
-    def setup_codecs(self):
-        self.make_directory(os.environ['HOME'] + '/.config/aacs')
-        urllib.request.urlretrieve('http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg',
-                                   os.environ['HOME'] + '/.config/aacs')
-
     def setup_docker(self):
         self.execute(['usermod', '-a', '-G', 'docker', os.environ['USER']], super_user=True)
 
@@ -129,30 +123,6 @@ class Linux(Unix):
 
         with open('/opt/eclipse/eclipse.ini', 'a') as f:
             f.write('-javaagent:/opt/eclipse/lombok.jar')
-
-    def setup_git(self):
-        self.execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
-        self.execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
-        self.execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
-        self.make_directory(os.environ['HOME'] + '/.git/hooks')
-        self.copy_config('git/gitconfig.symlink', '.git/gitconfig')
-        self.copy_config('git/post-checkout.symlink', '.git/post-checkout')
-
-    def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
-        with open(os.environ['HOME'] + '/' + file, 'a+') as f:
-            contents = f.read()
-            if 'JAVA_HOME' not in contents:
-                f.write('export JAVA_HOME=%s' % jdk_path)
-
-    def setup_tmux(self):
-        self.copy_config('tmux/tmux.conf', '.tmux.conf')
-
-    def setup_zsh(self):
-        self.download_file('https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh',
-                           'oh-my-zsh.sh')
-        self.recursively_chmod('./oh-my-zsh.sh')
-        self.execute(['./oh-my-zsh.sh'])
-        self.copy_config('zsh/zshrc', '.zshrc')
 
     def flatpak_install_application(self, application):
         commands = ['flatpak', 'install', 'flathub', '-y', application]

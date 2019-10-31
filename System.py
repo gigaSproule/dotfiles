@@ -127,7 +127,7 @@ class System:
         pass
 
     def install_codecs(self):
-        pass
+        self.setup_codecs()
 
     def setup_codecs(self):
         self.make_directory(os.environ['HOME'] + '/.config/aacs')
@@ -141,7 +141,7 @@ class System:
         pass
 
     def install_docker(self):
-        pass
+        self.setup_docker()
 
     def setup_docker(self):
         pass
@@ -150,6 +150,9 @@ class System:
         pass
 
     def install_eclipse(self):
+        self.setup_eclipse()
+
+    def setup_eclipse(self):
         pass
 
     def install_firefox(self):
@@ -159,7 +162,7 @@ class System:
         pass
 
     def install_git(self):
-        pass
+        self.install_git()
 
     def setup_git(self):
         self.execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
@@ -176,7 +179,10 @@ class System:
     def install_graphic_card_tools_laptop(self):
         pass
 
-    def install_groovy_gradle(self):
+    def install_gradle(self):
+        pass
+
+    def install_groovy(self):
         pass
 
     def install_intellij(self):
@@ -264,6 +270,9 @@ class System:
         pass
 
     def install_zsh(self):
+        self.setup_zsh()
+
+    def setup_zsh(self):
         pass
 
     def set_development_shortcuts(self):
@@ -273,9 +282,6 @@ class System:
         pass
 
     def setup_power_saving_tweaks(self):
-        pass
-
-    def setup_zsh(self):
         pass
 
     def update_os(self):

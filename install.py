@@ -106,8 +106,10 @@ def main(argv):
 
         print('Installing Java')
         system.install_jdk()
-        print('Installing Groovy & Gradle')
-        system.install_groovy_gradle()
+        print('Installing Gradle')
+        system.install_gradle()
+        print('Installing Groovy')
+        system.install_groovy()
         print('Installing NodeJS')
         system.install_nodejs()
 
