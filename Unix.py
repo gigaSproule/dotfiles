@@ -31,10 +31,7 @@ class Unix(System):
         os.setgid(current_user.pw_gid)
 
     def setup_git(self):
-        self.execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
-        self.execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
-        self.execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
-        self.make_directory(os.environ['HOME'] + '/.git/hooks')
+        super().setup_git()
         self.copy_config('git/gitconfig.symlink', '.git/gitconfig')
         self.copy_config('git/post-checkout.symlink', '.git/post-checkout')
 

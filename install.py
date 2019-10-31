@@ -94,7 +94,7 @@ def main(argv):
     system.update_os()
 
     if personal:
-        print('Installing GNOME')
+        print('Installing Window Manager')
         system.install_window_manager()
         print('Installing Graphic Card Tools')
         system.install_graphic_card_tools()
@@ -184,7 +184,7 @@ def main(argv):
         print('Installing Graphic Card Tools')
         system.install_graphic_card_tools()
         print('Installing Graphics Card Tools for Laptop')
-        system.install_graphic_card_tools_laptop()
+        system.install_graphic_card_laptop_tools()
         print('Installing Microcode')
         system.install_microcode()
         print('Installing Powertop')

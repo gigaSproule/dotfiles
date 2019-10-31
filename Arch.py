@@ -67,15 +67,51 @@ class Arch(Linux):
     def install_gpg(self):
         self.install_applications(['seahorse', 'seahorse-nautilus'])
 
-    def install_graphic_card_tools(self):
-        # if nvidia
+    def install_jdk(self):
+        self.install_application('jdk-openjdk')
+
+        self.set_java_home('.zshrc', '/usr/lib/jvm/java-13-jdk')
+        self.set_java_home('.bashrc', '/usr/lib/jvm/java-13-jdk')
+
+    def install_keepassxc(self):
+        self.install_application('keepassxc')
+
+    def install_makemkv(self):
+        self.aur_install_application('makemkv')
+
+    def install_microcode(self):
+        cpu_name = ''
+        with open('/proc/cpuinfo', 'r') as f:
+            for line in f.readlines():
+                if line.startswith('vendor_id'):
+                    cpu_name = line.split(':')[1].strip()
+        if cpu_name == 'GenuineIntel':
+            self.install_application('intel-ucode')
+        else:
+            self.install_application('amd-ucode')
+
+    def install_mkvtoolnix(self):
+        self.install_application('mkvtoolnix-gui')
+
+    def install_lutris(self):
+        self.install_application('lutris')
+
+    def install_nextcloud_client(self):
+        self.install_application('nextcloud-client')
+
+    def install_nodejs(self):
+        self.install_applications(['npm', 'nodejs'])
+
+    def install_nordvpn(self):
+        self.aur_install_application('nordvpn-bin')
+        self.enable_service('nordvpnd')
+
+    def install_nvidia_tools(self):
         self.install_applications(
             ['nvidia', 'nvidia-utils', 'lib32-nvidia-utils', 'nvidia-settings', 'vulkan-icd-loader',
              'lib32-vulkan-icd-loader'])
-        # else
 
-    def install_graphic_card_tools_laptop(self):
-        # if nvidia
+    def install_nvidia_laptop_tools(self):
         self.install_application('bumblebee')
         self.enable_service('bumblebeed')
 
@@ -139,46 +175,6 @@ class Arch(Linux):
         self.enable_service('disable-nvidia-on-shutdown')
         with open('/etc/tmpfiles.d/nvidia_pm.conf', 'w') as f:
             f.write('w /sys/bus/pci/devices/0000:01:00.0/power/control - - - - auto')
-        # else
-
-    def install_jdk(self):
-        self.install_application('jdk-openjdk')
-
-        self.set_java_home('.zshrc', '/usr/lib/jvm/java-12-jdk')
-        self.set_java_home('.bashrc', '/usr/lib/jvm/java-12-jdk')
-
-    def install_keepassxc(self):
-        self.install_application('keepassxc')
-
-    def install_makemkv(self):
-        self.aur_install_application('makemkv')
-
-    def install_microcode(self):
-        cpu_name = ''
-        with open('/proc/cpuinfo', 'r') as f:
-            for line in f.readlines():
-                if line.startswith('vendor_id'):
-                    cpu_name = line.split(':')[1].strip()
-        if cpu_name == 'GenuineIntel':
-            self.install_application('intel-ucode')
-        else:
-            self.install_application('amd-ucode')
-
-    def install_mkvtoolnix(self):
-        self.install_application('mkvtoolnix-gui')
-
-    def install_lutris(self):
-        self.install_application('lutris')
-
-    def install_nextcloud_client(self):
-        self.install_application('nextcloud-client')
-
-    def install_nodejs(self):
-        self.install_applications(['npm', 'nodejs'])
-
-    def install_nordvpn(self):
-        self.aur_install_application('nordvpn-bin')
-        self.enable_service('nordvpnd')
 
     def install_steam(self):
         self.install_application('steam')

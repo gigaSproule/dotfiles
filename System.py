@@ -173,14 +173,18 @@ class System:
     def install_gpg(self):
         pass
 
-    def install_graphic_card_tools(self):
-        pass
-
-    def install_graphic_card_tools_laptop(self):
-        pass
-
     def install_gradle(self):
         pass
+
+    def install_graphic_card_tools(self):
+        # if nvidia
+        self.install_nvidia_tools()
+        # else
+
+    def install_graphic_card_laptop_tools(self):
+        # if nvidia
+        self.install_nvidia_laptop_tools()
+        # else
 
     def install_groovy(self):
         pass
@@ -225,6 +229,12 @@ class System:
         pass
 
     def install_nordvpn(self):
+        pass
+
+    def install_nvidia_tools(self):
+        pass
+
+    def install_nvidia_laptop_tools(self):
         pass
 
     def install_powertop(self):

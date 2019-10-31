@@ -35,6 +35,10 @@ class Windows(System):
     def install_git(self):
         self.install_application('git')
 
+    def setup_git(self):
+        super().setup_git()
+        self.install_application('poshgit')
+
     def install_gpg(self):
         self.install_application('gpg4win')
 
@@ -77,6 +81,9 @@ class Windows(System):
     def install_nordvpn(self):
         self.install_application('nordvpn')
 
+    def install_nvidia_tools(self):
+        self.install_application('nvidia-display-driver')
+
     def install_slack(self):
         self.install_application('slack')
 
@@ -97,8 +104,4 @@ class Windows(System):
         self.install_application('vscode')
 
     def update_os(self):
-        self.update_os_repo()
         self.execute(['choco', 'upgrade', 'all'], super_user=True)
-
-    def update_os_repo(self):
-        self.execute(['choco', 'update'], super_user=True)
