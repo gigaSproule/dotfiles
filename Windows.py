@@ -22,6 +22,13 @@ class Windows(System):
 
     def install_docker(self):
         self.install_application('docker-desktop')
+        self.setup_docker()
+
+    def setup_docker(self):
+        self.execute(['Install-Module', '-Name', 'DockerCompletion', '-Confirm'], super_user=True)
+        self.execute(['Import-Module', 'DockerCompletion'])
+        with open('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1', 'w') as f:
+            f.writelines(['Import-Module DockerCompletion'])
 
     def install_dropbox(self):
         self.install_application('dropbox')
@@ -105,6 +112,7 @@ class Windows(System):
     def install_system_extras(self):
         self.download_file('https://chocolatey.org/install.ps1', 'install.ps1')
         self.execute(['iex', 'install.ps1'], super_user=True)
+        self.execute(['Install-PackageProvider', '-Name', 'NuGet', '-MinimumVersion', '2.8.5.201', '-Force'])
 
     def install_vim(self):
         self.install_application('vim')

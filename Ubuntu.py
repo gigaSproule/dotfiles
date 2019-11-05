@@ -38,7 +38,7 @@ class Ubuntu(Linux):
 
     def install_codecs(self):
         self.install_applications(['libdvd-pkg', 'libaacs0', 'libbluray-bdj', 'libbluray1'])
-        super().setup_codecs()
+        self.setup_codecs()
 
     def install_docker(self):
         self.add_apt_key('https://download.docker.com/linux/ubuntu/gpg')
@@ -48,7 +48,7 @@ class Ubuntu(Linux):
         ])
         self.update_os_repo()
         self.install_application('docker-ce')
-        super().setup_docker()
+        self.setup_docker()
 
     def install_dropbox(self):
         self.install_application('nautilus-dropbox')
@@ -67,7 +67,7 @@ class Ubuntu(Linux):
 
     def install_git(self):
         self.install_application('git')
-        super().setup_git()
+        self.setup_git()
 
     def install_gpg(self):
         self.install_application('seahorse-nautilus')
@@ -146,14 +146,14 @@ class Ubuntu(Linux):
 
     def install_tmux(self):
         self.install_application('tmux')
-        super().setup_tmux()
+        self.setup_tmux()
 
     def install_vm_tools(self):
         self.install_applications(['open-vm-tools', 'open-vm-tools-desktop'])
 
     def install_zsh(self):
         self.install_application('zsh')
-        super().setup_zsh()
+        self.setup_zsh()
 
     def set_debconf(self, installer, conf, value='true'):
         debconf_file = '%s.debconf' % uuid.uuid4()
@@ -164,11 +164,7 @@ class Ubuntu(Linux):
         self.delete_file(debconf_file)
 
     def set_development_shortcuts(self):
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
+        self.set_gnome_development_shortcuts()
 
     def update_os(self):
         self.update_os_repo()

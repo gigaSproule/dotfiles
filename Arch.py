@@ -37,11 +37,11 @@ class Arch(Linux):
 
     def install_codecs(self):
         self.install_applications(['libdvdread', 'libdvdcss', 'libdvdnav', 'libbluray', 'libaacs'])
-        super().setup_codecs()
+        self.setup_codecs()
 
     def install_docker(self):
         self.install_application('docker')
-        super().setup_docker()
+        self.setup_docker()
 
     def install_dropbox(self):
         self.aur_install_applications(['dropbox', 'nautilus-dropbox'])
@@ -62,7 +62,7 @@ class Arch(Linux):
 
     def install_git(self):
         self.install_application('git')
-        super().setup_git()
+        self.setup_git()
 
     def install_gpg(self):
         self.install_applications(['seahorse', 'seahorse-nautilus'])
@@ -209,7 +209,7 @@ class Arch(Linux):
     def install_tmux(self):
         self.install_application('tmux')
         self.aur_install_application('tmux-bash-completion')
-        super().setup_tmux()
+        self.setup_tmux()
 
     def install_vscode(self):
         self.install_application('code')
@@ -228,17 +228,13 @@ class Arch(Linux):
 
     def install_zsh(self):
         self.install_applications(['zsh', 'zsh-completions'])
-        super().setup_zsh()
+        self.setup_zsh()
 
     def reload_service_daemons(self):
         self.execute(['systemctl', 'daemon-reload'], super_user=True)
 
     def set_development_shortcuts(self):
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
+        self.set_gnome_development_shortcuts()
 
     def setup_power_saving_tweaks(self):
         device_name = ''
