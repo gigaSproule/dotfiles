@@ -52,20 +52,18 @@ def get_system():
 
 
 def main(argv):
-    personal = False
-    docker = False
-    laptop = False
-    server = False
-    vm = False
+    personal, docker, gcp, laptop, server, vm = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hd:p:s:v:',
-                                   ['help', 'docker', 'personal', 'server', 'vm'])
+        opts, args = getopt.getopt(argv, 'hd:g:p:s:v:',
+                                   ['help', 'docker', 'gcp', 'personal', 'server', 'vm'])
         for opt, arg in opts:
             if opt in ('-h', '--help'):
-                print('install.py [-d] [-p] [-r] [-s] [-v]')
+                print_help()
                 exit(0)
             elif opt in ('-d', '--docker'):
+                docker = True
+            elif opt in ('-g', '--gcp'):
                 docker = True
             elif opt in ('-p', '--personal'):
                 personal = True
@@ -74,7 +72,7 @@ def main(argv):
             elif opt in ('-v', '--vm'):
                 vm = True
     except getopt.GetoptError:
-        print('install.py [-d] [-r] [-s] [-m] [-v]')
+        print_help()
         exit(1)
 
     setup_user_bin()
@@ -155,6 +153,8 @@ def main(argv):
         system.install_sweet_home_3d()
         print('Installing tmux')
         system.install_tmux()
+        print('Installing Vim')
+        system.install_vim()
         print('Installing VSCode')
         system.install_vscode()
         print('Installing Wine')
@@ -173,8 +173,14 @@ def main(argv):
         system.install_docker()
         print('Installing Kubectl')
         system.install_kubectl()
+        print('Installing Helm')
+        system.install_helm()
         print('Installing Minikube')
         system.install_minikube()
+
+    if gcp:
+        print('Installing Google Cloud SDK')
+        system.install_google_cloud_sdk()
 
     if laptop:
         print('Installing Bluetooth')
@@ -203,6 +209,10 @@ def main(argv):
     if vm:
         print('Installing VM Tools')
         system.install_vm_tools()
+
+
+def print_help():
+    print('install.py [-d] [-g] [-r] [-s] [-m] [-v]')
 
 
 if __name__ == '__main__':

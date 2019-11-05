@@ -161,6 +161,9 @@ class System:
     def install_firmware_updater(self):
         pass
 
+    def install_google_cloud_sdk(self):
+        pass
+
     def install_git(self):
         self.install_git()
 
@@ -202,6 +205,9 @@ class System:
         pass
 
     def install_kubectl(self):
+        pass
+
+    def install_helm(self):
         pass
 
     def install_lutris(self):
@@ -262,6 +268,9 @@ class System:
         pass
 
     def install_tmux(self):
+        pass
+
+    def install_vim(self):
         pass
 
     def install_vm_tools(self):

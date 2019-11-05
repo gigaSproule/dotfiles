@@ -25,6 +25,9 @@ class Linux(Unix):
     def install_groovy(self):
         self.install_application('groovy')
 
+    def install_helm(self):
+        self.execute(['curl', '-L', 'https://git.io/get_helm.sh', '|', 'bash'], super_user=True)
+
     def install_intellij(self):
         self.flatpak_install_application('com.jetbrains.IntelliJ-IDEA-Ultimate')
 

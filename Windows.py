@@ -32,6 +32,9 @@ class Windows(System):
     def install_firefox(self):
         self.install_application('firefox')
 
+    def install_google_cloud_sdk(self):
+        self.install_application('gcloudsdk')
+
     def install_git(self):
         self.install_application('git')
 
@@ -59,6 +62,9 @@ class Windows(System):
 
     def install_kubectl(self):
         self.install_application('kubernetes-cli')
+
+    def install_helm(self):
+        self.install_application('kubernetes-helm')
 
     def install_maven(self):
         self.install_application('maven')
@@ -99,6 +105,9 @@ class Windows(System):
     def install_system_extras(self):
         self.download_file('https://chocolatey.org/install.ps1', 'install.ps1')
         self.execute(['iex', 'install.ps1'], super_user=True)
+
+    def install_vim(self):
+        self.install_application('vim')
 
     def install_vscode(self):
         self.install_application('vscode')

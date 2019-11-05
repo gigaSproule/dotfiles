@@ -60,6 +60,11 @@ class Ubuntu(Linux):
     def install_flatpak(self):
         self.install_application('flatpak')
 
+    def install_google_cloud_sdk(self):
+        self.add_apt_key('https://packages.cloud.google.com/apt/doc/apt-key.gpg')
+        self.add_apt_repo('google-cloud-sdk', 'deb https://packages.cloud.google.com/apt cloud-sdk main')
+        self.install_application('google-cloud-sdk')
+
     def install_git(self):
         self.install_application('git')
         super().setup_git()
@@ -83,11 +88,11 @@ class Ubuntu(Linux):
         self.install_application('keepassxc')
 
     def install_lutris(self):
+        self.add_apt_key(
+            'http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/Release.key' % distro.version())
         self.add_apt_repo('lutris', [
             'deb http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/ ./' % distro.version()
         ])
-        self.add_apt_key(
-            'http://download.opensuse.org/repositories/home:/strycore/xUbuntu_%s/Release.key' % distro.version())
         self.update_os_repo()
         self.install_application('lutris')
 
