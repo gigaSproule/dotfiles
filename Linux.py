@@ -137,3 +137,5 @@ class Linux(Unix):
         self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
         self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
         self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
+        self.execute(
+            ['gsettings', 'set', 'org.gnome.shell.extensions.screenshot-window-sizer' 'cycle-screenshot-sizes' '[]'])
