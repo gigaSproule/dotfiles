@@ -12,7 +12,7 @@ class Windows(System):
     def install_applications(self, applications: List[AnyStr]):
         command = ['choco', 'install', '--yes']
         command.extend(applications)
-        self.execute(command, super_user=True)
+        self.execute(command)
 
     def install_curl(self):
         self.install_application('curl')
@@ -25,7 +25,7 @@ class Windows(System):
         self.setup_docker()
 
     def setup_docker(self):
-        self.execute(['Install-Module', '-Name', 'DockerCompletion', '-Confirm'], super_user=True)
+        self.execute(['Install-Module', '-Name', 'DockerCompletion', '-Confirm'])
         self.execute(['Import-Module', 'DockerCompletion'])
         with open('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1', 'w') as f:
             f.writelines(['Import-Module DockerCompletion'])
@@ -111,7 +111,7 @@ class Windows(System):
 
     def install_system_extras(self):
         self.download_file('https://chocolatey.org/install.ps1', 'install.ps1')
-        self.execute(['iex', 'install.ps1'], super_user=True)
+        self.execute(['iex', 'install.ps1'])
         self.execute(['Install-PackageProvider', '-Name', 'NuGet', '-MinimumVersion', '2.8.5.201', '-Force'])
 
     def install_vim(self):
@@ -121,4 +121,4 @@ class Windows(System):
         self.install_application('vscode')
 
     def update_os(self):
-        self.execute(['choco', 'upgrade', 'all'], super_user=True)
+        self.execute(['choco', 'upgrade', 'all'])

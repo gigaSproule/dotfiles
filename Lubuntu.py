@@ -11,7 +11,7 @@ class Lubuntu(Ubuntu):
 
     def install_dropbox(self):
         super().install_dropbox()
-        with open('%s/.config/autostart/dropbox.desktop' % os.environ['HOME'], 'w') as f:
+        with open('%s/.config/autostart/dropbox.desktop' % self.get_home_dir(), 'w') as f:
             f.write('[Desktop Entry]\n'
                     'Name=Dropbox\n'
                     'GenericName=File Synchronizer\n'
@@ -35,7 +35,7 @@ class Lubuntu(Ubuntu):
         self.install_application('ubuntu-restricted-extras')
 
     def set_development_shortcuts(self):
-        with open('%s/.config/openbox/lxqt-rc.xml' % os.environ['HOME'], 'r') as f:
+        with open('%s/.config/openbox/lxqt-rc.xml' % self.get_home_dir(), 'r') as f:
             doc = le.parse(f)
             namespace = doc.getroot().nsmap
             namespace['default'] = namespace[None]
@@ -86,5 +86,5 @@ class Lubuntu(Ubuntu):
             for elem in xpath_elems_to_remove:
                 parent = elem.getparent()
                 parent.remove(elem)
-            with open('%s/.config/openbox/lxqt-rc.xml' % os.environ['HOME'], 'w') as wf:
+            with open('%s/.config/openbox/lxqt-rc.xml' % self.get_home_dir(), 'w') as wf:
                 wf.write(le.tostring(doc).decode('UTF-8'))

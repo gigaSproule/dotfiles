@@ -14,11 +14,6 @@ from Windows import Windows
 from Xubuntu import Xubuntu
 
 
-def setup_user_bin():
-    os.makedirs(os.environ['HOME'] + '/bin', exist_ok=True)
-    os.makedirs(os.environ['HOME'] + '/.local/bin', exist_ok=True)
-
-
 def install_required_dependencies():
     if System().execute(['pip3', '-V'])['code'] == 0:
         System().execute(['pip3', 'install', 'distro', 'lxml'])
@@ -27,36 +22,47 @@ def install_required_dependencies():
 
 
 def get_system():
-    if sys.platform == 'linux' or sys.platform == 'linux2':
+    if sys.platform == 'linux':
         import distro
         if distro.name() == 'Ubuntu':
             current_desktop = os.environ['XDG_CURRENT_DESKTOP']
             if current_desktop == 'KDE':
+                print('Detected Kubuntu')
                 return Kubuntu()
             elif current_desktop == 'LXQt' or current_desktop == 'LXDE':
+                print('Detected Lubuntu')
                 return Lubuntu()
             elif current_desktop == 'XFCE':
+                print('Detected Xubuntu')
                 return Xubuntu()
             else:
+                print('Detected Ubuntu')
                 return Ubuntu()
-        elif distro.name() == 'Arch':
+        elif distro.name() == 'Arch Linux':
+            print('Detected Arch')
             return Arch()
         else:
             return Linux()
     elif sys.platform == 'darwin':
+        print('Detected Mac')
         return Mac()
-    elif sys.platform == 'win32':
+    elif sys.platform == 'win32' or sys.platform == 'cygwin':
+        print('Detected Windows')
         return Windows()
     else:
         EnvironmentError('Unknown operating system')
 
 
 def main(argv):
-    personal, docker, gcp, laptop, server, vm = False
+    personal = docker = gcp = laptop = server = vm = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hd:g:p:s:v:',
+        opts, args = getopt.getopt(argv, 'hdgpsv',
                                    ['help', 'docker', 'gcp', 'personal', 'server', 'vm'])
+        if len(opts) == 0:
+            print('No options provided')
+            print_help()
+            exit(1)
         for opt, arg in opts:
             if opt in ('-h', '--help'):
                 print_help()
@@ -64,28 +70,26 @@ def main(argv):
             elif opt in ('-d', '--docker'):
                 docker = True
             elif opt in ('-g', '--gcp'):
-                docker = True
+                gcp = True
             elif opt in ('-p', '--personal'):
                 personal = True
             elif opt in ('-s', '--server'):
                 server = True
             elif opt in ('-v', '--vm'):
                 vm = True
-    except getopt.GetoptError:
+    except getopt.GetoptError as error:
+        print(str(error))
         print_help()
         exit(1)
-
-    setup_user_bin()
 
     install_required_dependencies()
 
     system = get_system()
     if not system.is_super_user():
-        print(
-            'This needs to be run as root, so the script can dynamically switch between what is run as root and what is not.')
+        print('This needs to be run as root, so the applications can be installed.')
         exit(1)
-    else:
-        system.set_user_as_normal_user()
+
+    system.setup_user_bin()
 
     print('Installing Distro Specific Extras')
     system.install_system_extras()
@@ -96,6 +100,8 @@ def main(argv):
         system.install_window_manager()
         print('Installing Graphic Card Tools')
         system.install_graphic_card_tools()
+        print('Installing ZSH')
+        system.install_zsh()
 
         print('Installing Git')
         system.install_git()
@@ -120,7 +126,7 @@ def main(argv):
         print('Installing Dropbox')
         system.install_dropbox()
         print('Installing Eclipse')
-        system.install_eclipse()
+        #system.install_eclipse()
         print('Installing Firefox')
         system.install_firefox()
         print('Installing GPG')
@@ -159,8 +165,6 @@ def main(argv):
         system.install_vscode()
         print('Installing Wine')
         system.install_wine()
-        print('Installing ZSH')
-        system.install_zsh()
 
         print('Setting development specific shortcuts')
         system.set_development_shortcuts()

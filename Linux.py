@@ -10,6 +10,9 @@ from Unix import Unix
 
 class Linux(Unix):
 
+    def get_home_dir(self):
+        return os.path.expanduser("~%s" % os.getlogin())
+
     def install_curl(self):
         self.install_application('curl')
 
@@ -26,7 +29,7 @@ class Linux(Unix):
         self.install_application('groovy')
 
     def install_helm(self):
-        self.execute(['curl', '-L', 'https://git.io/get_helm.sh', '|', 'bash'], super_user=True)
+        self.execute(['curl', '-L', 'https://git.io/get_helm.sh', '|', 'bash'])
 
     def install_intellij(self):
         self.flatpak_install_application('com.jetbrains.IntelliJ-IDEA-Ultimate')
@@ -39,7 +42,7 @@ class Linux(Unix):
         urllib.request.urlretrieve(
             'https://storage.googleapis.com/kubernetes-release/release/%s/bin/linux/amd64/kubectl' % kubectl_version,
             '/usr/local/bin/kubectl')
-        self.recursively_chmod('/usr/local/bin/kubectl', file_permission=0o755, super_user=True)
+        self.recursively_chmod('/usr/local/bin/kubectl', file_permission=0o755)
 
     def install_maven(self):
         self.install_application('maven')
@@ -47,8 +50,8 @@ class Linux(Unix):
     def install_minikube(self):
         self.download_file(
             'https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64',
-            '/usr/local/bin/minikube', super_user=True)
-        self.execute(['chmod', '+x', '/usr/local/bin/minikube'], super_user=True)
+            '/usr/local/bin/minikube')
+        self.execute(['chmod', '+x', '/usr/local/bin/minikube'])
 
     def install_mkvtoolnix(self):
         self.flatpak_install_application('org.bunkus.mkvtoolnix-gui')
@@ -89,7 +92,7 @@ class Linux(Unix):
             f.write('vm.max_map_count=262144')
 
     def setup_docker(self):
-        self.execute(['usermod', '-a', '-G', 'docker', os.environ['USER']], super_user=True)
+        self.execute(['usermod', '-a', '-G', 'docker', os.getlogin()])
 
         output = self.execute(['git', 'ls-remote', 'https://github.com/docker/compose'])['output']
         output = output.split('\n')
@@ -104,10 +107,10 @@ class Linux(Unix):
 
         urllib.request.urlretrieve('https://github.com/docker/compose/releases/download/%s/docker-compose-%s-%s' % (
             docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
-        self.recursively_chmod('/usr/local/bin/docker-compose', 0o755, super_user=True)
+        self.recursively_chmod('/usr/local/bin/docker-compose', 0o755)
 
         if not os.path.exists('/etc/docker'):
-            self.make_directory('/etc/docker', super_user=True)
+            self.make_directory('/etc/docker')
 
         with open('/etc/docker/daemon.json', 'w') as f:
             f.write('{\n'
@@ -116,7 +119,7 @@ class Linux(Unix):
 
     def setup_eclipse(self):
         if not os.path.exists('/opt/eclipse'):
-            self.make_directory('/opt/eclipse', super_user=True)
+            self.make_directory('/opt/eclipse')
 
         urllib.request.urlretrieve(
             'https://projectlombok.org/downloads/lombok.jar',
@@ -132,10 +135,16 @@ class Linux(Unix):
         self.execute(commands)
 
     def set_gnome_development_shortcuts(self):
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-up' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-down' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-left' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'switch-to-workspace-right' '[]'])
-        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings' 'begin-move' '[]'])
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings', 'switch-to-workspace-up', '[]'],
+                     super_user=False)
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings', 'switch-to-workspace-down', '[]'],
+                     super_user=False)
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings', 'switch-to-workspace-left', '[]'],
+                     super_user=False)
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings', 'switch-to-workspace-right', '[]'],
+                     super_user=False)
+        self.execute(['gsettings', 'set', 'org.gnome.desktop.wm.keybindings', 'begin-move', '[]'],
+                     super_user=False)
         self.execute(
-            ['gsettings', 'set', 'org.gnome.shell.extensions.screenshot-window-sizer' 'cycle-screenshot-sizes' '[]'])
+            ['gsettings', 'set', 'org.gnome.shell.extensions.screenshot-window-sizer', 'cycle-screenshot-sizes', '[]'],
+            super_user=False)

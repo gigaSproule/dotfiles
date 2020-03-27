@@ -8,32 +8,20 @@ from System import System
 
 class Unix(System):
     def copy_config(self, src, dst):
-        self.make_directory(os.path.dirname(dst))
-        shutil.copyfile('%s/%s' % (os.path.dirname(os.path.realpath(__file__)), src),
-                        '%s/%s' % (os.environ['HOME'], dst))
+        actual_src = '%s/%s' % (os.path.dirname(os.path.realpath(__file__)), src)
+        actual_dst = '%s/%s' % (self.get_home_dir(), dst)
+        self.make_directory(os.path.dirname(actual_dst))
+        shutil.copyfile(actual_src, actual_dst)
+        self.recursively_chown(actual_dst)
 
     def is_super_user(self):
         return os.getuid() == 0
 
     def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
-        with open(os.environ['HOME'] + '/' + file, 'a+') as f:
+        with open(self.get_home_dir() + '/' + file, 'a+') as f:
             contents = f.read()
             if 'JAVA_HOME' not in contents:
                 f.write('export JAVA_HOME=%s' % jdk_path)
-
-    def set_user_as_super_user(self):
-        os.setuid(0)
-        os.setgid(0)
-
-    def set_user_as_normal_user(self):
-        current_user = getpwnam(os.getlogin())
-        os.setuid(current_user.pw_uid)
-        os.setgid(current_user.pw_gid)
-
-    def setup_git(self):
-        super().setup_git()
-        self.copy_config('git/gitconfig.symlink', '.git/gitconfig')
-        self.copy_config('git/post-checkout.symlink', '.git/post-checkout')
 
     def setup_tmux(self):
         self.copy_config('tmux/tmux.conf', '.tmux.conf')
@@ -42,6 +30,7 @@ class Unix(System):
         self.download_file('https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh',
                            'oh-my-zsh.sh')
         self.recursively_chmod('./oh-my-zsh.sh')
-        self.execute(['./oh-my-zsh.sh'])
+        self.execute(['./oh-my-zsh.sh'], super_user=False)
         self.copy_config('zsh/zshrc', '.zshrc')
         self.execute(['chsh', '-s', '/usr/bin/zsh'])
+        self.execute(['chsh', '-s', '/usr/bin/zsh', os.getlogin()])

@@ -1,39 +1,25 @@
 import os
+import pwd
 import shutil
 import subprocess
 import sys
 import tarfile
 import urllib.request
-from typing import List, AnyStr, Callable, Any
+from typing import List, AnyStr
 
 
 class System:
 
-    def copy_file(self, source: AnyStr, destination: AnyStr, super_user: bool = False):
-        if super_user:
-            return self.run_as_super_user(shutil.copyfile, source, destination)
-        else:
-            return shutil.copyfile(source, destination)
+    def copy_file(self, source: AnyStr, destination: AnyStr):
+        return shutil.copyfile(source, destination)
 
-    def delete_directory(self, directory: AnyStr, super_user: bool = False):
-        if super_user:
-            return self.run_as_super_user(shutil.rmtree, directory)
-        else:
-            return shutil.rmtree(directory)
+    def delete_directory(self, directory: AnyStr):
+        return shutil.rmtree(directory)
 
-    def delete_file(self, file: AnyStr, super_user: bool = False):
-        if super_user:
-            return self.run_as_super_user(os.remove, file)
-        else:
-            return os.remove(file)
+    def delete_file(self, file: AnyStr):
+        return os.remove(file)
 
-    def download_file(self, url: AnyStr, downloaded_file: AnyStr, super_user: bool = False):
-        if super_user:
-            self.run_as_super_user(self._download_file, url, downloaded_file)
-        else:
-            self._download_file(url, downloaded_file)
-
-    def _download_file(self, url: AnyStr, downloaded_file: AnyStr):
+    def download_file(self, url: AnyStr, downloaded_file: AnyStr):
         req = urllib.request.Request(
             url,
             data=None,
@@ -45,13 +31,9 @@ class System:
             shutil.copyfileobj(response, out_file)
 
     def execute(self, command: List[AnyStr], directory: AnyStr = os.path.dirname(os.path.realpath(__file__)),
-                super_user: bool = False):
-        if super_user:
-            return self.run_as_super_user(self._execute, command, directory)
-        else:
-            return self._execute(command, directory)
-
-    def _execute(self, command: List[AnyStr], directory: AnyStr):
+                super_user: bool = True):
+        if not super_user:
+            command = ['sudo', '-u', os.getlogin()] + command
         proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                 cwd=directory)
         output = ''
@@ -67,39 +49,32 @@ class System:
             'output': output
         }
 
+    def get_home_dir(self):
+        return os.environ['HOME']
+
     def is_super_user(self):
         pass
 
-    def make_directory(self, directory: AnyStr, super_user=True):
-        if super_user:
-            self.run_as_super_user(os.makedirs, directory, exist_ok=True)
-        else:
-            os.makedirs(directory, exist_ok=True)
+    def make_directory(self, directory: AnyStr):
+        os.makedirs(directory, exist_ok=True)
 
-    def recursively_chmod(self, path, directory_permission=0o777, file_permission=0o777, super_user: bool = False):
-        if super_user:
-            self.run_as_super_user(self._recursively_chmod, path, directory_permission, file_permission)
-        else:
-            self._recursively_chmod(path, directory_permission, file_permission)
-
-    def _recursively_chmod(self, path: AnyStr, directory_permission: int, file_permission: int):
+    def recursively_chmod(self, path, directory_permission=0o777, file_permission=0o777):
         os.chmod(path, directory_permission)
         for dirname, subdirs, files in os.walk(path):
             os.chmod(dirname, directory_permission)
             for f in files:
                 os.chmod(os.path.join(dirname, f), file_permission)
 
-    def run_as_super_user(self, fun: Callable[[Any], Any], *args, **kwargs):
-        self.set_user_as_super_user()
-        output = fun(*args, **kwargs)
-        self.set_user_as_normal_user()
-        return output
+    def recursively_chown(self, path, user=pwd.getpwnam(os.getlogin())[2], group=pwd.getpwnam(os.getlogin())[3]):
+        os.chown(path, user, group)
+        for dirname, subdirs, files in os.walk(path):
+            os.chown(dirname, user, group)
+            for f in files:
+                os.chown(os.path.join(dirname, f), user, group)
 
-    def set_user_as_super_user(self):
-        pass
-
-    def set_user_as_normal_user(self):
-        pass
+    def setup_user_bin(self):
+        self.make_directory(self.get_home_dir() + '/bin')
+        self.make_directory(self.get_home_dir() + '/.local/bin')
 
     def untar_rename_root(self, src: AnyStr, dest: AnyStr):
         def members(tf):
@@ -130,9 +105,9 @@ class System:
         self.setup_codecs()
 
     def setup_codecs(self):
-        self.make_directory(os.environ['HOME'] + '/.config/aacs')
+        self.make_directory(self.get_home_dir() + '/.config/aacs')
         urllib.request.urlretrieve('http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg',
-                                   os.environ['HOME'] + '/.config/aacs')
+                                   self.get_home_dir() + '/.config/aacs/KEYDB.cfg')
 
     def install_curl(self):
         pass
@@ -165,13 +140,14 @@ class System:
         pass
 
     def install_git(self):
-        self.install_git()
+        self.setup_git()
 
     def setup_git(self):
-        self.execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'])
-        self.execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'])
-        self.execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'])
-        self.make_directory(os.environ['HOME'] + '/.git/hooks')
+        self.execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'], super_user=False)
+        self.execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'], super_user=False)
+        self.execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'], super_user=False)
+        self.make_directory(self.get_home_dir() + '/.git/hooks')
+        self.recursively_chown(self.get_home_dir() + '/.git/hooks')
 
     def install_gpg(self):
         pass

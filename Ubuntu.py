@@ -14,7 +14,7 @@ class Ubuntu(Linux):
         apt_file = '%s.apt' % uuid.uuid4()
         with open(apt_file, 'w') as f:
             f.write(self.execute(['curl', '-fsSL', url])['output'])
-        self.execute(['apt-key', 'add', apt_file], super_user=True)
+        self.execute(['apt-key', 'add', apt_file])
         self.delete_file(apt_file)
 
     def add_apt_repo(self, file_name, urls):
@@ -23,17 +23,17 @@ class Ubuntu(Linux):
                 f.write(url)
 
     def add_ppa(self, ppa):
-        self.execute(['add-apt-repository', '-y', 'ppa:%s' % ppa], super_user=True)
+        self.execute(['add-apt-repository', '-y', 'ppa:%s' % ppa])
 
     def install_applications(self, applications: List[AnyStr]):
         command = ['apt-get', 'install', '-y']
         command.extend(applications)
-        self.execute(command, super_user=True)
+        self.execute(command)
 
     def install_chrome(self):
         self.download_file('https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb',
                            'google-chrome.deb')
-        self.execute(['dpkg', '-i', 'google-chrome-stable_current_amd64.deb'], super_user=True)
+        self.execute(['dpkg', '-i', 'google-chrome-stable_current_amd64.deb'])
         self.delete_file('google-chrome.deb')
 
     def install_codecs(self):
@@ -125,6 +125,12 @@ class Ubuntu(Linux):
         # else:
         # self.install_application('amd-microcode')
 
+    def install_mkvtoolnix(self):
+        self.install_application('mkvtoolnix-gui')
+
+    def install_nextcloud_client(self):
+        self.install_application('nextcloud-desktop')
+
     def install_nodejs(self):
         self.execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
         self.update_os_repo()
@@ -137,6 +143,12 @@ class Ubuntu(Linux):
         self.update_os_repo()
         self.install_application('nordvpn')
 
+    def install_spotify(self):
+        self.add_apt_key('https://download.spotify.com/debian/pubkey.gpg')
+        self.add_apt_repo('spotify', 'deb http://repository.spotify.com stable non-free')
+        self.update_os_repo()
+        self.install_application('spotify_client')
+
     def install_steam(self):
         self.install_application('steam-installer')
 
@@ -147,6 +159,12 @@ class Ubuntu(Linux):
     def install_tmux(self):
         self.install_application('tmux')
         self.setup_tmux()
+
+    def install_vscode(self):
+        self.add_apt_key('https://packages.microsoft.com/keys/microsoft.asc')
+        self.add_apt_repo('vscode', 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main')
+        self.update_os_repo()
+        self.install_application('code')
 
     def install_vm_tools(self):
         self.install_applications(['open-vm-tools', 'open-vm-tools-desktop'])
@@ -168,7 +186,7 @@ class Ubuntu(Linux):
 
     def update_os(self):
         self.update_os_repo()
-        self.execute(['apt-get', '-y', 'full-upgrade'], super_user=True)
+        self.execute(['apt-get', '-y', 'full-upgrade'])
 
     def update_os_repo(self):
-        self.execute(['apt-get', 'update'], super_user=True)
+        self.execute(['apt-get', 'update'])

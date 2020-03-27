@@ -11,22 +11,16 @@ class Arch(Linux):
         self.aur_install_applications([application])
 
     def aur_install_applications(self, applications: List[AnyStr]):
-        for application in applications:
-            output_file = '%s.tar.gz' % application
-            self.download_file('https://aur.archlinux.org/cgit/aur.git/snapshot/%s.tar.gz' % application,
-                               output_file)
-            self.execute(['tar', '-xvf', output_file])
-            self.execute(['makepkg', '-Acsi', '--noconfirm'], application)
-            self.delete_file(output_file)
-            self.delete_file(application)
+        command = ['yay', '-S', '--noconfirm', '--needed'] + applications
+        self.execute(command, super_user=False)
 
     def enable_service(self, service: AnyStr):
-        self.execute(['systemctl', 'enable', service], super_user=True)
+        self.execute(['systemctl', 'enable', service])
 
     def install_applications(self, applications: List[AnyStr]):
-        command = ['pacman', '-Sy', '--noconfirm', '--needed']
+        command = ['pacman', '-S', '--noconfirm', '--needed']
         command.extend(applications)
-        self.execute(command, super_user=True)
+        self.execute(command)
 
     def install_bluetooth(self):
         self.install_applications(['bluez', 'bluez-utils'])
@@ -38,6 +32,9 @@ class Arch(Linux):
     def install_codecs(self):
         self.install_applications(['libdvdread', 'libdvdcss', 'libdvdnav', 'libbluray', 'libaacs'])
         self.setup_codecs()
+
+    def install_discord(self):
+        self.install_application('discord')
 
     def install_docker(self):
         self.install_application('docker')
@@ -60,6 +57,9 @@ class Arch(Linux):
     def install_flatpak(self):
         self.install_application('flatpak')
 
+    def install_google_cloud_sdk(self):
+        self.aur_install_application('google-cloud-sdk')
+
     def install_git(self):
         self.install_application('git')
         self.setup_git()
@@ -67,14 +67,23 @@ class Arch(Linux):
     def install_gpg(self):
         self.install_applications(['seahorse', 'seahorse-nautilus'])
 
+    def install_helm(self):
+        self.aur_install_application('kubernetes-helm')
+
+    def install_intellij(self):
+        self.aur_install_application('intellij-idea-ultimate-edition')
+
     def install_jdk(self):
         self.install_application('jdk-openjdk')
 
-        self.set_java_home('.zshrc', '/usr/lib/jvm/java-13-jdk')
-        self.set_java_home('.bashrc', '/usr/lib/jvm/java-13-jdk')
+        self.set_java_home('.zshrc', '/usr/lib/jvm/default')
+        self.set_java_home('.bashrc', '/usr/lib/jvm/default')
 
     def install_keepassxc(self):
         self.install_application('keepassxc')
+
+    def install_kubectl(self):
+        self.install_application('kubectl')
 
     def install_makemkv(self):
         self.aur_install_application('makemkv')
@@ -89,6 +98,9 @@ class Arch(Linux):
             self.install_application('intel-ucode')
         else:
             self.install_application('amd-ucode')
+
+    def install_minikube(self):
+        self.install_application('minikube')
 
     def install_mkvtoolnix(self):
         self.install_application('mkvtoolnix-gui')
@@ -176,31 +188,33 @@ class Arch(Linux):
         with open('/etc/tmpfiles.d/nvidia_pm.conf', 'w') as f:
             f.write('w /sys/bus/pci/devices/0000:01:00.0/power/control - - - - auto')
 
+    def install_slack(self):
+        self.aur_install_application('slack-desktop')
+
+    def install_spotify(self):
+        self.aur_install_application('spotify')
+
     def install_steam(self):
         self.install_application('steam')
 
     def install_system_extras(self):
-        self.install_flatpak()
-        self.install_applications(['base-devel'])
+        self.install_applications(['base-devel', 'ttf-dejavu'])
 
-        def edit_file():
-            with open('/etc/pacman.conf', 'r') as f:
-                lines = []
-                enable_multilib = False
-                for line in f.readlines():
-                    if line.startswith('#[multilib]'):
-                        line = line.replace('#', '', 1)
-                        enable_multilib = True
-                    if enable_multilib and line.startswith('#Include = /etc/pacman.d/mirrorlist'):
-                        line = line.replace('#', '', 1)
-                        enable_multilib = False
-                    lines.append(line)
-            lines.extend(['[archlinuxfr]\n', 'SigLevel = Never\n', 'Server = http://repo.archlinux.fr/\$arch'])
-            with open('/etc/pacman.conf', 'w') as f:
-                f.writelines(lines)
+        with open('/etc/pacman.conf', 'r') as f:
+            lines = []
+            enable_multilib = False
+            for line in f.readlines():
+                if line.startswith('#[multilib]'):
+                    line = line.replace('#', '', 1)
+                    enable_multilib = True
+                if enable_multilib and line.startswith('#Include = /etc/pacman.d/mirrorlist'):
+                    line = line.replace('#', '', 1)
+                    enable_multilib = False
+                lines.append(line)
+        with open('/etc/pacman.conf', 'w') as f:
+            f.writelines(lines)
 
-        self.run_as_super_user(edit_file)
-        self.execute(['pacman', '-Sy', '--noconfirm', 'yaourt', 'firefox', 'wget'], super_user=True)
+        self.install_applications(['yay', 'wget'])
 
     def install_tlp(self):
         super().install_tlp()
@@ -216,13 +230,14 @@ class Arch(Linux):
 
     def install_wifi(self):
         self.copy_file('/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin',
-                       '/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak', super_user=True)
+                       '/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak')
         self.download_file(
             'https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035',
-            '/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin', super_user=True)
+            '/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin')
 
     def install_window_manager(self):
-        self.install_applications(['gnome', 'libcanberra'])
+        self.install_applications(['gnome', 'libcanberra', 'libappindicator-gtk3'])
+        self.aur_install_application('gnome-shell-extension-appindicator')
         self.enable_service('gdm')
         self.enable_service('NetworkManager')
 
@@ -231,7 +246,7 @@ class Arch(Linux):
         self.setup_zsh()
 
     def reload_service_daemons(self):
-        self.execute(['systemctl', 'daemon-reload'], super_user=True)
+        self.execute(['systemctl', 'daemon-reload'])
 
     def set_development_shortcuts(self):
         self.set_gnome_development_shortcuts()
@@ -260,7 +275,7 @@ class Arch(Linux):
 
     def update_os(self):
         self.update_os_repo()
-        self.execute(['pacman' '-Syu', '--noconfirm'], super_user=True)
+        self.execute(['pacman', '-Syu', '--noconfirm'])
 
     def update_os_repo(self):
-        self.execute(['pacman' '-S'], super_user=True)
+        self.execute(['pacman', '-Sy'])

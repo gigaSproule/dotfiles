@@ -8,7 +8,7 @@ class Mac(Unix):
     def install_applications(self, applications: List[AnyStr]):
         command = ['brew', 'install', '-y']
         command.extend(applications)
-        self.execute(command, super_user=True)
+        self.execute(command)
 
     def install_system_extras(self):
         self.download_file('https://raw.githubusercontent.com/Homebrew/install/master/install', 'brew-install')
@@ -16,7 +16,7 @@ class Mac(Unix):
 
     def update_os(self):
         self.update_os_repo()
-        self.execute(['brew', '-y', 'upgrade'], super_user=True)
+        self.execute(['brew', '-y', 'upgrade'])
 
     def update_os_repo(self):
-        self.execute(['brew', 'update'], super_user=True)
+        self.execute(['brew', 'update'])
