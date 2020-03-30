@@ -77,11 +77,36 @@ class Linux(Unix):
     def install_system_extras(self):
         self.install_flatpak()
 
+    def install_themes(self):
+        os.mkdir(self.get_home_dir() + '/.themes')
+        self.install_specific_themes()
+        self.recursively_chown(self.get_home_dir() + '/.themes')
+
+    def install_specific_themes(self):
+        pass
+
+    def install_theme_cyberpunk_neon(self):
+        self.execute(['git', 'clone', 'https://github.com/Roboron3042/Cyberpunk-Neon.git'])
+        self.untar_rename_root('Cyberpunk-Neon/gtk/Materia-Cyberpunk-Neon.tar.gz', 'Materia-Cyberpunk-Neon')
+        self.copy_file('Materia-Cyberpunk-Neon', self.get_home_dir() + '/.themes')
+
+    def install_theme_paper_icon(self):
+        pass
+
+    def install_theme_suru_plus(self):
+        self.download_file('https://raw.githubusercontent.com/gusbemacbe/suru-plus/master/install.sh',
+                           'suru-plus-install.sh')
+        self.recursively_chmod('suru-plus-install.sh')
+        self.execute(['./suru-plus-install.sh'])
+
     def install_tlp(self):
         self.install_application('tlp')
 
     def install_vscode(self):
         self.flatpak_install_application('com.visualstudio.code')
+
+    def install_wget(self):
+        self.install_application('wget')
 
     def install_wine(self):
         self.install_application('wine')

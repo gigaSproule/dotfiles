@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import AnyStr, List
 
@@ -155,6 +156,15 @@ class Ubuntu(Linux):
     def install_system_extras(self):
         self.set_debconf('ttf-mscorefonts-installer', 'msttcorefonts/accepted-mscorefonts-eula')
         self.install_applications(['ubuntu-restricted-extras', 'chrome-gnome-shell', 'gnome-tweaks'])
+
+    def install_specific_themes(self):
+        self.install_theme_cyberpunk_neon()
+        self.install_theme_paper_icon()
+        self.install_theme_suru_plus()
+
+    def install_theme_paper_icon(self):
+        self.add_ppa('ppa:snwh/ppa')
+        self.install_application('paper-icon-theme')
 
     def install_tmux(self):
         self.install_application('tmux')

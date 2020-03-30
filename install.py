@@ -107,6 +107,8 @@ def main(argv):
         system.install_git()
         print('Installing Curl')
         system.install_curl()
+        print('Installing Wget')
+        system.install_wget()
 
         print('Installing Java')
         system.install_jdk()
@@ -126,7 +128,7 @@ def main(argv):
         print('Installing Dropbox')
         system.install_dropbox()
         print('Installing Eclipse')
-        #system.install_eclipse()
+        # system.install_eclipse()
         print('Installing Firefox')
         system.install_firefox()
         print('Installing GPG')
@@ -165,6 +167,9 @@ def main(argv):
         system.install_vscode()
         print('Installing Wine')
         system.install_wine()
+
+        print('Installing themes')
+        system.install_themes()
 
         print('Setting development specific shortcuts')
         system.set_development_shortcuts()

@@ -240,6 +240,9 @@ class System:
     def install_system_extras(self):
         pass
 
+    def install_themes(self):
+        pass
+
     def install_tlp(self):
         pass
 
@@ -259,6 +262,9 @@ class System:
         pass
 
     def install_window_manager(self):
+        pass
+
+    def install_wget(self):
         pass
 
     def install_wine(self):

@@ -1,3 +1,4 @@
+import os
 from typing import List, AnyStr
 
 from Linux import Linux
@@ -215,6 +216,17 @@ class Arch(Linux):
             f.writelines(lines)
 
         self.install_applications(['yay', 'wget'])
+
+    def install_specific_themes(self):
+        self.install_theme_cyberpunk_neon()
+        self.install_theme_paper_icon()
+        self.install_theme_suru_plus()
+
+    def install_theme_paper_icon(self):
+        self.aur_install_application('paper-icon-theme-git')
+
+    def install_theme_suru_plus(self):
+        self.aur_install_application('suru-plus-git')
 
     def install_tlp(self):
         super().install_tlp()
