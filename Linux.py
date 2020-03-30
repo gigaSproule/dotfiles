@@ -89,6 +89,7 @@ class Linux(Unix):
         self.execute(['git', 'clone', 'https://github.com/Roboron3042/Cyberpunk-Neon.git'])
         self.untar_rename_root('Cyberpunk-Neon/gtk/Materia-Cyberpunk-Neon.tar.gz', 'Materia-Cyberpunk-Neon')
         self.copy_file('Materia-Cyberpunk-Neon', self.get_home_dir() + '/.themes')
+        self.delete_directory('Cyberpunk-Neon')
 
     def install_theme_paper_icon(self):
         pass
