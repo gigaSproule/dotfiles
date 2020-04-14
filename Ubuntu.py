@@ -1,4 +1,3 @@
-import os
 import uuid
 from typing import AnyStr, List
 
@@ -167,7 +166,7 @@ class Ubuntu(Linux):
         self.install_application('paper-icon-theme')
 
     def install_tmux(self):
-        self.install_application('tmux')
+        self.install_applications(['tmux', 'xclip'])
         self.setup_tmux()
 
     def install_vscode(self):

@@ -1,4 +1,3 @@
-import os
 from typing import List, AnyStr
 
 from Linux import Linux
@@ -233,7 +232,7 @@ class Arch(Linux):
         self.enable_service('tlp')
 
     def install_tmux(self):
-        self.install_application('tmux')
+        self.install_applications(['tmux', 'xclip'])
         self.aur_install_application('tmux-bash-completion')
         self.setup_tmux()
 
