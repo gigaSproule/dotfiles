@@ -28,6 +28,9 @@ class Linux(Unix):
     def install_groovy(self):
         self.install_application('groovy')
 
+    def install_handbrake(self):
+        self.install_application('handbrake')
+
     def install_helm(self):
         self.execute(['curl', '-L', 'https://git.io/get_helm.sh', '|', 'bash'])
 
@@ -102,6 +105,9 @@ class Linux(Unix):
 
     def install_tlp(self):
         self.install_application('tlp')
+
+    def install_vlc(self):
+        self.install_application('vlc')
 
     def install_vscode(self):
         self.flatpak_install_application('com.visualstudio.code')

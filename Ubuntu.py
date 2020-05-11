@@ -97,27 +97,10 @@ class Ubuntu(Linux):
         self.install_application('lutris')
 
     def install_makemkv(self):
-        self.install_applications([
-            'build-essential', 'pkg-config', 'libc6-dev', 'libssl-dev', 'libexpat1-dev', 'libavcodec-dev',
-            'libgl1-mesa-dev', 'libqt4-dev'
-        ])
-
-        makemkv_version = '1.10.10'
-
-        self.download_file('http://www.makemkv.com/download/makemkv-oss-%s.tar.gz' % makemkv_version,
-                           'makemkv-oss.tar.gz')
-        self.untar_rename_root('makemkv-oss.tar.gz', 'makemkv-oss')
-        self.execute('./configure', 'makemkv-oss')
-        self.execute('make', 'makemkv-oss')
-        self.execute('make install', 'makemkv-oss')
-        self.delete_file('makemkv-oss')
-
-        self.download_file('http://www.makemkv.com/download/makemkv-bin-%s.tar.gz' % makemkv_version,
-                           'makemkv-bin.tar.gz')
-        self.untar_rename_root('makemkv-bin.tar.gz', 'makemkv-bin')
-        self.execute('make', 'makemkv-bin')
-        self.execute('make install', 'makemkv-bin')
-        self.delete_file('makemkv-bin')
+        self.add_ppa('heyarje/makemkv-beta')
+        self.update_os_repo()
+        self.install_applications(['makemkv-bin', 'makemkv-oss'])
+        self.install_application('ccextractor')
 
     def install_microcode(self):
         # if cat /proc/cpuinfo | grep 'vendor' | uniq == "GenuineIntel":
@@ -162,7 +145,7 @@ class Ubuntu(Linux):
         self.install_theme_suru_plus()
 
     def install_theme_paper_icon(self):
-        self.add_ppa('ppa:snwh/ppa')
+        self.add_ppa('snwh/ppa')
         self.install_application('paper-icon-theme')
 
     def install_tmux(self):

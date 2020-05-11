@@ -168,6 +168,9 @@ class System:
     def install_groovy(self):
         pass
 
+    def install_handbrake(self):
+        pass
+
     def install_intellij(self):
         pass
 
@@ -250,6 +253,9 @@ class System:
         pass
 
     def install_vim(self):
+        pass
+
+    def install_vlc(self):
         pass
 
     def install_vm_tools(self):

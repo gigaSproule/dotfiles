@@ -44,7 +44,7 @@ class Arch(Linux):
         self.aur_install_applications(['dropbox', 'nautilus-dropbox'])
 
     def install_eclipse(self):
-        self.install_application('eclipse-jee')
+        self.aur_install_application('eclipse-jee')
         self.setup_eclipse()
 
     def install_firefox(self):
@@ -68,7 +68,7 @@ class Arch(Linux):
         self.install_applications(['seahorse', 'seahorse-nautilus'])
 
     def install_helm(self):
-        self.aur_install_application('kubernetes-helm')
+        self.install_application('helm')
 
     def install_intellij(self):
         self.aur_install_application('intellij-idea-ultimate-edition')
@@ -86,7 +86,7 @@ class Arch(Linux):
         self.install_application('kubectl')
 
     def install_makemkv(self):
-        self.aur_install_application('makemkv')
+        self.aur_install_applications(['makemkv', 'ccextractor'])
 
     def install_microcode(self):
         cpu_name = ''

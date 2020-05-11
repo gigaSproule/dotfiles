@@ -58,6 +58,9 @@ class Windows(System):
     def install_groovy(self):
         self.install_application('groovy')
 
+    def install_handbrake(self):
+        self.install_application('handbrake')
+
     def install_intellij(self):
         self.install_application('intellijidea-ultimate')
 
@@ -116,6 +119,9 @@ class Windows(System):
 
     def install_vim(self):
         self.install_application('vim')
+
+    def install_vlc(self):
+        self.install_application('vlc')
 
     def install_vscode(self):
         self.install_application('vscode')
