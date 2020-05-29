@@ -58,6 +58,8 @@ class Mac(Unix):
 
     def install_java(self):
         self.install_application('openjdk')
+        self.symlink('$(brew --prefix)/opt/openjdk/libexec/openjdk.jdk',
+                     '/Library/Java/JavaVirtualMachines/openjdk.jdk')
 
     def install_keepassxc(self):
         self.cask_install_application('keepassxc')

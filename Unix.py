@@ -34,3 +34,6 @@ class Unix(System):
         self.execute(['chsh', '-s', '/usr/bin/zsh'])
         self.execute(['chsh', '-s', '/usr/bin/zsh', os.getlogin()])
         self.delete_file('oh-my-zsh.sh')
+
+    def symlink(self, source: AnyStr, destination: AnyStr):
+        self.execute(['ln', '-sfn', source, destination])
