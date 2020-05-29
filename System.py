@@ -222,10 +222,13 @@ class System:
     def install_nvidia_laptop_tools(self):
         pass
 
+    def install_obs_studio(self):
+        pass
+
     def install_powertop(self):
         pass
 
-    def install_simplescreenrecorder(self):
+    def install_python(self):
         pass
 
     def install_slack(self):

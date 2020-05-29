@@ -1,6 +1,5 @@
 import os
 import shutil
-from pwd import getpwnam
 from typing import AnyStr
 
 from System import System
@@ -34,3 +33,4 @@ class Unix(System):
         self.copy_config('zsh/zshrc', '.zshrc')
         self.execute(['chsh', '-s', '/usr/bin/zsh'])
         self.execute(['chsh', '-s', '/usr/bin/zsh', os.getlogin()])
+        self.delete_file('oh-my-zsh.sh')

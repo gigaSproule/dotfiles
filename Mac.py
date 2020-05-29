@@ -1,18 +1,126 @@
+import os
 from typing import AnyStr, List
 
 from Unix import Unix
 
 
 class Mac(Unix):
+    def cask_install_application(self, application: AnyStr):
+        self.cask_install_applications([application])
+
+    def cask_install_applications(self, applications: List[AnyStr]):
+        command = ['brew', 'cask', 'install']
+        command.extend(applications)
+        self.execute(command, super_user=False)
 
     def install_applications(self, applications: List[AnyStr]):
-        command = ['brew', 'install', '-y']
+        command = ['brew', 'install']
         command.extend(applications)
-        self.execute(command)
+        self.execute(command, super_user=False)
+
+    def install_chrome(self):
+        self.cask_install_application('google-chrome')
+
+    def install_docker(self):
+        self.cask_install_application('docker')
+
+    def install_dropbox(self):
+        self.cask_install_application('dropbox')
+
+    def install_eclipse(self):
+        self.cask_install_application('eclipse-java')
+
+    def install_firefox(self):
+        self.cask_install_application('firefox')
+
+    def install_gradle(self):
+        self.install_applications(['gradle', 'gradle-completion'])
+
+    def install_git(self):
+        self.install_application('git')
+
+    def install_gpg(self):
+        self.cask_install_application('gpg-suite')
+
+    def install_google_cloud_sdk(self):
+        self.cask_install_application('google-cloud-sdk')
+        # source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"
+        # source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
+
+    def install_groovy(self):
+        self.install_application('groovy')
+
+    def install_helm(self):
+        self.install_application('helm')
+
+    def install_intellij(self):
+        self.cask_install_application('intellij-idea')
+
+    def install_java(self):
+        self.install_application('openjdk')
+
+    def install_keepassxc(self):
+        self.cask_install_application('keepassxc')
+
+    def install_kubectl(self):
+        self.install_application('kubernetes-cli')
+
+    def install_maven(self):
+        self.install_application('maven')
+
+    def install_minikube(self):
+        self.install_application('minikube')
+
+    def install_nextcloud_client(self):
+        self.cask_install_application('nextcloud')
+
+    def install_nodejs(self):
+        self.install_application('node')
+
+    def install_nordvpn(self):
+        self.cask_install_application('nordvpn')
+
+    def install_obs_studio(self):
+        self.cask_install_application('obs')
+
+    def install_python(self):
+        self.install_application('python')
+
+    def install_slack(self):
+        self.cask_install_application('slack')
+
+    def install_spotify(self):
+        self.cask_install_application('spotify')
+
+    def install_sweet_home_3d(self):
+        self.cask_install_application('sweet-home3d')
+
+    def install_tmux(self):
+        self.install_application('tmux')
+        self.setup_tmux()
+
+    def install_vlc(self):
+        self.cask_install_application('vlc')
+
+    def install_vscode(self):
+        self.cask_install_application('visual-studio-code')
+
+    def install_wget(self):
+        self.install_application('wget')
+
+    def install_zsh(self):
+        self.install_applications(['zsh', 'zsh-autosuggestions'])
+        self.setup_zsh()
+        self.execute(['chsh', '-s', '/usr/local/bin/zsh'])
+        self.execute(['chsh', '-s', '/usr/local/bin/zsh', os.getlogin()])
 
     def install_system_extras(self):
-        self.download_file('https://raw.githubusercontent.com/Homebrew/install/master/install', 'brew-install')
-        self.execute(['ruby', 'brew-install'])
+        import ssl
+        ssl._create_default_https_context = ssl._create_unverified_context
+        self.download_file('https://raw.githubusercontent.com/Homebrew/install/master/install.sh', 'brew-install')
+        self.execute(['chmod', '+x', 'brew-install'])
+        self.execute(['./brew-install'], super_user=False)
+        self.delete_file('brew-install')
 
     def update_os(self):
         self.update_os_repo()

@@ -85,6 +85,9 @@ class Arch(Linux):
     def install_kubectl(self):
         self.install_application('kubectl')
 
+    def install_lutris(self):
+        self.install_application('lutris')
+
     def install_makemkv(self):
         self.aur_install_applications(['makemkv', 'ccextractor'])
 
@@ -104,9 +107,6 @@ class Arch(Linux):
 
     def install_mkvtoolnix(self):
         self.install_application('mkvtoolnix-gui')
-
-    def install_lutris(self):
-        self.install_application('lutris')
 
     def install_nextcloud_client(self):
         self.install_application('nextcloud-client')
@@ -187,6 +187,9 @@ class Arch(Linux):
         self.enable_service('disable-nvidia-on-shutdown')
         with open('/etc/tmpfiles.d/nvidia_pm.conf', 'w') as f:
             f.write('w /sys/bus/pci/devices/0000:01:00.0/power/control - - - - auto')
+
+    def install_obs_studio(self):
+        self.install_application('obs-studio')
 
     def install_slack(self):
         self.aur_install_application('slack-desktop')

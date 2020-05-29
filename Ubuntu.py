@@ -126,6 +126,11 @@ class Ubuntu(Linux):
         self.update_os_repo()
         self.install_application('nordvpn')
 
+    def install_obs_studio(self):
+        self.add_ppa('obsproject/obs-studio')
+        self.update_os_repo()
+        self.install_application('obs-studio')
+
     def install_spotify(self):
         self.add_apt_key('https://download.spotify.com/debian/pubkey.gpg')
         self.add_apt_repo('spotify', 'deb http://repository.spotify.com stable non-free')
@@ -146,6 +151,7 @@ class Ubuntu(Linux):
 
     def install_theme_paper_icon(self):
         self.add_ppa('snwh/ppa')
+        self.update_os_repo()
         self.install_application('paper-icon-theme')
 
     def install_tmux(self):
