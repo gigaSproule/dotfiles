@@ -52,6 +52,12 @@ class System:
     def get_home_dir(self):
         return os.environ['HOME']
 
+    def install_application(self, application: AnyStr):
+        self.install_applications([application])
+
+    def install_applications(self, applications: List[AnyStr]):
+        pass
+
     def is_super_user(self):
         pass
 
@@ -89,10 +95,7 @@ class System:
         with tarfile.open(src) as tar_file:
             tar_file.extractall(dest, members(tar_file))
 
-    def install_application(self, application: AnyStr):
-        self.install_applications([application])
-
-    def install_applications(self, applications: List[AnyStr]):
+    def install_android_studio(self):
         pass
 
     def install_bluetooth(self):
@@ -277,6 +280,9 @@ class System:
         pass
 
     def install_wine(self):
+        pass
+
+    def install_xcode(self):
         pass
 
     def install_zsh(self):

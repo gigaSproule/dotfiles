@@ -92,7 +92,7 @@ class Windows(System):
         self.install_application('nextcloud-client')
 
     def install_nodejs(self):
-        self.install_application('nodejs')
+        self.install_applications(['nodejs', 'yarn'])
 
     def install_nordvpn(self):
         self.install_application('nordvpn')

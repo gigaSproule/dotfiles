@@ -1,10 +1,13 @@
-import os
 from typing import AnyStr, List
 
 from Unix import Unix
 
 
 class Mac(Unix):
+    def app_store_install_application(self, application_id: AnyStr):
+        command = ['mas', 'install', application_id]
+        self.execute(command, super_user=False)
+
     def cask_install_application(self, application: AnyStr):
         self.cask_install_applications([application])
 
@@ -17,6 +20,11 @@ class Mac(Unix):
         command = ['brew', 'install']
         command.extend(applications)
         self.execute(command, super_user=False)
+
+    def install_android_studio(self):
+        self.cask_install_application('android-studio')
+        with open(self.get_home_dir() + '/.custom.sh', 'a+') as f:
+            f.write('alias studio="open -a /Applications/Android\\ Studio.app"')
 
     def install_chrome(self):
         self.cask_install_application('google-chrome')
@@ -77,10 +85,10 @@ class Mac(Unix):
         self.cask_install_application('nextcloud')
 
     def install_nodejs(self):
-        self.install_application('node')
+        self.install_applications(['node', 'yarn'])
 
     def install_nordvpn(self):
-        self.cask_install_application('nordvpn')
+        self.app_store_install_application('1116599239')
 
     def install_obs_studio(self):
         self.cask_install_application('obs')
@@ -89,7 +97,7 @@ class Mac(Unix):
         self.install_application('python')
 
     def install_slack(self):
-        self.cask_install_application('slack')
+        self.app_store_install_application('803453959')
 
     def install_spotify(self):
         self.cask_install_application('spotify')
@@ -98,7 +106,7 @@ class Mac(Unix):
         self.cask_install_application('sweet-home3d')
 
     def install_tmux(self):
-        self.install_application('tmux')
+        self.install_applications(['tmux', 'reattach-to-user-namespace'])
         self.setup_tmux()
 
     def install_vlc(self):
@@ -110,11 +118,17 @@ class Mac(Unix):
     def install_wget(self):
         self.install_application('wget')
 
+    def install_xcode(self):
+        self.app_store_install_application('497799835')
+
     def install_zsh(self):
         self.install_applications(['zsh', 'zsh-autosuggestions'])
-        self.setup_zsh()
-        self.execute(['chsh', '-s', '/usr/local/bin/zsh'])
-        self.execute(['chsh', '-s', '/usr/local/bin/zsh', os.getlogin()])
+        self.setup_zsh('/usr/local/bin/zsh')
+
+    def setup_tmux(self):
+        super().setup_tmux()
+        with open(self.get_home_dir() + '/.tmux.conf.custom', 'a+') as f:
+            f.write('bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \'reattach-to-user-namespace pbcopy\'')
 
     def install_system_extras(self):
         import ssl
@@ -123,6 +137,8 @@ class Mac(Unix):
         self.execute(['chmod', '+x', 'brew-install'])
         self.execute(['./brew-install'], super_user=False)
         self.delete_file('brew-install')
+
+        self.install_application('mas')
 
     def update_os(self):
         self.update_os_repo()

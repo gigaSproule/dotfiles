@@ -25,14 +25,14 @@ class Unix(System):
     def setup_tmux(self):
         self.copy_config('tmux/tmux.conf', '.tmux.conf')
 
-    def setup_zsh(self):
+    def setup_zsh(self, zsh_bin: AnyStr = '/usr/bin/zsh'):
         self.download_file('https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh',
                            'oh-my-zsh.sh')
         self.recursively_chmod('./oh-my-zsh.sh')
         self.execute(['./oh-my-zsh.sh'], super_user=False)
         self.copy_config('zsh/zshrc', '.zshrc')
-        self.execute(['chsh', '-s', '/usr/bin/zsh'])
-        self.execute(['chsh', '-s', '/usr/bin/zsh', os.getlogin()])
+        self.execute(['chsh', '-s', zsh_bin])
+        self.execute(['chsh', '-s', zsh_bin, os.getlogin()])
         self.delete_file('oh-my-zsh.sh')
 
     def symlink(self, source: AnyStr, destination: AnyStr):

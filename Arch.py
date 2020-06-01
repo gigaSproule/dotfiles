@@ -22,6 +22,9 @@ class Arch(Linux):
         command.extend(applications)
         self.execute(command)
 
+    def install_android_studio(self):
+        self.aur_install_application('android-studio')
+
     def install_bluetooth(self):
         self.install_applications(['bluez', 'bluez-utils'])
         self.enable_service('bluetooth')
@@ -75,9 +78,8 @@ class Arch(Linux):
 
     def install_jdk(self):
         self.install_application('jdk-openjdk')
-
-        self.set_java_home('.zshrc', '/usr/lib/jvm/default')
-        self.set_java_home('.bashrc', '/usr/lib/jvm/default')
+        self.set_java_home('.zshrc.custom', '/usr/lib/jvm/default')
+        self.set_java_home('.bashrc.custom', '/usr/lib/jvm/default')
 
     def install_keepassxc(self):
         self.install_application('keepassxc')
@@ -112,7 +114,7 @@ class Arch(Linux):
         self.install_application('nextcloud-client')
 
     def install_nodejs(self):
-        self.install_applications(['npm', 'nodejs'])
+        self.install_applications(['nodejs', 'npm', 'yarn'])
 
     def install_nordvpn(self):
         self.aur_install_application('nordvpn-bin')

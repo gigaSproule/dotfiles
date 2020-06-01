@@ -162,6 +162,11 @@ class Linux(Unix):
         with open('/opt/eclipse/eclipse.ini', 'a') as f:
             f.write('-javaagent:/opt/eclipse/lombok.jar')
 
+    def setup_tmux(self):
+        super().setup_tmux()
+        with open(self.get_home_dir() + '/.tmux.conf.custom', 'a+') as f:
+            f.write('bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \'xclip -in -selection clipboard\'')
+
     def flatpak_install_application(self, application):
         commands = ['flatpak', 'install', 'flathub', '-y', application]
         self.execute(commands)

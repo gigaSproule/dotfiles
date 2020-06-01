@@ -10,14 +10,14 @@ class Ubuntu(Linux):
     def __init__(self):
         super().__init__()
 
-    def add_apt_key(self, url):
+    def add_apt_key(self, url: AnyStr):
         apt_file = '%s.apt' % uuid.uuid4()
         with open(apt_file, 'w') as f:
             f.write(self.execute(['curl', '-fsSL', url])['output'])
         self.execute(['apt-key', 'add', apt_file])
         self.delete_file(apt_file)
 
-    def add_apt_repo(self, file_name, urls):
+    def add_apt_repo(self, file_name: AnyStr, urls: List[AnyStr]):
         with open('/etc/apt/sources.list.d/%s.list' % file_name, 'w') as f:
             for url in urls:
                 f.write(url)
@@ -29,6 +29,11 @@ class Ubuntu(Linux):
         command = ['apt-get', 'install', '-y']
         command.extend(applications)
         self.execute(command)
+
+    def install_android_studio(self):
+        self.add_ppa('maarten-fonville/android-studio')
+        self.update_os_repo()
+        self.install_application('android-studio')
 
     def install_chrome(self):
         self.download_file('https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb',
@@ -78,9 +83,8 @@ class Ubuntu(Linux):
         self.set_debconf('oracle-java8-installer', 'shared/accepted-oracle-license-v1-1')
         self.install_applications(
             ['oracle-java8-installer', 'oracle-java8-unlimited-jce-policy', 'oracle-java8-set-default'])
-
-        self.set_java_home('.zshrc', '/usr/lib/jvm/java-8-oracle')
-        self.set_java_home('.bashrc', '/usr/lib/jvm/java-8-oracle')
+        self.set_java_home('.zshrc.custom', '/usr/lib/jvm/java-8-oracle')
+        self.set_java_home('.bashrc.custom', '/usr/lib/jvm/java-8-oracle')
 
     def install_keepassxc(self):
         self.add_apt_repo('keepassxc', [
@@ -115,9 +119,11 @@ class Ubuntu(Linux):
         self.install_application('nextcloud-desktop')
 
     def install_nodejs(self):
-        self.execute(['curl', '-sL', 'https://deb.nodesource.com/setup_8.x', '|', '-E', 'bash', '-'])
+        self.execute(['curl', '-sL', 'https://deb.nodesource.com/setup_14.x', '|', '-E', 'bash', '-'])
+        self.add_apt_key('https://dl.yarnpkg.com/debian/pubkey.gpg')
+        self.add_apt_repo('yarn.list', ['https://dl.yarnpkg.com/debian/ stable main'])
         self.update_os_repo()
-        self.install_applications(['npm', 'nodejs'])
+        self.install_applications(['nodejs', 'npm', 'yarn'])
 
     def install_nordvpn(self):
         self.download_file('https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb',

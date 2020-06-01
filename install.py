@@ -134,6 +134,8 @@ def main(argv):
         system.install_firefox()
 
     if development:
+        print('Installing Android Studio')
+        system.install_android_studio()
         print('Installing Eclipse')
         # system.install_eclipse()
         print('Installing Gradle')
@@ -156,6 +158,8 @@ def main(argv):
         system.install_slack()
         print('Installing VSCode')
         system.install_vscode()
+        print('Installing Xcode')
+        system.install_xcode()
         print('Setting development specific shortcuts')
         system.set_development_shortcuts()
         print('Setting development environment settings')
