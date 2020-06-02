@@ -58,6 +58,9 @@ class Mac(Unix):
     def install_groovy(self):
         self.install_application('groovy')
 
+    def install_handbrake(self):
+        self.cask_install_application('handbrake')
+
     def install_helm(self):
         self.install_application('helm')
 
@@ -75,8 +78,14 @@ class Mac(Unix):
     def install_kubectl(self):
         self.install_application('kubernetes-cli')
 
+    def install_makemkv(self):
+        self.cask_install_application('makemkv')
+
     def install_maven(self):
         self.install_application('maven')
+
+    def install_mkvtoolnix(self):
+        self.cask_install_application('mkvtoolnix')
 
     def install_minikube(self):
         self.install_application('minikube')
