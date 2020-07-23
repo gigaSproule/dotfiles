@@ -58,6 +58,6 @@ function migrateGitRepo() {
     git push origin '*:*'
 }
 
-if [ -f $HOME/.custom.sh ]; then
+if [ -f $HOME/.zshrc.custom ]; then
     source $HOME/.zshrc.custom
 fi

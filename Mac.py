@@ -67,10 +67,11 @@ class Mac(Unix):
     def install_intellij(self):
         self.cask_install_application('intellij-idea')
 
-    def install_java(self):
+    def install_jdk(self):
         self.install_application('openjdk')
         self.symlink('$(brew --prefix)/opt/openjdk/libexec/openjdk.jdk',
                      '/Library/Java/JavaVirtualMachines/openjdk.jdk')
+        self.set_java_home('.zshrc.custom', '$(/usr/libexec/java_home)')
 
     def install_keepassxc(self):
         self.cask_install_application('keepassxc')
@@ -136,7 +137,7 @@ class Mac(Unix):
 
     def setup_tmux(self):
         super().setup_tmux()
-        with open(self.get_home_dir() + '/.tmux.conf.custom', 'a+') as f:
+        with open(self.get_home_dir() + '/.tmux.custom.conf', 'a+') as f:
             f.write('bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \'reattach-to-user-namespace pbcopy\'')
 
     def install_system_extras(self):
