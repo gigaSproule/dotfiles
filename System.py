@@ -234,6 +234,9 @@ class System:
     def install_python(self):
         pass
 
+    def install_rust(self):
+        pass
+
     def install_slack(self):
         pass
 

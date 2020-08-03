@@ -154,6 +154,8 @@ def main(argv):
         system.install_nodejs()
         print('Installing Python')
         system.install_python()
+        print('Installing Rust')
+        system.install_rust()
         print('Installing Slack')
         system.install_slack()
         print('Installing VSCode')

@@ -16,6 +16,12 @@ class Unix(System):
     def is_super_user(self):
         return os.getuid() == 0
 
+    def install_rust(self):
+        self.download_file('https://sh.rustup.rs', 'rustup-install')
+        self.recursively_chmod('rustup-install')
+        self.execute(['./rustup-install', '-y'], super_user=False)
+        self.delete_file('rustup-install')
+
     def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
         with open(self.get_home_dir() + '/' + file, 'a+') as f:
             contents = f.read()
