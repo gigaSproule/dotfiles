@@ -149,6 +149,7 @@ class Mac(Unix):
         self.delete_file('brew-install')
 
         self.install_application('mas')
+        self.cask_install_application('scroll-reverser')
 
     def update_os(self):
         self.update_os_repo()
