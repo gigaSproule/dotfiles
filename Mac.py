@@ -29,6 +29,9 @@ class Mac(Unix):
     def install_chrome(self):
         self.cask_install_application('google-chrome')
 
+    def install_discord(self):
+        self.cask_install_application('discord')
+
     def install_docker(self):
         self.cask_install_application('docker')
 
