@@ -67,11 +67,17 @@ class Arch(Linux):
         self.install_application('git')
         self.setup_git()
 
+    def install_gimp(self):
+        self.install_application('gimp')
+
     def install_gpg(self):
         self.install_applications(['seahorse', 'seahorse-nautilus'])
 
     def install_helm(self):
         self.install_application('helm')
+
+    def install_inkscape(self):
+        self.install_application('inkscape')
 
     def install_intellij(self):
         self.aur_install_application('intellij-idea-ultimate-edition')

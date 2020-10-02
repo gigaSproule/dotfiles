@@ -152,6 +152,9 @@ class System:
         self.make_directory(self.get_home_dir() + '/.git/hooks')
         self.recursively_chown(self.get_home_dir() + '/.git/hooks')
 
+    def install_gimp(self):
+        pass
+
     def install_gpg(self):
         pass
 
@@ -172,6 +175,9 @@ class System:
         pass
 
     def install_handbrake(self):
+        pass
+
+    def install_inkscape(self):
         pass
 
     def install_intellij(self):

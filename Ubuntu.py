@@ -74,8 +74,14 @@ class Ubuntu(Linux):
         self.install_application('git')
         self.setup_git()
 
+    def install_gimp(self):
+        self.install_application('gimp')
+
     def install_gpg(self):
         self.install_application('seahorse-nautilus')
+
+    def install_inkscape(self):
+        self.install_application('inkscape')
 
     def install_jdk(self):
         self.add_ppa('webupd8team/java')
