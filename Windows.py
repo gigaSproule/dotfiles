@@ -49,6 +49,9 @@ class Windows(System):
         super().setup_git()
         self.install_application('poshgit')
 
+    def install_gimp(self):
+        self.install_application('gimp')
+
     def install_gpg(self):
         self.install_application('gpg4win')
 
@@ -60,6 +63,9 @@ class Windows(System):
 
     def install_handbrake(self):
         self.install_application('handbrake')
+
+    def install_inkscape(self):
+        self.install_application('inkscape')
 
     def install_intellij(self):
         self.install_application('intellijidea-ultimate')

@@ -50,6 +50,9 @@ class Mac(Unix):
     def install_git(self):
         self.install_application('git')
 
+    def install_gimp(self):
+        self.cask_install_application('gimp')
+
     def install_gpg(self):
         self.cask_install_application('gpg-suite')
 
@@ -66,6 +69,9 @@ class Mac(Unix):
 
     def install_helm(self):
         self.install_application('helm')
+
+    def install_inkscape(self):
+        self.cask_install_application('inkscape')
 
     def install_intellij(self):
         self.cask_install_application('intellij-idea')

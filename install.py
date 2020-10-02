@@ -55,11 +55,11 @@ def get_system():
 
 
 def main(argv):
-    browsers = development = docker = gaming = gcp = laptop = personal = recording = ripping = video = vm = vpn = False
+    browsers = development = docker = gaming = gcp = images = laptop = personal = recording = ripping = video = vm = vpn = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hbdcgpv',
-                                   ['help', 'browsers', 'development', 'docker', 'gaming', 'gcp', 'personal',
+        opts, args = getopt.getopt(argv, 'hbdcgipv',
+                                   ['help', 'browsers', 'development', 'docker', 'gaming', 'gcp', 'images', 'personal',
                                     'recording', 'ripping', 'video', 'vm', 'vpn'])
         if len(opts) == 0:
             print('No options provided')
@@ -78,6 +78,8 @@ def main(argv):
             elif opt in ('-g', '--gaming'):
                 gaming = True
             elif opt in ('-g', '--gcp'):
+                gcp = True
+            elif opt in ('-i', '--images'):
                 gcp = True
             elif opt in ('-p', '--personal'):
                 personal = True
@@ -190,6 +192,12 @@ def main(argv):
     if gcp:
         print('Installing Google Cloud SDK')
         system.install_google_cloud_sdk()
+
+    if images:
+        print('Installing Gimp')
+        system.install_gimp()
+        print('Installing Inkscape')
+        system.install_inkscape()
 
     if laptop:
         print('Installing Bluetooth')
