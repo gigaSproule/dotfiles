@@ -23,7 +23,7 @@ class Mac(Unix):
 
     def install_android_studio(self):
         self.cask_install_application('android-studio')
-        with open(self.get_home_dir() + '/.custom.sh', 'a+') as f:
+        with open(self.get_home_dir() + '/.zhsrc.custom', 'a+') as f:
             f.write('alias studio="open -a /Applications/Android\\ Studio.app"')
 
     def install_chrome(self):
@@ -58,8 +58,9 @@ class Mac(Unix):
 
     def install_google_cloud_sdk(self):
         self.cask_install_application('google-cloud-sdk')
-        # source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"
-        # source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"
+        with open(self.get_home_dir() + '/.zhsrc.custom', 'a+') as f:
+            f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"')
+            f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"')
 
     def install_groovy(self):
         self.install_application('groovy')
