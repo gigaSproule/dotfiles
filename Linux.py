@@ -121,7 +121,7 @@ class Linux(Unix):
     def set_development_environment_settings(self):
         print('Setting mmapfs limit for Elasticsearch')
         with open('/etc/sysctl.conf', 'a') as f:
-            f.write('vm.max_map_count=262144')
+            f.write('vm.max_map_count=262144\n')
 
     def setup_docker(self):
         self.execute(['usermod', '-a', '-G', 'docker', os.getlogin()])
@@ -160,12 +160,15 @@ class Linux(Unix):
         copyfile('/snap/eclipse/current/eclipse.ini', '/opt/eclipse/eclipse.ini')
 
         with open('/opt/eclipse/eclipse.ini', 'a') as f:
-            f.write('-javaagent:/opt/eclipse/lombok.jar')
+            f.write('-javaagent:/opt/eclipse/lombok.jar\n')
 
     def setup_tmux(self):
         super().setup_tmux()
         with open(self.get_home_dir() + '/.tmux.custom.conf', 'a+') as f:
-            f.write('bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \'xclip -in -selection clipboard\'')
+            f.seek(0)
+            contents = f.read()
+            if 'bind -T copy-mode-vi y' not in contents:
+                f.write('bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \'xclip -in -selection clipboard\'\n')
 
     def flatpak_install_application(self, application):
         commands = ['flatpak', 'install', 'flathub', '-y', application]

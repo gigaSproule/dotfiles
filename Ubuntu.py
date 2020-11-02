@@ -20,7 +20,7 @@ class Ubuntu(Linux):
     def add_apt_repo(self, file_name: AnyStr, urls: List[AnyStr]):
         with open('/etc/apt/sources.list.d/%s.list' % file_name, 'w') as f:
             for url in urls:
-                f.write(url)
+                f.write(url + '\n')
 
     def add_ppa(self, ppa):
         self.execute(['add-apt-repository', '-y', 'ppa:%s' % ppa])

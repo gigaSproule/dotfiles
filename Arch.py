@@ -160,7 +160,7 @@ class Arch(Linux):
                           'install ipmi_devintf /usr/bin/false'])
 
         with open('/etc/modprobe.d/disable-nvidia.conf', 'w') as f:
-            f.write('install nvidia /bin/false')
+            f.write('install nvidia /bin/false\n')
 
         with open('/etc/modprobe.d/blacklist.conf', 'w') as f:
             f.writelines(
@@ -194,7 +194,7 @@ class Arch(Linux):
         self.reload_service_daemons()
         self.enable_service('disable-nvidia-on-shutdown')
         with open('/etc/tmpfiles.d/nvidia_pm.conf', 'w') as f:
-            f.write('w /sys/bus/pci/devices/0000:01:00.0/power/control - - - - auto')
+            f.write('w /sys/bus/pci/devices/0000:01:00.0/power/control - - - - auto\n')
 
     def install_obs_studio(self):
         self.install_application('obs-studio')
@@ -281,7 +281,7 @@ class Arch(Linux):
 
         if device_name == 'XPS 15 9570':
             with open('/sys/power/mem_sleep', 'w') as f:
-                f.write('s2idle [deep]')
+                f.write('s2idle [deep]\n')
 
             with open('/etc/default/grub', 'r') as f:
                 lines = []

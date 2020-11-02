@@ -23,8 +23,11 @@ class Mac(Unix):
 
     def install_android_studio(self):
         self.cask_install_application('android-studio')
-        with open(self.get_home_dir() + '/.zhsrc.custom', 'a+') as f:
-            f.write('alias studio="open -a /Applications/Android\\ Studio.app"')
+        with open(self.get_home_dir() + '/.zshrc.custom', 'a+') as f:
+            f.seek(0)
+            contents = f.read()
+            if 'alias studio' not in contents:
+                f.write('alias studio="open -a /Applications/Android\\ Studio.app"\n')
 
     def install_chrome(self):
         self.cask_install_application('google-chrome')
@@ -49,6 +52,7 @@ class Mac(Unix):
 
     def install_git(self):
         self.install_application('git')
+        self.setup_git()
 
     def install_gimp(self):
         self.cask_install_application('gimp')
@@ -58,9 +62,14 @@ class Mac(Unix):
 
     def install_google_cloud_sdk(self):
         self.cask_install_application('google-cloud-sdk')
-        with open(self.get_home_dir() + '/.zhsrc.custom', 'a+') as f:
-            f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"')
-            f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"')
+        with open(self.get_home_dir() + '/§.custom', 'a+') as f:
+            f.seek(0)
+            contents = f.read()
+            # TODO: Replace `/usr/local` with `$(brew --prefix)` (which needs to return correct value)
+            if 'source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"' not in contents:
+                f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"\n')
+            if 'source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"' not in contents:
+                f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"\n')
 
     def install_groovy(self):
         self.install_application('groovy')
@@ -79,7 +88,8 @@ class Mac(Unix):
 
     def install_jdk(self):
         self.install_application('openjdk')
-        self.symlink('$(brew --prefix)/opt/openjdk/libexec/openjdk.jdk',
+        # TODO: Replace `/usr/local` with `$(brew --prefix)` (which needs to return correct value)
+        self.symlink('/usr/local/opt/openjdk/libexec/openjdk.jdk',
                      '/Library/Java/JavaVirtualMachines/openjdk.jdk')
         self.set_java_home('.zshrc.custom', '$(/usr/libexec/java_home)')
 
@@ -148,7 +158,11 @@ class Mac(Unix):
     def setup_tmux(self):
         super().setup_tmux()
         with open(self.get_home_dir() + '/.tmux.custom.conf', 'a+') as f:
-            f.write('bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \'reattach-to-user-namespace pbcopy\'')
+            f.seek(0)
+            contents = f.read()
+            if 'bind -T copy-mode-vi y' not in contents:
+                f.write(
+                    'bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \'reattach-to-user-namespace pbcopy\'\n')
 
     def install_system_extras(self):
         import ssl

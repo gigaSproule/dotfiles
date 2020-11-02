@@ -24,9 +24,10 @@ class Unix(System):
 
     def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
         with open(self.get_home_dir() + '/' + file, 'a+') as f:
+            f.seek(0)
             contents = f.read()
             if 'JAVA_HOME' not in contents:
-                f.write('export JAVA_HOME=%s' % jdk_path)
+                f.write('export JAVA_HOME=%s\n' % jdk_path)
 
     def setup_tmux(self):
         self.copy_config('tmux/tmux.conf', '.tmux.conf')
