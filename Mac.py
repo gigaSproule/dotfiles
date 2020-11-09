@@ -65,11 +65,13 @@ class Mac(Unix):
         with open(self.get_home_dir() + '/.zshrc.custom', 'a+') as f:
             f.seek(0)
             contents = f.read()
-            # TODO: Replace `/usr/local` with `$(brew --prefix)` (which needs to return correct value)
-            if 'source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"' not in contents:
-                f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"\n')
-            if 'source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"' not in contents:
-                f.write('source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"\n')
+            if 'export CLOUDSDK_PYTHON="$(brew --prefix)/opt/python@3.8/libexec/bin/python"' not in contents:
+                f.write('source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"\n')
+            if 'source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"' not in contents:
+                f.write('source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc"\n')
+            if 'source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"' not in contents:
+                f.write(
+                    'source "$(brew --prefix)/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc"\n')
 
     def install_groovy(self):
         self.install_application('groovy')
