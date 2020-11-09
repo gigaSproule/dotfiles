@@ -62,7 +62,7 @@ class Mac(Unix):
 
     def install_google_cloud_sdk(self):
         self.cask_install_application('google-cloud-sdk')
-        with open(self.get_home_dir() + '/§.custom', 'a+') as f:
+        with open(self.get_home_dir() + '/.zshrc.custom', 'a+') as f:
             f.seek(0)
             contents = f.read()
             # TODO: Replace `/usr/local` with `$(brew --prefix)` (which needs to return correct value)

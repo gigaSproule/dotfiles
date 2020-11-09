@@ -111,6 +111,7 @@ class System:
         self.make_directory(self.get_home_dir() + '/.config/aacs')
         urllib.request.urlretrieve('http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg',
                                    self.get_home_dir() + '/.config/aacs/KEYDB.cfg')
+        self.recursively_chown(self.get_home_dir() + '/.config')
 
     def install_curl(self):
         pass
