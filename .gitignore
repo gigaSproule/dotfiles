@@ -197,3 +197,5 @@ crashlytics-build.properties
 fabric.properties
 
 oh-my-zsh.sh
+
+**/.DS_Store
