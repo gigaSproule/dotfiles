@@ -16,11 +16,17 @@ class Unix(System):
     def is_super_user(self):
         return os.getuid() == 0
 
+    def add_to_path(self, file: AnyStr, path: AnyStr):
+        with open(self.get_home_dir() + '/' + file, 'a+') as f:
+            f.write('export PATH=$PATH:%s\n' % path)
+
     def install_rust(self):
         self.download_file('https://sh.rustup.rs', 'rustup-install')
         self.recursively_chmod('rustup-install')
         self.execute(['./rustup-install', '-y'], super_user=False)
         self.delete_file('rustup-install')
+        self.add_to_path('.zshrc.custom', '$HOME/.cargo/bin')
+        self.add_to_path('.bashrc.custom', '$HOME/.cargo/bin')
 
     def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
         with open(self.get_home_dir() + '/' + file, 'a+') as f:
