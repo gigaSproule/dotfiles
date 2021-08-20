@@ -25,7 +25,8 @@ class Windows(System):
         self.setup_docker()
 
     def setup_docker(self):
-        self.execute(['Install-Module', '-Name', 'DockerCompletion', '-Confirm'])
+        self.execute(['Install-Module', '-Name',
+                     'DockerCompletion', '-Confirm'])
         self.execute(['Import-Module', 'DockerCompletion'])
         with open('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1', 'w') as f:
             f.writelines(['Import-Module DockerCompletion'])
@@ -47,6 +48,7 @@ class Windows(System):
 
     def setup_git(self):
         super().setup_git()
+        self.execute(['git', 'config', '--system', 'core.longpaths', 'true'])
         self.install_application('poshgit')
 
     def install_gimp(self):
@@ -121,7 +123,10 @@ class Windows(System):
     def install_system_extras(self):
         self.download_file('https://chocolatey.org/install.ps1', 'install.ps1')
         self.execute(['iex', 'install.ps1'])
-        self.execute(['Install-PackageProvider', '-Name', 'NuGet', '-MinimumVersion', '2.8.5.201', '-Force'])
+        self.execute(['Install-PackageProvider', '-Name', 'NuGet',
+                     '-MinimumVersion', '2.8.5.201', '-Force'])
+        self.execute(['REG', 'ADD', 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem',
+                      '/v', 'LongPathsEnabled', '/t', 'REG_DWORD', '/d', '1'])
 
     def install_vim(self):
         self.install_application('vim')
