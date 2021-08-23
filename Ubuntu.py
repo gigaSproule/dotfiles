@@ -124,13 +124,6 @@ class Ubuntu(Linux):
     def install_nextcloud_client(self):
         self.install_application('nextcloud-desktop')
 
-    def install_nodejs(self):
-        self.execute(['curl', '-sL', 'https://deb.nodesource.com/setup_14.x', '|', '-E', 'bash', '-'])
-        self.add_apt_key('https://dl.yarnpkg.com/debian/pubkey.gpg')
-        self.add_apt_repo('yarn.list', ['https://dl.yarnpkg.com/debian/ stable main'])
-        self.update_os_repo()
-        self.install_applications(['nodejs', 'npm', 'yarn'])
-
     def install_nordvpn(self):
         self.download_file('https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb',
                            'nordvpn.deb')

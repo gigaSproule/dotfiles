@@ -26,7 +26,7 @@ class Windows(System):
 
     def setup_docker(self):
         self.execute(['Install-Module', '-Name',
-                     'DockerCompletion', '-Confirm'])
+                      'DockerCompletion', '-Confirm'])
         self.execute(['Import-Module', 'DockerCompletion'])
         with open('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1', 'w') as f:
             f.writelines(['Import-Module DockerCompletion'])
@@ -100,7 +100,37 @@ class Windows(System):
         self.install_application('nextcloud-client')
 
     def install_nodejs(self):
-        self.install_applications(['nodejs', 'yarn'])
+        self.install_application('nvm')
+        with open('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1', 'w') as f:
+            f.writelines([
+                'function callnvm() {',
+                '   # Always use argument version if there is one',
+                '   $versionDesired = $args[0]',
+                '   if (($versionDesired -eq "" -Or $versionDesired -eq $null) -And (Test-Path .nvmrc -PathType Any)) {',
+                '       # if we have an nvmrc and no argument supplied, use the version in the file',
+                '       $versionDesired = $(Get-Content .nvmrc).replace( \'v\', \'\' );',
+                '   }',
+                '   Write-Host "Requesting version \'$($versionDesired)\'"',
+                '   if ($versionDesired -eq "") {',
+                '       Write-Host "A node version needs specifying as an argument if there is no .nvmrc"',
+                '   } else {',
+                '       $response = nvm use $versionDesired;',
+                '       if ($response -match \'is not installed\') {',
+                '           if ($response -match \'64-bit\') {',
+                '               $response = nvm install $versionDesired x64',
+                '           } else {',
+                '               $response = nvm install $versionDesired x86',
+                '           }',
+                '           Write-Host $response',
+                '           $response = nvm use $versionDesired;',
+                '       }',
+                '       Write-Host $response',
+                '   }',
+                '}',
+                'Set-Alias nvmu -value "callnvm"'
+            ])
+        self.execute(['nvm', 'install', 'node'])
+        self.execute(['node', 'install', '--global', 'yarn'])
 
     def install_nordvpn(self):
         self.install_application('nordvpn')
@@ -124,7 +154,7 @@ class Windows(System):
         self.download_file('https://chocolatey.org/install.ps1', 'install.ps1')
         self.execute(['iex', 'install.ps1'])
         self.execute(['Install-PackageProvider', '-Name', 'NuGet',
-                     '-MinimumVersion', '2.8.5.201', '-Force'])
+                      '-MinimumVersion', '2.8.5.201', '-Force'])
         self.execute(['REG', 'ADD', 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem',
                       '/v', 'LongPathsEnabled', '/t', 'REG_DWORD', '/d', '1'])
 

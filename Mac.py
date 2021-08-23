@@ -117,7 +117,8 @@ class Mac(Unix):
         self.cask_install_application('nextcloud')
 
     def install_nodejs(self):
-        self.install_applications(['node', 'yarn'])
+        self.install_application('nvm')
+        self.setup_nodejs()
 
     def install_nordvpn(self):
         self.app_store_install_application('1116599239')

@@ -20,6 +20,13 @@ class Unix(System):
         with open(self.get_home_dir() + '/' + file, 'a+') as f:
             f.write('export PATH=$PATH:%s\n' % path)
 
+    def install_nodejs(self):
+        self.download_file('https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh', 'nvm-install.sh')
+        self.recursively_chmod('nvm-install.sh')
+        self.execute(['./nvm-install.sh'], super_user=False)
+        self.delete_file('nvm-install.sh')
+        self.setup_nodejs()
+
     def install_rust(self):
         self.download_file('https://sh.rustup.rs', 'rustup-install')
         self.recursively_chmod('rustup-install')
@@ -34,6 +41,20 @@ class Unix(System):
             contents = f.read()
             if 'JAVA_HOME' not in contents:
                 f.write('export JAVA_HOME=%s\n' % jdk_path)
+
+    def setup_nodejs(self):
+        with open(self.get_home_dir() + '/' + '.zshrc.custom', 'a+') as f:
+            f.writelines([
+                'export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"',
+                '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh" # This loads nvm'
+            ])
+        with open(self.get_home_dir() + '/' + '.bashrc.custom', 'a+') as f:
+            f.writelines([
+                'export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"',
+                '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh" # This loads nvm'
+            ])
+        self.execute(['nvm', 'install', 'node', '--latest-npm'], super_user=False)
+        self.execute(['npm', 'install', '--global', 'yarn'], super_user=False)
 
     def setup_tmux(self):
         self.copy_config('tmux/tmux.conf', '.tmux.conf')

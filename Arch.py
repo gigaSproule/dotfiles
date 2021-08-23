@@ -120,7 +120,8 @@ class Arch(Linux):
         self.install_application('nextcloud-client')
 
     def install_nodejs(self):
-        self.install_applications(['nodejs', 'npm', 'yarn'])
+        self.aur_install_application('nvm')
+        self.setup_nodejs()
 
     def install_nordvpn(self):
         self.aur_install_application('nordvpn-bin')
