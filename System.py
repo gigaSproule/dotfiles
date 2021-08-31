@@ -1,6 +1,6 @@
 import os
-import pwd
 import shutil
+import ssl
 import subprocess
 import sys
 import tarfile
@@ -32,7 +32,7 @@ class System:
 
     def execute(self, command: List[AnyStr], directory: AnyStr = os.path.dirname(os.path.realpath(__file__)),
                 super_user: bool = True):
-        if not super_user:
+        if not super_user and sys.platform != 'win32' and sys.platform != 'cygwin':
             command = ['sudo', '-u', os.getlogin()] + command
         proc = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
                                 cwd=directory)
@@ -50,7 +50,7 @@ class System:
         }
 
     def get_home_dir(self):
-        return os.environ['HOME']
+        return os.path.expanduser('~')
 
     def install_application(self, application: AnyStr):
         self.install_applications([application])
@@ -64,19 +64,11 @@ class System:
     def make_directory(self, directory: AnyStr):
         os.makedirs(directory, exist_ok=True)
 
-    def recursively_chmod(self, path, directory_permission=0o777, file_permission=0o777):
-        os.chmod(path, directory_permission)
-        for dirname, subdirs, files in os.walk(path):
-            os.chmod(dirname, directory_permission)
-            for f in files:
-                os.chmod(os.path.join(dirname, f), file_permission)
+    def recursively_chmod(self, path, directory_permission, file_permission):
+        pass
 
-    def recursively_chown(self, path, user=pwd.getpwnam(os.getlogin())[2], group=pwd.getpwnam(os.getlogin())[3]):
-        os.chown(path, user, group)
-        for dirname, subdirs, files in os.walk(path):
-            os.chown(dirname, user, group)
-            for f in files:
-                os.chown(os.path.join(dirname, f), user, group)
+    def recursively_chown(self, path, user='', group=''):
+        pass
 
     def setup_user_bin(self):
         self.make_directory(self.get_home_dir() + '/bin')
@@ -98,10 +90,10 @@ class System:
     def install_android_studio(self):
         pass
 
-    def install_bluetooth(self):
+    def install_blender(self):
         pass
 
-    def install_chrome(self):
+    def install_bluetooth(self):
         pass
 
     def install_codecs(self):
@@ -109,11 +101,25 @@ class System:
 
     def setup_codecs(self):
         self.make_directory(self.get_home_dir() + '/.config/aacs')
-        urllib.request.urlretrieve('http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg',
-                                   self.get_home_dir() + '/.config/aacs/KEYDB.cfg')
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        with urllib.request.urlopen('http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg',
+                                    context=ctx) as response, open(self.get_home_dir() + '/.config/aacs/KEYDB.cfg',
+                                                                   'wb') as out_file:
+            shutil.copyfileobj(response, out_file)
         self.recursively_chown(self.get_home_dir() + '/.config')
 
+    def install_conemu(self):
+        pass
+
+    def install_cryptomator(self):
+        pass
+
     def install_curl(self):
+        pass
+
+    def install_davinci_resolve(self):
         pass
 
     def install_discord(self):
@@ -134,20 +140,32 @@ class System:
     def setup_eclipse(self):
         pass
 
+    def install_epic_games(self):
+        pass
+
     def install_firefox(self):
         pass
 
     def install_firmware_updater(self):
         pass
 
+    def install_gog_galaxy(self):
+        pass
+
+    def install_google_chrome(self):
+        pass
+
     def install_google_cloud_sdk(self):
+        pass
+
+    def install_google_drive(self):
         pass
 
     def install_git(self):
         self.setup_git()
 
     def setup_git(self):
-        self.execute(['git', 'config', '--global', 'user.name', 'Benjamin Sproule'], super_user=False)
+        self.execute(['git', 'config', '--global', 'user.name', '"Benjamin Sproule"'], super_user=False)
         self.execute(['git', 'config', '--global', 'user.email', 'benjamin@benjaminsproule.com'], super_user=False)
         self.execute(['git', 'config', '--global', 'credential.helper', 'cache --timeout=86400'], super_user=False)
         self.make_directory(self.get_home_dir() + '/.git/hooks')
@@ -179,6 +197,9 @@ class System:
         pass
 
     def install_inkscape(self):
+        pass
+
+    def install_insync(self):
         pass
 
     def install_intellij(self):
@@ -233,6 +254,12 @@ class System:
         pass
 
     def install_obs_studio(self):
+        pass
+
+    def install_onedrive(self):
+        pass
+
+    def install_origin(self):
         pass
 
     def install_powertop(self):

@@ -2,6 +2,8 @@ import os
 import shutil
 from typing import AnyStr
 
+import pwd
+
 from System import System
 
 
@@ -34,6 +36,20 @@ class Unix(System):
         self.delete_file('rustup-install')
         self.add_to_path('.zshrc.custom', '$HOME/.cargo/bin')
         self.add_to_path('.bashrc.custom', '$HOME/.cargo/bin')
+
+    def recursively_chmod(self, path, directory_permission=0o777, file_permission=0o777):
+        os.chmod(path, directory_permission)
+        for dirname, subdirs, files in os.walk(path):
+            os.chmod(dirname, directory_permission)
+            for f in files:
+                os.chmod(os.path.join(dirname, f), file_permission)
+
+    def recursively_chown(self, path, user=pwd.getpwnam(os.getlogin())[2], group=pwd.getpwnam(os.getlogin())[3]):
+        os.chown(path, user, group)
+        for dirname, subdirs, files in os.walk(path):
+            os.chown(dirname, user, group)
+            for f in files:
+                os.chown(os.path.join(dirname, f), user, group)
 
     def set_java_home(self, file: AnyStr, jdk_path: AnyStr):
         with open(self.get_home_dir() + '/' + file, 'a+') as f:

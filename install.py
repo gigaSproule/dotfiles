@@ -3,15 +3,7 @@ import getopt
 import os
 import sys
 
-from Arch import Arch
-from Kubuntu import Kubuntu
-from Linux import Linux
-from Lubuntu import Lubuntu
-from Mac import Mac
 from System import System
-from Ubuntu import Ubuntu
-from Windows import Windows
-from Xubuntu import Xubuntu
 
 
 def install_required_dependencies(application):
@@ -29,38 +21,47 @@ def get_system():
             current_desktop = os.environ['XDG_CURRENT_DESKTOP']
             if current_desktop == 'KDE':
                 print('Detected Kubuntu')
+                from Kubuntu import Kubuntu
                 return Kubuntu()
             elif current_desktop == 'LXQt' or current_desktop == 'LXDE':
                 print('Detected Lubuntu')
+                from Lubuntu import Lubuntu
                 return Lubuntu()
             elif current_desktop == 'XFCE':
                 print('Detected Xubuntu')
+                from Xubuntu import Xubuntu
                 return Xubuntu()
             else:
                 print('Detected Ubuntu')
+                from Ubuntu import Ubuntu
                 return Ubuntu()
         elif distro.name() == 'Arch Linux':
             print('Detected Arch')
+            from Arch import Arch
             return Arch()
         else:
+            from Linux import Linux
             return Linux()
     elif sys.platform == 'darwin':
         print('Detected Mac')
+        from Mac import Mac
         return Mac()
     elif sys.platform == 'win32' or sys.platform == 'cygwin':
         print('Detected Windows')
+        from Windows import Windows
         return Windows()
     else:
         EnvironmentError('Unknown operating system')
 
 
 def main(argv):
-    browsers = development = docker = gaming = gcp = images = laptop = personal = recording = ripping = video = vm = vpn = False
+    browsers = development = docker = gaming = gcp = images = laptop = modelling = personal = recording = ripping = video = video_editing = vm = vpn = False
 
     try:
-        opts, args = getopt.getopt(argv, 'hbdcgipv',
-                                   ['help', 'browsers', 'development', 'docker', 'gaming', 'gcp', 'images', 'personal',
-                                    'recording', 'ripping', 'video', 'vm', 'vpn'])
+        opts, args = getopt.getopt(argv, 'hbdcgilmpv',
+                                   ['help', 'browsers', 'development', 'docker', 'gaming', 'gcp', 'images', 'laptop',
+                                    'modelling', 'personal',
+                                    'recording', 'ripping', 'video', 'video-editing', 'vm', 'vpn'])
         if len(opts) == 0:
             print('No options provided')
             print_help()
@@ -80,7 +81,11 @@ def main(argv):
             elif opt in ('-g', '--gcp'):
                 gcp = True
             elif opt in ('-i', '--images'):
-                gcp = True
+                images = True
+            elif opt in ('-l', '--laptop'):
+                laptop = True
+            elif opt in ('-m', '--modelling'):
+                modelling = True
             elif opt in ('-p', '--personal'):
                 personal = True
             elif opt in ('-r', '--recording'):
@@ -89,6 +94,8 @@ def main(argv):
                 ripping = True
             elif opt in ('-v', '--video'):
                 video = True
+            elif opt in ('-v', '--video-editing'):
+                video_editing = True
             elif opt in ('-v', '--vm'):
                 vm = True
             elif opt in ('-v', '--vpn'):
@@ -114,12 +121,14 @@ def main(argv):
     print('Installing Graphic Card Tools')
     system.install_graphic_card_tools()
 
+    print('Installing Cryptomator')
+    system.install_cryptomator()
+    print('Installing ConEmu')
+    system.install_conemu()
     print('Installing Curl')
     system.install_curl()
-
     print('Installing KeepassXC')
     system.install_keepassxc()
-
     print('Installing tmux')
     system.install_tmux()
     print('Installing Vim')
@@ -130,14 +139,14 @@ def main(argv):
     system.install_zsh()
 
     if browsers:
-        print('Installing Chrome')
-        system.install_chrome()
         print('Installing Firefox')
         system.install_firefox()
+        print('Installing Google Chrome')
+        system.install_google_chrome()
 
     if development:
         print('Installing Android Studio')
-        system.install_android_studio()
+        # system.install_android_studio()
         print('Installing Eclipse')
         # system.install_eclipse()
         print('Installing Gradle')
@@ -177,13 +186,19 @@ def main(argv):
         print('Installing Helm')
         system.install_helm()
         print('Installing Minikube')
-        system.install_minikube()
+        # system.install_minikube()
 
     if gaming:
         print('Installing Discord')
         system.install_discord()
+        print('Installing Epic Games')
+        system.install_epic_games()
+        print('Installing GOG Galaxy')
+        system.install_gog_galaxy()
         print('Installing Lutris')
         system.install_lutris()
+        print('Installing Origin')
+        system.install_origin()
         print('Installing Steam')
         system.install_steam()
         print('Installing Wine')
@@ -219,13 +234,23 @@ def main(argv):
         print('Setup power saving tweaks')
         system.setup_power_saving_tweaks()
 
+    if modelling:
+        print('Installing Blender')
+        system.install_blender()
+
     if personal:
         print('Installing Dropbox')
         system.install_dropbox()
+        print('Installing Google Drive')
+        system.install_google_drive()
         print('Installing GPG')
         system.install_gpg()
+        print('Installing Insync')
+        system.install_insync()
         print('Installing Nextcloud Client')
         system.install_nextcloud_client()
+        print('Installing OneDrive')
+        system.install_onedrive()
         print('Installing Spotify')
         system.install_spotify()
         print('Installing SweetHome3D')
@@ -251,6 +276,10 @@ def main(argv):
         print('Installing VLC')
         system.install_vlc()
 
+    if video_editing:
+        print('Installing DaVinci Resolve')
+        system.install_davinci_resolve()
+
     if vm:
         print('Installing VM Tools')
         system.install_vm_tools()
@@ -261,7 +290,7 @@ def main(argv):
 
 
 def print_help():
-    print('install.py [-c] [-d] [-g] [-r] [-s] [-m] [-v]')
+    print('install.py [-c] [-d] [-g] [-i] [-m] [-p] [-r] [-s] [-m] [-v]')
 
 
 if __name__ == '__main__':

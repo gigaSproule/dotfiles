@@ -1,10 +1,20 @@
 import ctypes
+import os
 from typing import AnyStr, List
 
 from System import System
 
 
 class Windows(System):
+
+    def execute(self, command: List[AnyStr], directory: AnyStr = os.path.dirname(os.path.realpath(__file__)),
+                super_user: bool = True):
+        return super().execute(command, directory, super_user)
+
+    def execute_powershell(self, command: List[AnyStr], directory: AnyStr = os.path.dirname(os.path.realpath(__file__)),
+                           super_user: bool = True):
+        return self.execute(['C:\Windows\System32\WindowsPowerShell\\v1.0\powershell.exe'] + command, directory,
+                            super_user)
 
     def is_super_user(self):
         return ctypes.windll.shell32.IsUserAnAdmin() == 1
@@ -13,6 +23,15 @@ class Windows(System):
         command = ['choco', 'install', '--yes']
         command.extend(applications)
         self.execute(command)
+
+    def install_blender(self):
+        self.install_application('blender')
+
+    def install_cryptomator(self):
+        self.install_application('cryptomator')
+
+    def install_conemu(self):
+        self.install_application('conemu')
 
     def install_curl(self):
         self.install_application('curl')
@@ -25,9 +44,9 @@ class Windows(System):
         self.setup_docker()
 
     def setup_docker(self):
-        self.execute(['Install-Module', '-Name',
-                      'DockerCompletion', '-Confirm'])
-        self.execute(['Import-Module', 'DockerCompletion'])
+        self.execute_powershell(['Install-Module', '-Name',
+                                 'DockerCompletion', '-Force'])
+        self.execute_powershell(['Import-Module', 'DockerCompletion'])
         with open('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1', 'w') as f:
             f.writelines(['Import-Module DockerCompletion'])
 
@@ -37,14 +56,27 @@ class Windows(System):
     def install_eclipse(self):
         self.install_application('eclipse')
 
+    def install_epic_games(self):
+        self.install_application('epicgameslauncher')
+
     def install_firefox(self):
         self.install_application('firefox')
+
+    def install_gog_galaxy(self):
+        self.install_application('goggalaxy')
+
+    def install_google_chrome(self):
+        self.install_application('googlechrome')
 
     def install_google_cloud_sdk(self):
         self.install_application('gcloudsdk')
 
+    def install_google_drive(self):
+        self.install_application('google-drive-file-stream')
+
     def install_git(self):
         self.install_application('git')
+        self.setup_git()
 
     def setup_git(self):
         super().setup_git()
@@ -129,14 +161,30 @@ class Windows(System):
                 '}',
                 'Set-Alias nvmu -value "callnvm"'
             ])
-        self.execute(['nvm', 'install', 'node'])
-        self.execute(['node', 'install', '--global', 'yarn'])
+        self.execute_powershell(['refreshenv'])
+        self.execute(['nvm', 'install', 'latest'])
+        output = self.execute(['nvm', 'list'])['output']
+        for output_version in output.split('\n'):
+            if output_version != '':
+                self.execute(['nvm', 'use', output_version.replace(' ', '')])
+                break
+        self.execute_powershell(['refreshenv'])
+        self.execute_powershell(['npm', 'install', '--global', 'yarn'])
 
     def install_nordvpn(self):
         self.install_application('nordvpn')
 
     def install_nvidia_tools(self):
-        self.install_application('nvidia-display-driver')
+        self.install_application('geforce-experience')
+
+    def install_origin(self):
+        self.install_application('origin')
+
+    def install_python(self):
+        self.install_application('python')
+
+    def install_rust(self):
+        self.install_application('rustup.install')
 
     def install_slack(self):
         self.install_application('slack')
@@ -151,12 +199,15 @@ class Windows(System):
         self.install_application('sweet-home-3d')
 
     def install_system_extras(self):
+        self.execute_powershell(['Set-ExecutionPolicy', 'Unrestricted'])
         self.download_file('https://chocolatey.org/install.ps1', 'install.ps1')
-        self.execute(['iex', 'install.ps1'])
-        self.execute(['Install-PackageProvider', '-Name', 'NuGet',
-                      '-MinimumVersion', '2.8.5.201', '-Force'])
+        self.execute_powershell(['iex', '.\install.ps1'])
+        self.execute_powershell(['Install-PackageProvider', '-Name', 'NuGet',
+                                 '-MinimumVersion', '2.8.5.201', '-Force'])
+        self.execute_powershell(['Import-Module', '"$env:ProgramData\chocolatey\helpers\chocolateyInstaller.psm1";',
+                                 'Update-SessionEnvironment'])
         self.execute(['REG', 'ADD', 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem',
-                      '/v', 'LongPathsEnabled', '/t', 'REG_DWORD', '/d', '1'])
+                      '/v', 'LongPathsEnabled', '/t', 'REG_DWORD', '/d', '1', '/f'])
 
     def install_vim(self):
         self.install_application('vim')

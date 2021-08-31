@@ -29,9 +29,6 @@ class Mac(Unix):
             if 'alias studio' not in contents:
                 f.write('alias studio="open -a /Applications/Android\\ Studio.app"\n')
 
-    def install_chrome(self):
-        self.cask_install_application('google-chrome')
-
     def install_discord(self):
         self.cask_install_application('discord')
 
@@ -46,6 +43,9 @@ class Mac(Unix):
 
     def install_firefox(self):
         self.cask_install_application('firefox')
+
+    def install_google_chrome(self):
+        self.cask_install_application('google-chrome')
 
     def install_gradle(self):
         self.install_applications(['gradle', 'gradle-completion'])

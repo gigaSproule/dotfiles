@@ -1,5 +1,3 @@
-import os
-
 import lxml.etree as le
 
 from Ubuntu import Ubuntu

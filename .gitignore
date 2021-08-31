@@ -199,3 +199,10 @@ fabric.properties
 oh-my-zsh.sh
 
 **/.DS_Store
+
+install.ps1
+
+
+# Added by cargo
+
+/target

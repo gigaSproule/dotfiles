@@ -10,7 +10,7 @@ class Xubuntu(Ubuntu):
 
     def install_system_extras(self):
         self.set_debconf('ttf-mscorefonts-installer', 'msttcorefonts/accepted-mscorefonts-eula')
-        self.install_applications('ubuntu-restricted-extras')
+        self.install_application('ubuntu-restricted-extras')
 
     def set_development_shortcuts(self):
         print('Remove setting for alt + mouse dragging moving window')

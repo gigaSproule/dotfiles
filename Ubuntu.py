@@ -35,12 +35,6 @@ class Ubuntu(Linux):
         self.update_os_repo()
         self.install_application('android-studio')
 
-    def install_chrome(self):
-        self.download_file('https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb',
-                           'google-chrome.deb')
-        self.execute(['dpkg', '-i', 'google-chrome-stable_current_amd64.deb'])
-        self.delete_file('google-chrome.deb')
-
     def install_codecs(self):
         self.install_applications(['libdvd-pkg', 'libaacs0', 'libbluray-bdj', 'libbluray1'])
         self.setup_codecs()
@@ -65,9 +59,15 @@ class Ubuntu(Linux):
     def install_flatpak(self):
         self.install_application('flatpak')
 
+    def install_google_chrome(self):
+        self.download_file('https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb',
+                           'google-chrome.deb')
+        self.execute(['dpkg', '-i', 'google-chrome-stable_current_amd64.deb'])
+        self.delete_file('google-chrome.deb')
+
     def install_google_cloud_sdk(self):
         self.add_apt_key('https://packages.cloud.google.com/apt/doc/apt-key.gpg')
-        self.add_apt_repo('google-cloud-sdk', 'deb https://packages.cloud.google.com/apt cloud-sdk main')
+        self.add_apt_repo('google-cloud-sdk', ['deb https://packages.cloud.google.com/apt cloud-sdk main'])
         self.install_application('google-cloud-sdk')
 
     def install_git(self):
@@ -138,7 +138,7 @@ class Ubuntu(Linux):
 
     def install_spotify(self):
         self.add_apt_key('https://download.spotify.com/debian/pubkey.gpg')
-        self.add_apt_repo('spotify', 'deb http://repository.spotify.com stable non-free')
+        self.add_apt_repo('spotify', ['deb http://repository.spotify.com stable non-free'])
         self.update_os_repo()
         self.install_application('spotify_client')
 
@@ -165,7 +165,7 @@ class Ubuntu(Linux):
 
     def install_vscode(self):
         self.add_apt_key('https://packages.microsoft.com/keys/microsoft.asc')
-        self.add_apt_repo('vscode', 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main')
+        self.add_apt_repo('vscode', ['deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'])
         self.update_os_repo()
         self.install_application('code')
 

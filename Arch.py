@@ -25,16 +25,22 @@ class Arch(Linux):
     def install_android_studio(self):
         self.aur_install_application('android-studio')
 
+    def install_blender(self):
+        self.install_application('blender')
+
     def install_bluetooth(self):
         self.install_applications(['bluez', 'bluez-utils'])
         self.enable_service('bluetooth')
 
-    def install_chrome(self):
-        self.aur_install_application('google-chrome')
-
     def install_codecs(self):
         self.install_applications(['libdvdread', 'libdvdcss', 'libdvdnav', 'libbluray', 'libaacs'])
         self.setup_codecs()
+
+    def install_cryptomator(self):
+        self.aur_install_application('cryptomator')
+
+    def install_davinci_resolve(self):
+        self.aur_install_application('davinci-resolve-studio')
 
     def install_discord(self):
         self.install_application('discord')
@@ -60,6 +66,9 @@ class Arch(Linux):
     def install_flatpak(self):
         self.install_application('flatpak')
 
+    def install_google_chrome(self):
+        self.aur_install_application('google-chrome')
+
     def install_google_cloud_sdk(self):
         self.aur_install_application('google-cloud-sdk')
 
@@ -78,6 +87,9 @@ class Arch(Linux):
 
     def install_inkscape(self):
         self.install_application('inkscape')
+
+    def install_insync(self):
+        self.aur_install_application('insync')
 
     def install_intellij(self):
         self.aur_install_application('intellij-idea-ultimate-edition')
