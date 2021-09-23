@@ -145,69 +145,7 @@ class Arch(Linux):
              'lib32-vulkan-icd-loader'])
 
     def install_nvidia_laptop_tools(self):
-        self.install_application('bumblebee')
-        self.enable_service('bumblebeed')
-
-        lines = []
-        with open('/etc/bumblebee/bumblebee.conf', 'r') as f:
-            driver_nvidia = False
-            for line in f.readlines():
-                if line.startswith('[driver-nvidia]'):
-                    driver_nvidia = True
-                elif driver_nvidia and line.startswith('PMMethod='):
-                    split = line.split('=')
-                    line = split[0] + '=none'
-                    driver_nvidia = False
-                lines.append(line)
-
-        with open('/etc/bumblebee/bumblebee.conf', 'w') as f:
-            f.writelines(lines)
-
-        with open('/etc/X11/xorg.conf.d/01-noautogpu.conf', 'w') as f:
-            f.writelines(['Section "ServerFlags"',
-                          'Option "AutoAddGPU" "off"',
-                          'EndSection'])
-
-        with open('/etc/modprobe.d/disable-ipmi.conf', 'w') as f:
-            f.writelines(['install ipmi_msghandler /usr/bin/false',
-                          'install ipmi_devintf /usr/bin/false'])
-
-        with open('/etc/modprobe.d/disable-nvidia.conf', 'w') as f:
-            f.write('install nvidia /bin/false\n')
-
-        with open('/etc/modprobe.d/blacklist.conf', 'w') as f:
-            f.writelines(
-                ['blacklist nouveau',
-                 'blacklist rivafb',
-                 'blacklist nvidiafb',
-                 'blacklist rivatv',
-                 'blacklist nv',
-                 'blacklist nvidia',
-                 'blacklist nvidia-drm',
-                 'blacklist nvidia-modeset',
-                 'blacklist nvidia-uvm',
-                 'blacklist ipmi_msghandler',
-                 'blacklist ipmi_devintf'])
-
-        self.copy_config('laptop/enablegpu', 'bin/enablegpu')
-        self.copy_config('laptop/disablegpu', 'bin/disablegpu')
-
-        with open('/etc/systemd/system/disable-nvidia-on-shutdown.service', 'w') as f:
-            f.writelines(['[Unit]',
-                          'Description=Disables Nvidia GPU on OS shutdown',
-                          '',
-                          '[Service]',
-                          'Type=oneshot',
-                          'RemainAfterExit=true',
-                          'ExecStart=/bin/true',
-                          'ExecStop=/bin/bash -c "mv /etc/modprobe.d/disable-nvidia.conf.disable /etc/modprobe.d/disable-nvidia.conf || true"',
-                          '',
-                          '[Install]',
-                          'WantedBy=multi-user.target'])
-        self.reload_service_daemons()
-        self.enable_service('disable-nvidia-on-shutdown')
-        with open('/etc/tmpfiles.d/nvidia_pm.conf', 'w') as f:
-            f.write('w /sys/bus/pci/devices/0000:01:00.0/power/control - - - - auto\n')
+        self.install_application('nvidia-prime')
 
     def install_obs_studio(self):
         self.install_application('obs-studio')

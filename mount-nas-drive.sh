@@ -1,9 +1,8 @@
 #!/bin/bash
 
-if [ ! -d "$HOME/.smbcredentials" ]
-then
-	echo "username=" >> $HOME/.smbcredentials
-	echo "password=" >> $HOME/.smbcredentials
+if [ ! -d "$HOME/.smbcredentials" ]; then
+    echo "username=" >>$HOME/.smbcredentials
+    echo "password=" >>$HOME/.smbcredentials
 fi
 
 sudo mkdir -p /media/nas/benjamin

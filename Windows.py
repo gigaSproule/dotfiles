@@ -27,11 +27,11 @@ class Windows(System):
     def install_blender(self):
         self.install_application('blender')
 
-    def install_cryptomator(self):
-        self.install_application('cryptomator')
-
     def install_conemu(self):
         self.install_application('conemu')
+
+    def install_cryptomator(self):
+        self.install_application('cryptomator')
 
     def install_curl(self):
         self.install_application('curl')
@@ -177,6 +177,9 @@ class Windows(System):
     def install_nvidia_tools(self):
         self.install_application('geforce-experience')
 
+    def install_obs_studio(self):
+        self.install_application('obs-studio')
+
     def install_origin(self):
         self.install_application('origin')
 
@@ -217,6 +220,9 @@ class Windows(System):
 
     def install_vscode(self):
         self.install_application('vscode')
+
+    def install_wget(self):
+        self.install_application('wget')
 
     def update_os(self):
         self.execute(['choco', 'upgrade', 'all'])
