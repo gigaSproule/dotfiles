@@ -1,7 +1,6 @@
-use std::error::Error;
 use std::fs;
 use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::Output;
 
@@ -9,6 +8,8 @@ use async_trait::async_trait;
 
 use crate::{linux, system, unix};
 use crate::system::System;
+
+pub(crate) struct Arch {}
 
 impl Arch {
     fn aur_install_application(&self, application: &str) -> Output {
@@ -34,31 +35,6 @@ impl Arch {
             format!("usermod -a -G docker {}", whoami::username()).as_str(),
             true,
         );
-
-        let output = self
-            .execute("git ls-remote https://github.com/docker/compose", true)
-            .stdout;
-        output = output.split('\n');
-        versions = [];
-        pattern = re.compile(".*([0-9]+\\.[0-9]+\\.[0-9]+)$");
-        // for line in output {
-        //   if 'refs/tags' in line:
-        //       match = pattern.match(line)
-        //       if match is not None:
-        //           versions.append(match.groups()[0])
-        // docker_compose_version = sorted(versions, key=StrictVersion)[len(versions) - 1]
-        //
-        // urllib.request.urlretrieve('https://github.com/docker/compose/releases/download/%s/docker-compose-%s-%s' % (
-        //                                                      docker_compose_version, platform.system(), platform.machine()), '/usr/local/bin/docker-compose')
-        // self.recursively_chmod('/usr/local/bin/docker-compose', 0o755)
-        //
-        // if not os.path.exists('/etc/docker'):
-        //     self.make_directory('/etc/docker')
-        //
-        // with open('/etc/docker/daemon.json', 'w') as f:
-        //     f.write('{\n'
-        //                                         '"dns": ["10.14.98.21", "10.14.98.22", "8.8.8.8"]\n'
-        //                 '}')
     }
 }
 
@@ -97,8 +73,8 @@ impl System for Arch {
             "libaacs",
         ])?;
         system::setup_codecs()?;
-        let user_id = system.get_user_id();
-        let group_id = system.get_group_id();
+        let user_id = unix::get_user_id();
+        let group_id = unix::get_group_id();
         unix::recursively_chown(
             format!("{}/.config", system::get_home_dir()).as_str(),
             user_id,
@@ -354,7 +330,7 @@ impl System for Arch {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec!["'base-devel'," "ttf-dejavu"]);
+        self.install_applications(vec!["base-devel", "ttf-dejavu"]);
 
         let original_pacman_file = File::open("/etc/pacman.conf")?;
         let original_lines = BufReader::new(original_pacman_file).lines();

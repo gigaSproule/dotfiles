@@ -10,14 +10,14 @@ use windows::Windows as sys;
 use crate::system::System;
 
 #[cfg(target_os = "linux")]
-mod linux;
-#[cfg(target_os = "linux")]
 mod arch;
 #[cfg(target_os = "linux")]
-mod ubuntu;
+mod linux;
 #[cfg(target_os = "macos")]
 mod mac;
 mod system;
+#[cfg(target_os = "linux")]
+mod ubuntu;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 mod unix;
 #[cfg(target_os = "windows")]
@@ -254,6 +254,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn print_help() {
-    println!("install.py [--browsers] [--development] [--docker] [--gaming] [--gcp] [--images] [--laptop] [--modelling] [--personal] [--recording] \
+    println!("install [--browsers] [--development] [--docker] [--gaming] [--gcp] [--images] [--laptop] [--modelling] [--personal] [--recording] \
         [--ripping] [--video] [--video_editing] [--vm] [--vpn]");
 }

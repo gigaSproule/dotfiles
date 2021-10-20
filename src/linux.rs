@@ -1,22 +1,18 @@
-use std::cmp::Ordering;
 use std::fs::{File, OpenOptions};
-use std::fs;
 use std::io::{BufRead, BufReader, Error, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::Output;
 
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
-use regex::Regex;
 use tar::Archive;
 
 use crate::arch::Arch;
 use crate::system;
 use crate::system::System;
 use crate::unix;
-use crate::unix::Unix;
 
-struct Linux {
+pub(crate) struct Linux {
     distro: Box<dyn System>,
 }
 
@@ -369,48 +365,6 @@ pub(crate) fn setup_docker(system: &dyn System) {
         format!("usermod -a -G docker {}", whoami::username()).as_str(),
         true,
     );
-
-    let output: Vec<&str> = String::from_utf8(system.execute("git ls-remote https://github.com/docker/compose", true).stdout)?
-        .split('\n')
-        .collect();
-    let mut versions: Vec<&str> = vec![];
-    let pattern = Regex::new(r".*([0-9]+\\.[0-9]+\\.[0-9]+)$").unwrap();
-    for line in output {
-        if line.contains("refs/tags") {
-            let matches = pattern.captures(line);
-            if matches.is_some() {
-                versions.push(matches.unwrap().get(1)?.as_str());
-            }
-        }
-    }
-    versions.sort_by(|version_a, version_b| {
-        let version_a_split: Vec<&str> = version_a.split('.').collect();
-        let version_b_split: Vec<&str> = version_b.split('.').collect();
-        if version_a_split.get(0)? == version_b_split.get(0)? {
-            if version_a_split.get(1)? == version_b_split.get(1)? {
-                if version_a_split.get(2)? == version_b_split.get(2)? {
-                    return Ordering::Equal;
-                }
-                if version_a_split.get(2)? > version_b_split.get(2)? {
-                    return Ordering::Greater;
-                }
-                return Ordering::Less;
-            }
-            if version_a_split.get(1)? > version_b_split.get(1)? {
-                return Ordering::Greater;
-            }
-            return Ordering::Less;
-        }
-        if version_a_split.get(0)? > version_b_split.get(0)? {
-            return Ordering::Greater;
-        }
-        return Ordering::Less;
-    });
-    let docker_compose_version = versions.last()?;
-
-    system::download_file(&format!("https://github.com/docker/compose/releases/download/{}/docker-compose-linux-{}", docker_compose_version, std::env::consts::ARCH), "/usr/local/bin/docker-compose")
-
-    unix::recursively_chmod("/usr/local/bin/docker-compose", &0o755, &0o755);
 }
 
 pub(crate) fn setup_power_saving_tweaks() {

@@ -1,15 +1,16 @@
-use std::error::Error;
 use std::fs;
 use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::Output;
+use uuid::Uuid;
 
 use async_trait::async_trait;
-use whoami::distro;
 
 use crate::{linux, system, unix};
 use crate::system::System;
+
+pub(crate) struct Ubuntu {}
 
 impl Ubuntu {
     fn add_apt_key(self, url: &str) {
@@ -21,7 +22,7 @@ impl Ubuntu {
             .append(true)
             .open(format!("/etc/apt/sources.list.d/{}", file_name));
         for url in urls {
-            writeln!(file, url)
+            writeln!(file, "{}", url)
         }
     }
 
@@ -38,10 +39,10 @@ impl Ubuntu {
     }
 
     fn set_debconf(&self, installer: &str, conf: &str, value: &str) {
-        let debconf_file = format!("{}.debconf", uuid.uuid4());
+        let debconf_file = format!("{}.debconf", Uuid::new_v4());
         let file = OpenOptions::new().append(true).open(&debconf_file);
-        writeln!(file, format!("{} {} select {}", installer, conf, value));
-        writeln!(file, format!("{} {} seen {}", installer, conf, value));
+        writeln!(file, "{} {} select {}", installer, conf, value);
+        writeln!(file, "{} {} seen {}", installer, conf, value);
         self.execute(&format!("debconf-set-selections {}", &debconf_file));
         fs::remove_file(debconf_file);
     }
@@ -82,8 +83,8 @@ impl System for Ubuntu {
             "libbluray1",
         ])?;
         system::setup_codecs()?;
-        let user_id = system.get_user_id();
-        let group_id = system.get_group_id();
+        let user_id = unix::get_user_id();
+        let group_id = unix::get_group_id();
         unix::recursively_chown(
             format!("{}/.config", system::get_home_dir()).as_str(),
             user_id,
@@ -122,7 +123,7 @@ impl System for Ubuntu {
         self.install_application("nautilus-dropbox")
     }
 
-    fn install_eclipse(&self) {
+    fn install_eclipse(&self) -> Result<(), std::io::Error> {
         self.snap_install_application("eclipse", true);
         if Path::new("/opt/eclipse").exists() {
             fs::create_dir_all("/opt/eclipse");
@@ -137,7 +138,7 @@ impl System for Ubuntu {
             .append(true)
             .open("/opt/eclipse/eclipse.ini")?;
 
-        writeln!(file, "-javaagent:/opt/eclipse/lombok.jar")?;
+        writeln!(file, "-javaagent:/opt/eclipse/lombok.jar")?
     }
 
     fn install_epic_games(&self) {
@@ -243,7 +244,7 @@ impl System for Ubuntu {
         self.install_application("keepassxc");
     }
 
-    fn install_kubectl(&self) {
+    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
         let kubectl_version =
             reqwest::get("https://storage.googleapis.com/kubernetes-release/release/stable.txt")
                 .await?
@@ -251,8 +252,9 @@ impl System for Ubuntu {
                 .await?
                 .replace("\n", "");
         system::download_file(
-            &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl");
-        unix::recursively_chmod("/usr/local/bin/kubectl", &0o755, &0o755);
+            &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl").await?;
+        unix::recursively_chmod("/usr/local/bin/kubectl", &0o644, &0o644);
+        Ok(())
     }
 
     fn install_helm(&self) {
@@ -280,7 +282,7 @@ impl System for Ubuntu {
         self.install_application("ccextractor");
     }
 
-    fn install_microcode(&self) {
+    fn install_microcode(&self) -> Result<(), std::io::Error>{
         let file = File::open("/proc/cpuinfo")?;
         let buffer = BufReader::new(file);
         let cpu_name = buffer.lines().find_map(|line| {
@@ -290,13 +292,14 @@ impl System for Ubuntu {
             None
         });
         if cpu_name.is_none() {
-            return;
+            return Ok(());
         }
         if cpu_name.unwrap() == "GenuineIntel" {
             self.install_application("intel-microcode");
         } else {
             self.install_application("amd-microcode");
         }
+        Ok(())
     }
 
     fn install_minikube(&self) {
@@ -312,19 +315,20 @@ impl System for Ubuntu {
         self.install_application("nextcloud-desktop");
     }
 
-    fn install_nodejs(&self) -> Result<(), std::io::Error> {
-        system::download_file("https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh", "nvm-install.sh");
-        unix::recursively_chmod("nvm-install.sh");
+    async fn install_nodejs(&self) -> Result<(), std::io::Error> {
+        system::download_file("https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh", "nvm-install.sh").await?;
+        unix::recursively_chmod("nvm-install.sh", &0o644, &0o644);
         self.execute("./nvm-install.sh", false);
         fs::remove_file("nvm-install.sh");
         unix::setup_nodejs(&self)
     }
 
-    fn install_nordvpn(&self) {
-        systtem::download_file("https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb", "nordvpn.deb");
+    async fn install_nordvpn(&self) -> Result<(), std::io::Error>{
+        system::download_file("https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb", "nordvpn.deb").await?;
         self.install_application("./nordvpn.deb");
         self.update_os_repo();
         self.install_application("nordvpn");
+        Ok(())
     }
 
     fn install_nvidia_tools(&self) {
@@ -361,11 +365,11 @@ impl System for Ubuntu {
 
     fn install_rust(&self) {
         system::download_file("https://sh.rustup.rs", "rustup-install");
-        unix::recursively_chmod("rustup-install");
+        unix::recursively_chmod("rustup-install", &0o644, &0o644);
         self.execute("./rustup-install -y", false);
         fs::remove_file("rustup-install");
-        self.add_to_path(".zshrc.custom", format!("{}/.cargo/bin", system::get_home_dir()));
-        self.add_to_path(".bashrc.custom", format!("{}/.cargo/bin", system::get_home_dir()));
+        unix::add_to_path(".zshrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()));
+        unix::add_to_path(".bashrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()));
         self.execute("rustup default stable");
     }
 
@@ -401,7 +405,7 @@ impl System for Ubuntu {
     fn install_themes(&self) {
         fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()));
         self.execute("git clone https://github.com/Roboron3042/Cyberpunk-Neon.git");
-        system::untar_rename_root("Cyberpunk-Neon/gtk/Materia-Cyberpunk-Neon.tar.gz", "Materia-Cyberpunk-Neon");
+        linux::untar_rename_root("Cyberpunk-Neon/gtk/Materia-Cyberpunk-Neon.tar.gz", "Materia-Cyberpunk-Neon");
         fs::copy("Materia-Cyberpunk-Neon", format!("{}/.themes", system::get_home_dir()));
         fs::remove_file("Cyberpunk-Neon");
 
@@ -489,10 +493,10 @@ impl System for Ubuntu {
 
     fn update_os(&self) {
         self.update_os_repo();
-        self.execute("pacman -Syu --noconfirm");
+        self.execute("apt-get dist-upgrade", true);
     }
 
     fn update_os_repo(&self) {
-        self.execute("pacman -Sy");
+        self.execute("apt-get update", true);
     }
 }
