@@ -17,13 +17,14 @@ impl Ubuntu {
         self.execute(&format!("apt-key adv --fetch-keys {}", url), true);
     }
 
-    fn add_apt_repo(self, file_name: &str, urls: Vec<&str>) {
+    fn add_apt_repo(self, file_name: &str, urls: Vec<&str>) -> Result<(), std::io::Error>{
         let file = OpenOptions::new()
             .append(true)
-            .open(format!("/etc/apt/sources.list.d/{}", file_name));
+            .open(format!("/etc/apt/sources.list.d/{}", file_name))?;
         for url in urls {
-            writeln!(file, "{}", url)
+            writeln!(file, "{}", url)?;
         }
+        Ok(())
     }
 
     fn add_ppa(&self, ppa: &str) {
@@ -38,13 +39,14 @@ impl Ubuntu {
         }
     }
 
-    fn set_debconf(&self, installer: &str, conf: &str, value: &str) {
+    fn set_debconf(&self, installer: &str, conf: &str, value: &str) -> Result<(), std::io::Error> {
         let debconf_file = format!("{}.debconf", Uuid::new_v4());
-        let file = OpenOptions::new().append(true).open(&debconf_file);
-        writeln!(file, "{} {} select {}", installer, conf, value);
-        writeln!(file, "{} {} seen {}", installer, conf, value);
-        self.execute(&format!("debconf-set-selections {}", &debconf_file));
+        let file = OpenOptions::new().append(true).open(&debconf_file)?;
+        writeln!(file, "{} {} select {}", installer, conf, value)?;
+        writeln!(file, "{} {} seen {}", installer, conf, value)?;
+        self.execute(&format!("debconf-set-selections {}", &debconf_file), true);
         fs::remove_file(debconf_file);
+        Ok(())
     }
 }
 
@@ -56,7 +58,7 @@ impl System for Ubuntu {
 
     fn install_applications(&self, application: Vec<&str>) -> Output {
         self.execute(
-            format!("apt-get install -y {}", application.join(" ")),
+            &format!("apt-get install -y {}", application.join(" ")),
             true,
         )
     }
@@ -68,7 +70,7 @@ impl System for Ubuntu {
     }
 
     fn install_blender(&self) {
-        self.install_application("blender")
+        self.install_application("blender");
     }
 
     fn install_bluetooth(&self) {
@@ -81,14 +83,14 @@ impl System for Ubuntu {
             "libaacs0",
             "libbluray-bdj",
             "libbluray1",
-        ])?;
-        system::setup_codecs()?;
+        ]);
+        system::setup_codecs().await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
-            format!("{}/.config", system::get_home_dir()).as_str(),
-            user_id,
-            group_id,
+            &format!("{}/.config", system::get_home_dir()),
+            &user_id,
+            &group_id,
         )?;
         Ok(())
     }
@@ -106,7 +108,8 @@ impl System for Ubuntu {
     }
 
     fn install_davinci_resolve(&self) -> Result<(), std::io::Error> {
-        self.install_application("davinci-resolve-studio")
+        self.install_application("davinci-resolve-studio");
+        Ok(())
     }
 
     fn install_discord(&self) {
@@ -114,31 +117,32 @@ impl System for Ubuntu {
     }
 
     fn install_docker(&self) -> Result<(), std::io::Error> {
-        self.install_application("docker")?;
-        self.setup_docker()?;
+        self.install_application("docker");
+        linux::setup_docker(self);
         Ok(())
     }
 
     fn install_dropbox(&self) {
-        self.install_application("nautilus-dropbox")
+        self.install_application("nautilus-dropbox");
     }
 
-    fn install_eclipse(&self) -> Result<(), std::io::Error> {
+    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.snap_install_application("eclipse", true);
         if Path::new("/opt/eclipse").exists() {
             fs::create_dir_all("/opt/eclipse");
         }
 
-        self.download_file(
+        system::download_file(
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
-        );
+        ).await?;
 
         let mut file = OpenOptions::new()
             .append(true)
             .open("/opt/eclipse/eclipse.ini")?;
 
-        writeln!(file, "-javaagent:/opt/eclipse/lombok.jar")?
+        writeln!(file, "-javaagent:/opt/eclipse/lombok.jar")?;
+        Ok(())
     }
 
     fn install_epic_games(&self) {
@@ -157,13 +161,14 @@ impl System for Ubuntu {
         // no-op
     }
 
-    fn install_google_chrome(&self) {
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
         system::download_file(
             "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
             "google-chrome.deb",
-        );
-        self.execute("dpkg -i google-chrome-stable_current_amd64.deb");
+        ).await?;
+        self.execute("dpkg -i google-chrome-stable_current_amd64.deb", true);
         fs::remove_file("google-chrome.deb");
+        Ok(())
     }
 
     fn install_google_cloud_sdk(&self) {
@@ -258,7 +263,7 @@ impl System for Ubuntu {
     }
 
     fn install_helm(&self) {
-        self.execute("curl -L https://git.io/get_helm.sh | bash");
+        self.execute("curl -L https://git.io/get_helm.sh | bash", true);
     }
 
     fn install_latex(&self) {
@@ -287,7 +292,7 @@ impl System for Ubuntu {
         let buffer = BufReader::new(file);
         let cpu_name = buffer.lines().find_map(|line| {
             if line.is_ok() && line.unwrap().starts_with("vendor_id") {
-                line.unwrap().split(":").next()?
+                return Some(line.unwrap().split(":").next()?);
             }
             None
         });
@@ -304,7 +309,7 @@ impl System for Ubuntu {
 
     fn install_minikube(&self) {
         system::download_file("https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64", "/usr/local/bin/minikube");
-        self.execute("chmod +x /usr/local/bin/minikube");
+        self.execute("chmod +x /usr/local/bin/minikube", true);
     }
 
     fn install_mkvtoolnix(&self) {
@@ -315,15 +320,16 @@ impl System for Ubuntu {
         self.install_application("nextcloud-desktop");
     }
 
-    async fn install_nodejs(&self) -> Result<(), std::io::Error> {
+    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         system::download_file("https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh", "nvm-install.sh").await?;
         unix::recursively_chmod("nvm-install.sh", &0o644, &0o644);
         self.execute("./nvm-install.sh", false);
         fs::remove_file("nvm-install.sh");
-        unix::setup_nodejs(&self)
+        unix::setup_nodejs(self)?;
+        Ok(())
     }
 
-    async fn install_nordvpn(&self) -> Result<(), std::io::Error>{
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
         system::download_file("https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb", "nordvpn.deb").await?;
         self.install_application("./nordvpn.deb");
         self.update_os_repo();
@@ -370,7 +376,7 @@ impl System for Ubuntu {
         fs::remove_file("rustup-install");
         unix::add_to_path(".zshrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()));
         unix::add_to_path(".bashrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()));
-        self.execute("rustup default stable");
+        self.execute("rustup default stable", true);
     }
 
     fn install_slack(&self) {
@@ -379,7 +385,7 @@ impl System for Ubuntu {
 
     fn install_spotify(&self) {
         self.add_apt_key("https://download.spotify.com/debian/pubkey.gpg");
-        self.add_apt_repo("spotify", ["deb http://repository.spotify.com stable non-free"]);
+        self.add_apt_repo("spotify", vec!["deb http://repository.spotify.com stable non-free"]);
         self.update_os_repo();
         self.install_application("spotify_client");
     }
@@ -403,8 +409,8 @@ impl System for Ubuntu {
     }
 
     fn install_themes(&self) {
-        fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()));
-        self.execute("git clone https://github.com/Roboron3042/Cyberpunk-Neon.git");
+        fs::create_dir_all(&format!("{}/.themes", system::get_home_dir()));
+        self.execute("git clone https://github.com/Roboron3042/Cyberpunk-Neon.git", false);
         linux::untar_rename_root("Cyberpunk-Neon/gtk/Materia-Cyberpunk-Neon.tar.gz", "Materia-Cyberpunk-Neon");
         fs::copy("Materia-Cyberpunk-Neon", format!("{}/.themes", system::get_home_dir()));
         fs::remove_file("Cyberpunk-Neon");
@@ -415,12 +421,12 @@ impl System for Ubuntu {
 
         system::download_file("https://raw.githubusercontent.com/gusbemacbe/suru-plus/master/install.sh", "suru-plus-install.sh");
         unix::recursively_chmod("suru-plus-install.sh", &0o644, &0o644);
-        self.execute("./suru-plus-install.sh");
+        self.execute("./suru-plus-install.sh", true);
 
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
-            &format!("{}/.themes", self.get_home_dir()),
+            &format!("{}/.themes", system::get_home_dir()),
             &user_id,
             &group_id,
         );
@@ -432,7 +438,7 @@ impl System for Ubuntu {
 
     fn install_tmux(&self) {
         self.install_applications(vec!["tmux", "xclip"]);
-        linux::setup_tmux(&self);
+        linux::setup_tmux(self);
     }
 
     fn install_vim(&self) {
@@ -449,7 +455,7 @@ impl System for Ubuntu {
 
     fn install_vscode(&self) {
         self.add_apt_key("https://packages.microsoft.com/keys/microsoft.asc");
-        self.add_apt_repo("vscode", ["deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"]);
+        self.add_apt_repo("vscode", vec!["deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"]);
         self.update_os_repo();
         self.install_application("code");
     }
@@ -476,11 +482,11 @@ impl System for Ubuntu {
 
     fn install_zsh(&self) {
         self.install_application("zsh");
-        unix::setup_zsh(&self, None);
+        unix::setup_zsh(self, None);
     }
 
     fn set_development_shortcuts(&self) {
-        linux::gnome_development_shortcuts(&self);
+        linux::gnome_development_shortcuts(self);
     }
 
     fn set_development_environment_settings(&self) {

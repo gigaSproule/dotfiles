@@ -1,9 +1,10 @@
 use std::fs;
-use std::fs::{OpenOptions, Permissions};
+use std::fs::OpenOptions;
 use std::io::{Read, Write};
-use std::os::unix::fs::{MetadataExt, PermissionsExt};
+use std::os::unix::fs::PermissionsExt;
 use std::process::{Command, Output, Stdio};
 
+use nix::unistd::{Gid, Uid};
 use walkdir::WalkDir;
 
 use crate::system;
@@ -29,7 +30,8 @@ pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> 
             .append(true)
             .open(format!("{}/{}", system::get_home_dir(), file))?;
 
-    writeln!(file, "export PATH = $PATH: {}\n", path)
+    writeln!(file, "export PATH = $PATH: {}\n", path)?;
+    Ok(())
 }
 
 pub(crate) fn copy_config(system: &dyn System, src: &str, dst: &str) {
@@ -60,18 +62,19 @@ pub(crate) fn execute(command: &str, super_user: bool) -> Output {
         .expect(format!("Failed to execute process `{}`", command).as_str())
 }
 
-pub(crate) async fn install_nodejs(system: &dyn System) -> Result<(), std::io::Error> {
+pub(crate) async fn install_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
     system::download_file(
         "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
         "nvm-install.sh",
     ).await?;
-    recursively_chmod("nvm-install.sh", &0o644, &0o644);
+    recursively_chmod("nvm-install.sh", &0o644, &0o644)?;
     system.execute("./nvm-install.sh", false);
     fs::remove_file("nvm-install.sh");
-    setup_nodejs(system)
+    setup_nodejs(system)?;
+    Ok(())
 }
 
-pub(crate) async fn install_rust(system: &dyn System) -> Result<(), std::io::Error> {
+pub(crate) async fn install_rust(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
     system::download_file("https://sh.rustup.rs", "rustup-install").await?;
     recursively_chmod("rustup-install", &0o644, &0o644)?;
     system.execute("./rustup-install -y", false);
@@ -87,28 +90,24 @@ pub(crate) fn recursively_chmod(
     file_permission: &u32,
 ) -> Result<(), std::io::Error> {
     let mut perms = fs::metadata(path)?.permissions();
-    perms.set_owner(Permissions::from_mode(directory_permission));
+    perms.set_mode(*directory_permission);
     for entry in WalkDir::new(path).follow_links(true) {
         let child_path = entry?.path();
         let mut child_perms = fs::metadata(child_path)?.permissions();
         if entry?.file_type().is_dir() {
-            child_perms.set_mode(Permissions::from_mode(directory_permission));
+            child_perms.set_mode(*directory_permission);
         } else {
-            child_perms.set_mode(Permissions::from_mode(file_permission));
+            child_perms.set_mode(*file_permission);
         }
     }
     Ok(())
 }
 
 pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(), std::io::Error> {
-    let mut perms = fs::metadata(path)?.permissions();
-    perms.set_uid(user);
-    perms.set_guid(group);
+    nix::unistd::chown(path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)));
     for entry in WalkDir::new(path).follow_links(true) {
         let child_path = entry?.path();
-        let mut child_perms = fs::metadata(child_path)?.permissions();
-        child_perms.set_uid(user);
-        child_perms.set_guid(group);
+        nix::unistd::chown(child_path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)));
     }
     Ok(())
 }
@@ -122,7 +121,7 @@ pub(crate) fn set_java_home(file: &str, jdk_path: &str) -> Result<(), std::io::E
     let mut buff = String::new();
     file.read_to_string(&mut buff)?;
     if !buff.contains("JAVA_HOME") {
-        writeln!(file, "export JAVA_HOME={}", jdk_path);
+        writeln!(file, "export JAVA_HOME={}", jdk_path)?;
     }
     Ok(())
 }
@@ -131,20 +130,20 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), std::io::Error> {
     let mut zshrc = OpenOptions::new()
         .append(true)
         .open(format!("{}/.zshrc.custom", system::get_home_dir()))?;
-    writeln!(zshrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"");
+    writeln!(zshrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
     writeln!(
         zshrc,
         "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
-    );
+    )?;
 
     let mut bashrc = OpenOptions::new()
         .append(true)
         .open(format!("{}/.bashrc.custom", system::get_home_dir()))?;
-    writeln!(bashrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"");
+    writeln!(bashrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
     writeln!(
         bashrc,
         "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
-    );
+    )?;
 
     system.execute("nvm install node --latest-npm", false);
     system.execute("npm install --global yarn", false);

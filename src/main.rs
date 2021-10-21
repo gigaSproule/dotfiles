@@ -53,7 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let vm = args.contains(&"--vm".to_string());
     let vpn = args.contains(&"--vpn".to_string());
 
-    let system = sys {};
+    let system = sys::default();
 
     system.setup_user_bin()?;
 
@@ -87,14 +87,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing Firefox");
         system.install_firefox();
         println!("Installing Google Chrome");
-        system.install_google_chrome();
+        system.install_google_chrome().await?;
     }
 
     if development {
         println!("Installing Android Studio");
         // system.install_android_studio();
         println!("Installing Eclipse");
-        // system.install_eclipse();
+        // system.install_eclipse().await?;
         println!("Installing Gradle");
         system.install_gradle();
         println!("Installing Git");
@@ -108,7 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing Maven");
         system.install_maven();
         println!("Installing NodeJS");
-        system.install_nodejs()?;
+        system.install_nodejs().await?;
         println!("Installing Python");
         system.install_python();
         println!("Installing Rust");
@@ -129,7 +129,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing Docker");
         system.install_docker()?;
         println!("Installing Kubectl");
-        system.install_kubectl();
+        system.install_kubectl().await?;
         println!("Installing Helm");
         system.install_helm();
         println!("Installing Minikube");
@@ -247,7 +247,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if vpn {
         println!("Installing NordVPN");
-        system.install_nordvpn();
+        system.install_nordvpn().await?;
     }
 
     Ok(())

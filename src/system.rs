@@ -73,7 +73,7 @@ pub(crate) trait System {
 
     fn install_dropbox(&self);
 
-    fn install_eclipse(&self);
+    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_epic_games(&self);
 
@@ -83,7 +83,7 @@ pub(crate) trait System {
 
     fn install_gog_galaxy(&self);
 
-    fn install_google_chrome(&self);
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_google_cloud_sdk(&self);
 
@@ -115,7 +115,7 @@ pub(crate) trait System {
 
     fn install_keepassxc(&self);
 
-    fn install_kubectl(&self);
+    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_helm(&self);
 
@@ -127,7 +127,7 @@ pub(crate) trait System {
 
     fn install_makemkv(&self);
 
-    fn install_microcode(&self);
+    fn install_microcode(&self) -> Result<(), std::io::Error>;
 
     fn install_minikube(&self);
 
@@ -135,9 +135,9 @@ pub(crate) trait System {
 
     fn install_nextcloud_client(&self);
 
-    fn install_nodejs(&self) -> Result<(), std::io::Error>;
+    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_nordvpn(&self);
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_nvidia_tools(&self);
 
@@ -347,7 +347,7 @@ pub(crate) async fn setup_codecs() -> Result<(), Box<dyn std::error::Error>> {
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", get_home_dir()).as_str(),
     )
-        .await?;
+    .await?;
     // let user_id = system.get_user_id();
     // let group_id = system.get_group_id();
     // system.recursively_chown(
@@ -381,7 +381,10 @@ pub(crate) fn setup_git_config(system: &dyn System) -> Result<(), std::io::Error
         false,
     );
     system.execute(
-        &format!("git config --global core.excludesfile {}/.gitignore", get_home_dir()),
+        &format!(
+            "git config --global core.excludesfile {}/.gitignore",
+            get_home_dir()
+        ),
         false,
     );
     Ok(())

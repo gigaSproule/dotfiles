@@ -6,6 +6,14 @@ use async_trait::async_trait;
 use crate::system::System;
 use crate::unix::Unix;
 
+pub(crate) struct Mac {}
+
+impl Default for Mac {
+    fn default() -> Self {
+        Mac {}
+    }
+}
+
 #[async_trait]
 impl System for Mac {
     fn execute(&self, command: &str, super_user: bool) -> Output {
@@ -60,7 +68,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_eclipse(&self) {
+    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
@@ -80,7 +88,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_google_chrome(&self) {
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
@@ -144,7 +152,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_kubectl(&self) {
+    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
@@ -168,7 +176,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_microcode(&self) {
+    fn install_microcode(&self) -> Result<(), std::io::Error> {
         todo!()
     }
 
@@ -184,11 +192,11 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_nodejs(&self) -> Result<(), Error> {
+    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn install_nordvpn(&self) {
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 

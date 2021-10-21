@@ -51,7 +51,7 @@ impl System for Linux {
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_codecs()
+        self.distro.install_codecs().await
     }
 
     fn install_conemu(&self) {
@@ -82,8 +82,8 @@ impl System for Linux {
         self.distro.install_dropbox();
     }
 
-    fn install_eclipse(&self) {
-        self.distro.install_eclipse();
+    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_eclipse().await
     }
 
     fn install_epic_games(&self) {
@@ -102,8 +102,8 @@ impl System for Linux {
         self.distro.install_gog_galaxy();
     }
 
-    fn install_google_chrome(&self) {
-        self.distro.install_google_chrome();
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_google_chrome().await
     }
 
     fn install_google_cloud_sdk(&self) {
@@ -166,8 +166,8 @@ impl System for Linux {
         self.distro.install_keepassxc();
     }
 
-    fn install_kubectl(&self) {
-        self.distro.install_kubectl();
+    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_kubectl().await
     }
 
     fn install_helm(&self) {
@@ -190,8 +190,8 @@ impl System for Linux {
         self.distro.install_makemkv();
     }
 
-    fn install_microcode(&self) {
-        self.distro.install_microcode();
+    fn install_microcode(&self) -> Result<(), std::io::Error> {
+        self.distro.install_microcode()
     }
 
     fn install_minikube(&self) {
@@ -206,12 +206,12 @@ impl System for Linux {
         self.distro.install_nextcloud_client();
     }
 
-    fn install_nodejs(&self) -> Result<(), Error> {
-        self.distro.install_nodejs()
+    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_nodejs().await
     }
 
-    fn install_nordvpn(&self) {
-        self.distro.install_nordvpn();
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_nordvpn().await
     }
 
     fn install_nvidia_tools(&self) {
@@ -263,7 +263,7 @@ impl System for Linux {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_system_extras()
+        self.distro.install_system_extras().await
     }
 
     fn install_telnet(&self) {
@@ -352,12 +352,13 @@ pub(crate) fn gnome_development_shortcuts(system: &dyn System) {
     system.execute("gsettings set org.gnome.shell.extensions.screenshot-window-sizer cycle-screenshot-sizes []", false);
 }
 
-pub(crate) fn set_development_environment_settings() {
+pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Error> {
     println!("Setting mmapfs limit for Elasticsearch");
     let mut file = OpenOptions::new()
         .append(true)
         .open("/etc/sysctl.conf")?;
-    writeln!(file, "vm.max_map_count=262144");
+    writeln!(file, "vm.max_map_count=262144")?;
+    Ok(())
 }
 
 pub(crate) fn setup_docker(system: &dyn System) {
@@ -367,7 +368,7 @@ pub(crate) fn setup_docker(system: &dyn System) {
     );
 }
 
-pub(crate) fn setup_power_saving_tweaks() {
+pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
     let mut file = File::open("/sys/devices/virtual/dmi/id/product_name")?;
     let mut device_name = String::new();
     file.read_to_string(&mut device_name);
@@ -376,30 +377,33 @@ pub(crate) fn setup_power_saving_tweaks() {
         let mem_sleep_file = OpenOptions::new()
             .append(true)
             .open("/sys/power/mem_sleep")?;
-        writeln!(mem_sleep_file, "s2idle [deep]");
+        writeln!(mem_sleep_file, "s2idle [deep]")?;
 
         let original_grub_file = File::open("/etc/default/grub")?;
         let buffer = BufReader::new(original_grub_file);
         let new_lines = buffer.lines().map(|line| {
-            if line?.starts_with("GRUB_CMDLINE_LINUX_DEFAULT=") {
-                let split_line = line.unwrap().split('=');
-                let mut value = split_line[1].replace("\"", "");
+            if line.unwrap().starts_with("GRUB_CMDLINE_LINUX_DEFAULT=") {
+                let mut split_line = line.unwrap().split('=');
+                split_line.next();
+                let mut value = split_line.next().unwrap().replace("\"", "");
                 value += "mem_sleep_default = deep";
-                format!("{}=\"{}\"", split_line[0], value)
+                format!("{}=\"{}\"", "GRUB_CMDLINE_LINUX_DEFAULT", value)
             } else {
-                line
+                line.unwrap()
             }
-        });
+        }).collect::<Vec<String>>();
 
         let mut new_grub_file = OpenOptions::new().append(true).open("/etc/default/grub")?;
         new_grub_file.write_all(new_lines.join("\n").as_bytes());
     }
+    Ok(())
 }
 
-pub(crate) fn setup_tmux(system: &dyn System) {
+pub(crate) fn setup_tmux(system: &dyn System) -> Result<(), std::io::Error> {
     unix::setup_tmux(system);
-    let file = OpenOptions::new().append(true).open(format!("{}/.tmux.custom.conf", system::get_home_dir()));
-    writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'");
+    let file = OpenOptions::new().append(true).open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
+    writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'")?;
+    Ok(())
 }
 
 /// Extracts the contents of the tar file and renames the root directory.

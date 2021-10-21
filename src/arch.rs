@@ -13,21 +13,21 @@ pub(crate) struct Arch {}
 
 impl Arch {
     fn aur_install_application(&self, application: &str) -> Output {
-        self.aur_install_applications([application])
+        self.aur_install_applications(vec![application])
     }
 
     fn aur_install_applications(&self, applications: Vec<&str>) -> Output {
         self.execute(
-            format!("yay -S --noconfirm --needed {}", applications.join(" ")),
+            &format!("yay -S --noconfirm --needed {}", applications.join(" ")),
             false,
         )
     }
 
     fn enable_service(&self, service: &str) {
         self.execute(
-            format!("systemctl enable service {}", service).as_str(),
+            &format!("systemctl enable service {}", service),
             true,
-        )
+        );
     }
 
     fn setup_docker(&self) {
@@ -46,7 +46,7 @@ impl System for Arch {
 
     fn install_applications(&self, application: Vec<&str>) -> Output {
         self.execute(
-            format!("pacman -S --noconfirm --needed {}", application.join(" ")),
+            &format!("pacman -S --noconfirm --needed {}", application.join(" ")),
             true,
         )
     }
@@ -56,7 +56,7 @@ impl System for Arch {
     }
 
     fn install_blender(&self) {
-        self.install_application("blender")
+        self.install_application("blender");
     }
 
     fn install_bluetooth(&self) {
@@ -71,14 +71,14 @@ impl System for Arch {
             "libdvdnav",
             "libbluray",
             "libaacs",
-        ])?;
-        system::setup_codecs()?;
+        ]);
+        system::setup_codecs().await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
-            format!("{}/.config", system::get_home_dir()).as_str(),
-            user_id,
-            group_id,
+            &format!("{}/.config", system::get_home_dir()),
+            &user_id,
+            &group_id,
         )?;
         Ok(())
     }
@@ -96,7 +96,8 @@ impl System for Arch {
     }
 
     fn install_davinci_resolve(&self) -> Result<(), std::io::Error> {
-        self.aur_install_application("davinci-resolve-studio")
+        self.aur_install_application("davinci-resolve-studio");
+        Ok(())
     }
 
     fn install_discord(&self) {
@@ -104,28 +105,29 @@ impl System for Arch {
     }
 
     fn install_docker(&self) -> Result<(), std::io::Error> {
-        self.install_application("docker")?;
-        self.setup_docker()?;
+        self.install_application("docker");
+        linux::setup_docker(self);
         Ok(())
     }
 
     fn install_dropbox(&self) {
-        self.install_applications(vec!["dropbox", "nautilus-dropbox"])
+        self.install_applications(vec!["dropbox", "nautilus-dropbox"]);
     }
 
-    fn install_eclipse(&self) {
+    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("eclipse-jee");
         if Path::new("/opt/eclipse").exists() {
             fs::create_dir_all("/opt/eclipse");
         }
 
-        self.download_file("https://projectlombok.org/downloads/lombok.jar", "/opt/eclipse/lombok.jar");
+        system::download_file("https://projectlombok.org/downloads/lombok.jar", "/opt/eclipse/lombok.jar").await?;
 
         let mut file = OpenOptions::new()
             .append(true)
             .open("/opt/eclipse/eclipse.ini")?;
 
         writeln!(file, "-javaagent:/opt/eclipse/lombok.jar")?;
+        Ok(())
     }
 
     fn install_epic_games(&self) {
@@ -145,8 +147,9 @@ impl System for Arch {
         // no-op
     }
 
-    fn install_google_chrome(&self) {
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("google-chrome");
+        Ok(())
     }
 
     fn install_google_cloud_sdk(&self) {
@@ -215,8 +218,9 @@ impl System for Arch {
         self.install_application("keepassxc");
     }
 
-    fn install_kubectl(&self) {
+    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>>{
         self.install_application("kubectl");
+        Ok(())
     }
 
     fn install_helm(&self) {
@@ -239,23 +243,24 @@ impl System for Arch {
         self.aur_install_applications(vec!["makemkv", "ccextractor"]);
     }
 
-    fn install_microcode(&self) {
+    fn install_microcode(&self) -> Result<(), std::io::Error> {
         let file = File::open("/proc/cpuinfo")?;
         let buffer = BufReader::new(file);
         let cpu_name = buffer.lines().find_map(|line| {
             if line.is_ok() && line.unwrap().starts_with("vendor_id") {
-                line.unwrap().split(":").next()?
+                return Some(line.unwrap().split(":").next()?);
             }
             None
         });
         if cpu_name.is_none() {
-            return;
+            return Ok(());
         }
         if cpu_name.unwrap() == "GenuineIntel" {
             self.install_application("intel-ucode");
         } else {
             self.install_application("amd-ucode");
         }
+        Ok(())
     }
 
     fn install_minikube(&self) {
@@ -270,18 +275,20 @@ impl System for Arch {
         self.install_application("nextcloud-client");
     }
 
-    fn install_nodejs(&self) -> Result<(), std::io::Error> {
+    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("nvm");
-        unix::setup_nodejs(&self)
+        unix::setup_nodejs(self)?;
+        Ok(())
     }
 
-    fn install_nordvpn(&self) {
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("nordvpn-bin");
         self.enable_service("nordvpnd");
+        Ok(())
     }
 
     fn install_nvidia_tools(&self) {
-        self.install_applications(vec!["nvidia", "nvidia-utils", "lib32-nvidia-utils", "nvidia-settings", "vulkan-icd-loader", "lib32-vulkan-icd-loader"])
+        self.install_applications(vec!["nvidia", "nvidia-utils", "lib32-nvidia-utils", "nvidia-settings", "vulkan-icd-loader", "lib32-vulkan-icd-loader"]);
     }
 
     fn install_nvidia_laptop_tools(&self) {
@@ -310,7 +317,7 @@ impl System for Arch {
 
     fn install_rust(&self) {
         self.install_application("rustup");
-        self.execute("rustup default stable");
+        self.execute("rustup default stable", true);
     }
 
     fn install_slack(&self) {
@@ -336,15 +343,15 @@ impl System for Arch {
         let original_lines = BufReader::new(original_pacman_file).lines();
         let mut enable_multilib = false;
         let new_lines = original_lines.map(|line| {
-            return if line?.startswith("#[multilib]") {
+            return if line.unwrap().starts_with("#[multilib]") {
                 // Crude way to signify that we are under the multilib section
                 enable_multilib = true;
-                line?.replacen("#", "", 1)
-            } else if enable_multilib && line?.startswith("#Include = /etc/pacman.d/mirrorlist") {
+                line.unwrap().replacen("#", "", 1)
+            } else if enable_multilib && line.unwrap().starts_with("#Include = /etc/pacman.d/mirrorlist") {
                 enable_multilib = false;
-                line?.replacen("#", "", 1)
+                line.unwrap().replacen("#", "", 1)
             } else {
-                line?
+                line.unwrap()
             };
         }).collect::<Vec<String>>();
 
@@ -353,7 +360,8 @@ impl System for Arch {
             .open("/etc/pacman.conf")?;
         new_pacman_file.write_all(new_lines.join("\n").as_bytes());
 
-        self.install_applications(vec!["yay", "wget"])
+        self.install_applications(vec!["yay", "wget"]);
+        Ok(())
     }
 
     fn install_telnet(&self) {
@@ -361,11 +369,10 @@ impl System for Arch {
     }
 
     fn install_themes(&self) {
-        fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()));
-        self.install_specific_themes();
+        fs::create_dir_all(&format!("{}/.themes", system::get_home_dir()));
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
-        unix::recursively_chown(&format!("{}/.themes", self.get_home_dir()), &user_id, &group_id);
+        unix::recursively_chown(&format!("{}/.themes", system::get_home_dir()), &user_id, &group_id);
     }
 
     fn install_tlp(&self) {
@@ -376,7 +383,7 @@ impl System for Arch {
     fn install_tmux(&self) {
         self.install_applications(vec!["tmux", "xclip"]);
         self.aur_install_application("tmux-bash-completion");
-        linux::setup_tmux(&self);
+        linux::setup_tmux(self);
     }
 
     fn install_vim(&self) {
@@ -424,11 +431,11 @@ impl System for Arch {
 
     fn install_zsh(&self) {
         self.install_applications(vec!["zsh", "zsh-completions"]);
-        unix::setup_zsh(&self, None);
+        unix::setup_zsh(self, None);
     }
 
     fn set_development_shortcuts(&self) {
-        linux::gnome_development_shortcuts(&self);
+        linux::gnome_development_shortcuts(self);
     }
 
     fn set_development_environment_settings(&self) {
@@ -441,10 +448,10 @@ impl System for Arch {
 
     fn update_os(&self) {
         self.update_os_repo();
-        self.execute("pacman -Syu --noconfirm");
+        self.execute("pacman -Syu --noconfirm", true);
     }
 
     fn update_os_repo(&self) {
-        self.execute("pacman -Sy");
+        self.execute("pacman -Sy", true);
     }
 }

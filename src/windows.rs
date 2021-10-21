@@ -10,6 +10,12 @@ use crate::system::System;
 
 pub(crate) struct Windows {}
 
+impl Default for Windows {
+    fn default() -> Self {
+        Windows {}
+    }
+}
+
 impl Windows {
     fn execute_powershell(&self, command: &str, _super_user: bool) -> Output {
         Command::new("powershell")
@@ -90,8 +96,9 @@ impl System for Windows {
         self.install_application("dropbox");
     }
 
-    fn install_eclipse(&self) {
+    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("eclipse");
+        Ok(())
     }
 
     fn install_epic_games(&self) {
@@ -110,8 +117,9 @@ impl System for Windows {
         self.install_application("goggalaxy");
     }
 
-    fn install_google_chrome(&self) {
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("googlechrome");
+        Ok(())
     }
 
     fn install_google_cloud_sdk(&self) {
@@ -178,8 +186,9 @@ impl System for Windows {
         self.install_application("keepassxc");
     }
 
-    fn install_kubectl(&self) {
+    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("kubernetes-cli");
+        Ok(())
     }
 
     fn install_helm(&self) {
@@ -203,8 +212,8 @@ impl System for Windows {
         self.install_application("makemkv");
     }
 
-    fn install_microcode(&self) {
-        // no-op
+    fn install_microcode(&self) -> Result<(), std::io::Error> {
+        Ok(())
     }
 
     fn install_minikube(&self) {
@@ -219,7 +228,7 @@ impl System for Windows {
         self.install_application("nextcloud-client");
     }
 
-    fn install_nodejs(&self) -> Result<(), std::io::Error> {
+    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("nvm");
         let mut file = OpenOptions::new()
             .append(true)
@@ -284,8 +293,9 @@ impl System for Windows {
         Ok(())
     }
 
-    fn install_nordvpn(&self) {
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("nordvpn");
+        Ok(())
     }
 
     fn install_nvidia_tools(&self) {
