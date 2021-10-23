@@ -13,12 +13,12 @@ use crate::system::System;
 pub(crate) struct Ubuntu {}
 
 impl Ubuntu {
-    fn add_apt_key(self, url: &str) {
+    fn add_apt_key(&self, url: &str) {
         self.execute(&format!("apt-key adv --fetch-keys {}", url), true);
     }
 
-    fn add_apt_repo(self, file_name: &str, urls: Vec<&str>) -> Result<(), std::io::Error>{
-        let file = OpenOptions::new()
+    fn add_apt_repo(&self, file_name: &str, urls: Vec<&str>) -> Result<(), std::io::Error>{
+        let mut file = OpenOptions::new()
             .append(true)
             .open(format!("/etc/apt/sources.list.d/{}", file_name))?;
         for url in urls {
@@ -41,7 +41,7 @@ impl Ubuntu {
 
     fn set_debconf(&self, installer: &str, conf: &str, value: &str) -> Result<(), std::io::Error> {
         let debconf_file = format!("{}.debconf", Uuid::new_v4());
-        let file = OpenOptions::new().append(true).open(&debconf_file)?;
+        let mut file = OpenOptions::new().append(true).open(&debconf_file)?;
         writeln!(file, "{} {} select {}", installer, conf, value)?;
         writeln!(file, "{} {} seen {}", installer, conf, value)?;
         self.execute(&format!("debconf-set-selections {}", &debconf_file), true);
@@ -287,12 +287,14 @@ impl System for Ubuntu {
         self.install_application("ccextractor");
     }
 
+    // TODO: Duplicated in Arch - move to Linux
     fn install_microcode(&self) -> Result<(), std::io::Error>{
         let file = File::open("/proc/cpuinfo")?;
         let buffer = BufReader::new(file);
         let cpu_name = buffer.lines().find_map(|line| {
-            if line.is_ok() && line.unwrap().starts_with("vendor_id") {
-                return Some(line.unwrap().split(":").next()?);
+            if line.is_ok() && line.as_ref().unwrap().starts_with("vendor_id") {
+                let unwrapped_line = line.unwrap();
+                return Some(unwrapped_line.split(":").next()?.to_string());
             }
             None
         });
@@ -480,9 +482,10 @@ impl System for Ubuntu {
         // no-op
     }
 
-    fn install_zsh(&self) {
+    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("zsh");
-        unix::setup_zsh(self, None);
+        unix::setup_zsh(self, None).await?;
+        Ok(())
     }
 
     fn set_development_shortcuts(&self) {

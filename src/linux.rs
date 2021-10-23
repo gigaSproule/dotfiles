@@ -13,14 +13,15 @@ use crate::system::System;
 use crate::unix;
 
 pub(crate) struct Linux {
-    distro: Box<dyn System>,
+    distro: Box<dyn System + Sync + Send + 'static>,
 }
 
 impl Default for Linux {
     fn default() -> Self {
-        let distro = match whoami::distro() {
+        let distro_str = whoami::distro();
+        let distro = match distro_str {
             distro if distro.starts_with("arch") => Arch {},
-            _ => panic!("Unable to determine the distro"),
+            _ => panic!("Unable to determine the distro {}", distro_str),
         };
         Linux {
             distro: Box::new(distro),
@@ -51,7 +52,8 @@ impl System for Linux {
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_codecs().await
+        let install_codecs = self.distro.install_codecs();
+        install_codecs.await
     }
 
     fn install_conemu(&self) {
@@ -83,7 +85,8 @@ impl System for Linux {
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_eclipse().await
+        let install_eclipse = self.distro.install_eclipse();
+        install_eclipse.await
     }
 
     fn install_epic_games(&self) {
@@ -103,7 +106,8 @@ impl System for Linux {
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_google_chrome().await
+        let install_google_chrome = self.distro.install_google_chrome();
+        install_google_chrome.await
     }
 
     fn install_google_cloud_sdk(&self) {
@@ -167,7 +171,8 @@ impl System for Linux {
     }
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_kubectl().await
+        let install_kubectl = self.distro.install_kubectl();
+        install_kubectl.await
     }
 
     fn install_helm(&self) {
@@ -207,11 +212,13 @@ impl System for Linux {
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_nodejs().await
+        let install_nodejs = self.distro.install_nodejs();
+        install_nodejs.await
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_nordvpn().await
+        let install_nordvpn = self.distro.install_nordvpn();
+        install_nordvpn.await
     }
 
     fn install_nvidia_tools(&self) {
@@ -263,7 +270,8 @@ impl System for Linux {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_system_extras().await
+        let install_system_extras = self.distro.install_system_extras();
+        install_system_extras.await
     }
 
     fn install_telnet(&self) {
@@ -318,8 +326,9 @@ impl System for Linux {
         self.distro.install_xcode();
     }
 
-    fn install_zsh(&self) {
-        self.distro.install_zsh();
+    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_zsh().await?;
+        Ok(())
     }
 
     fn set_development_shortcuts(&self) {
@@ -374,7 +383,7 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
     file.read_to_string(&mut device_name);
 
     if device_name == "XPS 15 9570" {
-        let mem_sleep_file = OpenOptions::new()
+        let mut mem_sleep_file = OpenOptions::new()
             .append(true)
             .open("/sys/power/mem_sleep")?;
         writeln!(mem_sleep_file, "s2idle [deep]")?;
@@ -382,10 +391,12 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
         let original_grub_file = File::open("/etc/default/grub")?;
         let buffer = BufReader::new(original_grub_file);
         let new_lines = buffer.lines().map(|line| {
-            if line.unwrap().starts_with("GRUB_CMDLINE_LINUX_DEFAULT=") {
-                let mut split_line = line.unwrap().split('=');
+            if line.as_ref().unwrap().starts_with("GRUB_CMDLINE_LINUX_DEFAULT=") {
+                let unwrapped_line = line.unwrap();
+                let mut split_line = unwrapped_line.split('=');
                 split_line.next();
-                let mut value = split_line.next().unwrap().replace("\"", "");
+                let unwrapped_next_split = split_line.next().unwrap();
+                let mut value = unwrapped_next_split.replace("\"", "");
                 value += "mem_sleep_default = deep";
                 format!("{}=\"{}\"", "GRUB_CMDLINE_LINUX_DEFAULT", value)
             } else {
@@ -401,7 +412,7 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
 
 pub(crate) fn setup_tmux(system: &dyn System) -> Result<(), std::io::Error> {
     unix::setup_tmux(system);
-    let file = OpenOptions::new().append(true).open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
+    let mut file = OpenOptions::new().append(true).open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
     writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'")?;
     Ok(())
 }

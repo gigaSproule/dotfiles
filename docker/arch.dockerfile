@@ -1,5 +1,7 @@
 FROM archlinux
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && source $HOME/.cargo/env && pacman -Sy gcc openssl pkg-conf
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && echo ". $HOME/.cargo/env" >> $HOME/.bashrc && pacman -Sy --noconfirm gcc openssl pkgconf
+
+WORKDIR /app
 
 CMD [ "bash" ]

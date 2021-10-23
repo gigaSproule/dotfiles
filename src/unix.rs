@@ -17,11 +17,13 @@ extern "C" {
 }
 
 pub(crate) fn get_group_id() -> u32 {
-    unsafe { getegid() }
+    // unsafe { getegid() }
+    0
 }
 
 pub(crate) fn get_user_id() -> u32 {
-    unsafe { geteuid() }
+    // unsafe { geteuid() }
+    0
 }
 
 pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> {
@@ -34,14 +36,14 @@ pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> 
     Ok(())
 }
 
-pub(crate) fn copy_config(system: &dyn System, src: &str, dst: &str) {
+pub(crate) fn copy_config(system: &dyn System, src: &str, dst: &str) -> Result<(), std::io::Error> {
     let actual_src = format!("{:?}/{}", std::env::current_exe(), src);
     let actual_dst = format!("{}/{}", system::get_home_dir(), dst);
     fs::create_dir_all(&actual_dst);
     fs::copy(&actual_src, &actual_dst);
-    let user_id = unsafe { geteuid() };
-    let group_id = unsafe { getegid() };
-    recursively_chown(&actual_dst, &user_id, &group_id);
+    let user_id = get_user_id();
+    let group_id = get_group_id();
+    recursively_chown(&actual_dst, &user_id, &group_id)
 }
 
 pub(crate) fn execute(command: &str, super_user: bool) -> Output {
@@ -69,7 +71,7 @@ pub(crate) async fn install_nodejs(system: &dyn System) -> Result<(), Box<dyn st
     ).await?;
     recursively_chmod("nvm-install.sh", &0o644, &0o644)?;
     system.execute("./nvm-install.sh", false);
-    fs::remove_file("nvm-install.sh");
+    fs::remove_file("nvm-install.sh")?;
     setup_nodejs(system)?;
     Ok(())
 }
@@ -92,9 +94,10 @@ pub(crate) fn recursively_chmod(
     let mut perms = fs::metadata(path)?.permissions();
     perms.set_mode(*directory_permission);
     for entry in WalkDir::new(path).follow_links(true) {
-        let child_path = entry?.path();
+        let entr = entry?;
+        let child_path = entr.path();
         let mut child_perms = fs::metadata(child_path)?.permissions();
-        if entry?.file_type().is_dir() {
+        if entr.file_type().is_dir() {
             child_perms.set_mode(*directory_permission);
         } else {
             child_perms.set_mode(*file_permission);
@@ -104,10 +107,11 @@ pub(crate) fn recursively_chmod(
 }
 
 pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(), std::io::Error> {
-    nix::unistd::chown(path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)));
+    nix::unistd::chown(path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)))?;
     for entry in WalkDir::new(path).follow_links(true) {
-        let child_path = entry?.path();
-        nix::unistd::chown(child_path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)));
+        let entr = entry?;
+        let child_path = entr.path();
+        nix::unistd::chown(child_path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)))?;
     }
     Ok(())
 }
@@ -154,18 +158,19 @@ pub(crate) fn setup_tmux(system: &dyn System) {
     copy_config(system, "tmux/tmux.conf", ".tmux.conf");
 }
 
-pub(crate) fn setup_zsh(system: &dyn System, zsh_bin: Option<&str>) {
+pub(crate) async fn setup_zsh(system: &dyn System, zsh_bin: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
     let zsh = zsh_bin.unwrap_or("/usr/bin/zsh");
     system::download_file(
         "https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh",
         "oh-my-zsh.sh",
-    );
-    recursively_chmod("./oh-my-zsh.sh", &0o644, &0o644);
+    ).await?;
+    recursively_chmod("./oh-my-zsh.sh", &0o644, &0o644)?;
     system.execute("./oh-my-zsh.sh", false);
     copy_config(system, "zsh/zshrc", ".zshrc");
     system.execute(&format!("chsh -s {}", zsh), true);
     system.execute(&format!("chsh -s {} {}", zsh, whoami::username()), true);
-    fs::remove_file("oh-my-zsh.sh");
+    fs::remove_file("oh-my-zsh.sh")?;
+    Ok(())
 }
 
 pub(crate) fn symlink(source: &str, destination: &str) {

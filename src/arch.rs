@@ -243,12 +243,14 @@ impl System for Arch {
         self.aur_install_applications(vec!["makemkv", "ccextractor"]);
     }
 
+    // TODO: Duplicated in Ubuntu - move to Linux
     fn install_microcode(&self) -> Result<(), std::io::Error> {
         let file = File::open("/proc/cpuinfo")?;
         let buffer = BufReader::new(file);
         let cpu_name = buffer.lines().find_map(|line| {
-            if line.is_ok() && line.unwrap().starts_with("vendor_id") {
-                return Some(line.unwrap().split(":").next()?);
+            if line.is_ok() && line.as_ref().unwrap().starts_with("vendor_id") {
+                let unwrapped_line = line.unwrap();
+                return Some(unwrapped_line.split(":").next()?.to_string());
             }
             None
         });
@@ -343,15 +345,16 @@ impl System for Arch {
         let original_lines = BufReader::new(original_pacman_file).lines();
         let mut enable_multilib = false;
         let new_lines = original_lines.map(|line| {
-            return if line.unwrap().starts_with("#[multilib]") {
+            let unwrapped_line = line.unwrap();
+            return if unwrapped_line.starts_with("#[multilib]") {
                 // Crude way to signify that we are under the multilib section
                 enable_multilib = true;
-                line.unwrap().replacen("#", "", 1)
-            } else if enable_multilib && line.unwrap().starts_with("#Include = /etc/pacman.d/mirrorlist") {
+                unwrapped_line.replacen("#", "", 1)
+            } else if enable_multilib && unwrapped_line.starts_with("#Include = /etc/pacman.d/mirrorlist") {
                 enable_multilib = false;
-                line.unwrap().replacen("#", "", 1)
+                unwrapped_line.replacen("#", "", 1)
             } else {
-                line.unwrap()
+                unwrapped_line
             };
         }).collect::<Vec<String>>();
 
@@ -429,9 +432,10 @@ impl System for Arch {
         // no-op
     }
 
-    fn install_zsh(&self) {
+    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_applications(vec!["zsh", "zsh-completions"]);
-        unix::setup_zsh(self, None);
+        unix::setup_zsh(self, None).await?;
+        Ok(())
     }
 
     fn set_development_shortcuts(&self) {

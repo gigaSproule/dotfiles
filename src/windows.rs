@@ -416,8 +416,8 @@ impl System for Windows {
         // no-op
     }
 
-    fn install_zsh(&self) {
-        // no-op
+    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
     fn set_development_shortcuts(&self) {

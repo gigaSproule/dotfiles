@@ -81,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Installing Wget");
     system.install_wget();
     println!("Installing ZSH");
-    system.install_zsh();
+    system.install_zsh().await?;
 
     if browsers {
         println!("Installing Firefox");
@@ -175,7 +175,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing Graphics Card Tools for Laptop");
         system.install_graphic_card_laptop_tools();
         println!("Installing Microcode");
-        system.install_microcode();
+        system.install_microcode()?;
         println!("Installing Powertop");
         system.install_powertop();
         println!("Installing TLP");

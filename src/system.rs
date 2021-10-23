@@ -191,7 +191,7 @@ pub(crate) trait System {
 
     fn install_xcode(&self);
 
-    fn install_zsh(&self);
+    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Sets the required global keyboard shortcuts that conflict with common IDE shortcuts.
     ///

@@ -304,7 +304,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_zsh(&self) {
+    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
