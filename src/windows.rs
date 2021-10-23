@@ -18,8 +18,10 @@ impl Default for Windows {
 
 impl Windows {
     fn execute_powershell(&self, command: &str, _super_user: bool) -> Output {
+        let mut split = command.split_whitespace();
         Command::new("powershell")
-            .args(&["/C", format!("echo {}", command).as_str()])
+            .arg("/C")
+            .args(&mut split)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
@@ -30,8 +32,10 @@ impl Windows {
 #[async_trait]
 impl System for Windows {
     fn execute(&self, command: &str, _super_user: bool) -> Output {
+        let mut split = command.split_whitespace();
         Command::new("cmd")
-            .args(&["/C", format!("echo {}", command).as_str()])
+            .arg("/C")
+            .args(&mut split)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
@@ -122,8 +126,9 @@ impl System for Windows {
         Ok(())
     }
 
-    fn install_google_cloud_sdk(&self) {
+    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error> {
         self.install_application("gcloudsdk");
+        Ok(())
     }
 
     fn install_google_drive(&self) {
@@ -178,8 +183,9 @@ impl System for Windows {
         self.install_application("intellijidea-ultimate");
     }
 
-    fn install_jdk(&self) {
+    fn install_jdk(&self) -> Result<(), std::io::Error> {
         self.install_application("adoptopenjdk");
+        Ok(())
     }
 
     fn install_keepassxc(&self) {
@@ -216,7 +222,7 @@ impl System for Windows {
         Ok(())
     }
 
-    fn install_minikube(&self) {
+    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("minikube");
     }
 
@@ -368,8 +374,8 @@ impl System for Windows {
         self.install_application("telnet");
     }
 
-    fn install_themes(&self) {
-        // no-op
+    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
     fn install_tlp(&self) {
@@ -396,8 +402,8 @@ impl System for Windows {
         self.install_application("vscode");
     }
 
-    fn install_wifi(&self) {
-        // no-op
+    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
     fn install_window_manager(&self) {

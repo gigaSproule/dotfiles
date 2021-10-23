@@ -92,7 +92,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_google_cloud_sdk(&self) {
+    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error> {
         todo!()
     }
 
@@ -144,7 +144,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_jdk(&self) {
+    fn install_jdk(&self) -> Result<(), std::io::Error> {
         todo!()
     }
 
@@ -180,7 +180,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_minikube(&self) {
+    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
@@ -256,7 +256,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_themes(&self) {
+    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
@@ -284,7 +284,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_wifi(&self) {
+    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 

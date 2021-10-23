@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Installing KeepassXC");
     system.install_keepassxc();
     println!("Installing tmux");
-    system.install_tmux();
+    system.install_tmux()?;
     println!("Installing Vim");
     system.install_vim();
     println!("Installing Wget");
@@ -104,7 +104,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing IntelliJ");
         system.install_intellij();
         println!("Installing Java");
-        system.install_jdk();
+        system.install_jdk()?;
         println!("Installing Maven");
         system.install_maven();
         println!("Installing NodeJS");
@@ -112,17 +112,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing Python");
         system.install_python();
         println!("Installing Rust");
-        system.install_rust();
+        system.install_rust().await?;
         println!("Installing Slack");
         system.install_slack();
         println!("Installing VSCode");
-        system.install_vscode();
+        system.install_vscode()?;
         println!("Installing Xcode");
         system.install_xcode();
         println!("Setting development specific shortcuts");
         system.set_development_shortcuts();
         println!("Setting development environment settings");
-        system.set_development_environment_settings();
+        system.set_development_environment_settings()?;
     }
 
     if docker {
@@ -155,7 +155,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if gcp {
         println!("Installing Google Cloud SDK");
-        system.install_google_cloud_sdk();
+        system.install_google_cloud_sdk()?;
     }
 
     if images {
@@ -181,9 +181,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing TLP");
         system.install_tlp();
         println!("Install WiFi");
-        system.install_wifi();
+        system.install_wifi().await?;
         println!("Setup power saving tweaks");
-        system.setup_power_saving_tweaks();
+        system.setup_power_saving_tweaks()?;
     }
 
     if modelling {
@@ -207,11 +207,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Installing OneDrive");
         system.install_onedrive();
         println!("Installing Spotify");
-        system.install_spotify();
+        system.install_spotify()?;
         println!("Installing SweetHome3D");
         system.install_sweet_home_3d();
         println!("Installing themes");
-        system.install_themes();
+        system.install_themes().await?;
     }
 
     if recording {

@@ -45,7 +45,7 @@ impl Ubuntu {
         writeln!(file, "{} {} select {}", installer, conf, value)?;
         writeln!(file, "{} {} seen {}", installer, conf, value)?;
         self.execute(&format!("debconf-set-selections {}", &debconf_file), true);
-        fs::remove_file(debconf_file);
+        fs::remove_file(debconf_file)?;
         Ok(())
     }
 }
@@ -129,7 +129,7 @@ impl System for Ubuntu {
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.snap_install_application("eclipse", true);
         if Path::new("/opt/eclipse").exists() {
-            fs::create_dir_all("/opt/eclipse");
+            fs::create_dir_all("/opt/eclipse")?;
         }
 
         system::download_file(
@@ -167,17 +167,18 @@ impl System for Ubuntu {
             "google-chrome.deb",
         ).await?;
         self.execute("dpkg -i google-chrome-stable_current_amd64.deb", true);
-        fs::remove_file("google-chrome.deb");
+        fs::remove_file("google-chrome.deb")?;
         Ok(())
     }
 
-    fn install_google_cloud_sdk(&self) {
+    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error> {
         self.add_apt_key("https://packages.cloud.google.com/apt/doc/apt-key.gpg");
         self.add_apt_repo(
             "google-cloud-sdk",
             vec!["deb https://packages.cloud.google.com/apt cloud-sdk main"],
-        );
+        )?;
         self.install_application("google-cloud-sdk");
+        Ok(())
     }
 
     fn install_google_drive(&self) {
@@ -232,16 +233,17 @@ impl System for Ubuntu {
         self.snap_install_application("intellij-idea-ultimate", true);
     }
 
-    fn install_jdk(&self) {
+    fn install_jdk(&self) -> Result<(), std::io::Error> {
         self.install_applications(vec!["openjdk-16-jdk"]);
         unix::set_java_home(
             ".zshrc.custom",
             &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
-        );
+        )?;
         unix::set_java_home(
             ".bashrc.custom",
             &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
-        );
+        )?;
+        Ok(())
     }
 
     fn install_keepassxc(&self) {
@@ -258,7 +260,7 @@ impl System for Ubuntu {
                 .replace("\n", "");
         system::download_file(
             &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl").await?;
-        unix::recursively_chmod("/usr/local/bin/kubectl", &0o644, &0o644);
+        unix::recursively_chmod("/usr/local/bin/kubectl", &0o644, &0o644)?;
         Ok(())
     }
 
@@ -309,9 +311,10 @@ impl System for Ubuntu {
         Ok(())
     }
 
-    fn install_minikube(&self) {
-        system::download_file("https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64", "/usr/local/bin/minikube");
+    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
+        system::download_file("https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64", "/usr/local/bin/minikube").await?;
         self.execute("chmod +x /usr/local/bin/minikube", true);
+        Ok(())
     }
 
     fn install_mkvtoolnix(&self) {
@@ -324,9 +327,9 @@ impl System for Ubuntu {
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         system::download_file("https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh", "nvm-install.sh").await?;
-        unix::recursively_chmod("nvm-install.sh", &0o644, &0o644);
+        unix::recursively_chmod("nvm-install.sh", &0o644, &0o644)?;
         self.execute("./nvm-install.sh", false);
-        fs::remove_file("nvm-install.sh");
+        fs::remove_file("nvm-install.sh")?;
         unix::setup_nodejs(self)?;
         Ok(())
     }
@@ -371,25 +374,20 @@ impl System for Ubuntu {
         self.install_application("python3");
     }
 
-    fn install_rust(&self) {
-        system::download_file("https://sh.rustup.rs", "rustup-install");
-        unix::recursively_chmod("rustup-install", &0o644, &0o644);
-        self.execute("./rustup-install -y", false);
-        fs::remove_file("rustup-install");
-        unix::add_to_path(".zshrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()));
-        unix::add_to_path(".bashrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()));
-        self.execute("rustup default stable", true);
+    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
+        unix::install_rust(self).await
     }
 
     fn install_slack(&self) {
         self.snap_install_application("slack", true);
     }
 
-    fn install_spotify(&self) {
+    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.add_apt_key("https://download.spotify.com/debian/pubkey.gpg");
-        self.add_apt_repo("spotify", vec!["deb http://repository.spotify.com stable non-free"]);
+        self.add_apt_repo("spotify", vec!["deb http://repository.spotify.com stable non-free"])?;
         self.update_os_repo();
         self.install_application("spotify_client");
+        Ok(())
     }
 
     fn install_steam(&self) {
@@ -401,7 +399,7 @@ impl System for Ubuntu {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.set_debconf("ttf-mscorefonts-installer", "msttcorefonts/accepted-mscorefonts-eula", "true");
+        self.set_debconf("ttf-mscorefonts-installer", "msttcorefonts/accepted-mscorefonts-eula", "true")?;
         self.install_applications(vec!["ubuntu-restricted-extras", "chrome-gnome-shell", "gnome-tweaks"]);
         Ok(())
     }
@@ -410,19 +408,19 @@ impl System for Ubuntu {
         self.install_application("telnet");
     }
 
-    fn install_themes(&self) {
-        fs::create_dir_all(&format!("{}/.themes", system::get_home_dir()));
+    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
+        fs::create_dir_all(&format!("{}/.themes", system::get_home_dir()))?;
         self.execute("git clone https://github.com/Roboron3042/Cyberpunk-Neon.git", false);
-        linux::untar_rename_root("Cyberpunk-Neon/gtk/Materia-Cyberpunk-Neon.tar.gz", "Materia-Cyberpunk-Neon");
-        fs::copy("Materia-Cyberpunk-Neon", format!("{}/.themes", system::get_home_dir()));
-        fs::remove_file("Cyberpunk-Neon");
+        linux::untar_rename_root("Cyberpunk-Neon/gtk/Materia-Cyberpunk-Neon.tar.gz", "Materia-Cyberpunk-Neon")?;
+        fs::copy("Materia-Cyberpunk-Neon", format!("{}/.themes", system::get_home_dir()))?;
+        fs::remove_file("Cyberpunk-Neon")?;
 
         self.add_ppa("snwh/ppa");
         self.update_os_repo();
         self.install_application("paper-icon-theme");
 
-        system::download_file("https://raw.githubusercontent.com/gusbemacbe/suru-plus/master/install.sh", "suru-plus-install.sh");
-        unix::recursively_chmod("suru-plus-install.sh", &0o644, &0o644);
+        system::download_file("https://raw.githubusercontent.com/gusbemacbe/suru-plus/master/install.sh", "suru-plus-install.sh").await?;
+        unix::recursively_chmod("suru-plus-install.sh", &0o644, &0o644)?;
         self.execute("./suru-plus-install.sh", true);
 
         let user_id = unix::get_user_id();
@@ -431,16 +429,17 @@ impl System for Ubuntu {
             &format!("{}/.themes", system::get_home_dir()),
             &user_id,
             &group_id,
-        );
+        )?;
+        Ok(())
     }
 
     fn install_tlp(&self) {
         self.install_application("tlp");
     }
 
-    fn install_tmux(&self) {
+    fn install_tmux(&self) -> Result<(), std::io::Error> {
         self.install_applications(vec!["tmux", "xclip"]);
-        linux::setup_tmux(self);
+        linux::setup_tmux()
     }
 
     fn install_vim(&self) {
@@ -455,15 +454,16 @@ impl System for Ubuntu {
         self.install_applications(vec!["open-vm-tools", "open-vm-tools-desktop"]);
     }
 
-    fn install_vscode(&self) {
+    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.add_apt_key("https://packages.microsoft.com/keys/microsoft.asc");
-        self.add_apt_repo("vscode", vec!["deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"]);
+        self.add_apt_repo("vscode", vec!["deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"])?;
         self.update_os_repo();
         self.install_application("code");
+        Ok(())
     }
 
-    fn install_wifi(&self) {
-        // no-op
+    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
     fn install_window_manager(&self) {
@@ -492,12 +492,12 @@ impl System for Ubuntu {
         linux::gnome_development_shortcuts(self);
     }
 
-    fn set_development_environment_settings(&self) {
-        linux::set_development_environment_settings();
+    fn set_development_environment_settings(&self) -> Result<(), std::io::Error> {
+        linux::set_development_environment_settings()
     }
 
-    fn setup_power_saving_tweaks(&self) {
-        linux::setup_power_saving_tweaks();
+    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error> {
+        linux::setup_power_saving_tweaks()
     }
 
     fn update_os(&self) {

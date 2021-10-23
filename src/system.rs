@@ -6,7 +6,7 @@ use std::process::Output;
 use async_trait::async_trait;
 
 #[async_trait]
-pub(crate) trait System {
+pub(crate) trait System: Send + Sync + 'static {
     /// Executes the given command. It will run it as a super user if `super_user` is `true`.
     ///
     /// # Examples
@@ -85,7 +85,7 @@ pub(crate) trait System {
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_google_cloud_sdk(&self);
+    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error>;
 
     fn install_google_drive(&self);
 
@@ -111,7 +111,7 @@ pub(crate) trait System {
 
     fn install_intellij(&self);
 
-    fn install_jdk(&self);
+    fn install_jdk(&self) -> Result<(), std::io::Error>;
 
     fn install_keepassxc(&self);
 
@@ -129,7 +129,7 @@ pub(crate) trait System {
 
     fn install_microcode(&self) -> Result<(), std::io::Error>;
 
-    fn install_minikube(&self);
+    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_mkvtoolnix(&self);
 
@@ -153,11 +153,11 @@ pub(crate) trait System {
 
     fn install_python(&self);
 
-    fn install_rust(&self);
+    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_slack(&self);
 
-    fn install_spotify(&self);
+    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_steam(&self);
 
@@ -167,11 +167,11 @@ pub(crate) trait System {
 
     fn install_telnet(&self);
 
-    fn install_themes(&self);
+    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_tlp(&self);
 
-    fn install_tmux(&self);
+    fn install_tmux(&self) -> Result<(), std::io::Error>;
 
     fn install_vim(&self);
 
@@ -179,9 +179,9 @@ pub(crate) trait System {
 
     fn install_vm_tools(&self);
 
-    fn install_vscode(&self);
+    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_wifi(&self);
+    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_window_manager(&self);
 
@@ -219,7 +219,7 @@ pub(crate) trait System {
     /// let system: System = ...
     /// system.set_development_environment_settings();
     /// ```
-    fn set_development_environment_settings(&self);
+    fn set_development_environment_settings(&self) -> Result<(), std::io::Error>;
 
     /// Sets the environment configuration to enable the best possible power savings.
     ///
@@ -233,7 +233,7 @@ pub(crate) trait System {
     /// let system: System = ...
     /// system.setup_power_saving_tweaks();
     /// ```
-    fn setup_power_saving_tweaks(&self);
+    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error>;
 
     /// Creates a directory for storing user specific binaries to be included on the PATH.
     ///

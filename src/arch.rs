@@ -30,11 +30,8 @@ impl Arch {
         );
     }
 
-    fn setup_docker(&self) {
-        self.execute(
-            format!("usermod -a -G docker {}", whoami::username()).as_str(),
-            true,
-        );
+    fn execute_path(&self, command: &str, super_user: bool, path: &str) -> Output {
+        unix::execute_path(command, super_user, path)
     }
 }
 
@@ -47,7 +44,7 @@ impl System for Arch {
     fn install_applications(&self, application: Vec<&str>) -> Output {
         self.execute(
             &format!("pacman -S --noconfirm --needed {}", application.join(" ")),
-            true,
+            true
         )
     }
 
@@ -117,7 +114,7 @@ impl System for Arch {
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("eclipse-jee");
         if Path::new("/opt/eclipse").exists() {
-            fs::create_dir_all("/opt/eclipse");
+            fs::create_dir_all("/opt/eclipse")?;
         }
 
         system::download_file("https://projectlombok.org/downloads/lombok.jar", "/opt/eclipse/lombok.jar").await?;
@@ -152,8 +149,9 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_google_cloud_sdk(&self) {
+    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error> {
         self.aur_install_application("google-cloud-sdk");
+        Ok(())
     }
 
     fn install_google_drive(&self) {
@@ -208,10 +206,11 @@ impl System for Arch {
         self.aur_install_application("intellij-idea-ultimate-edition");
     }
 
-    fn install_jdk(&self) {
+    fn install_jdk(&self) -> Result<(), std::io::Error> {
         self.install_application("jdk-openjdk");
-        unix::set_java_home(".zshrc.custom", "/usr/lib/jvm/default");
-        unix::set_java_home(".bashrc.custom", "/usr/lib/jvm/default");
+        unix::set_java_home(".zshrc.custom", "/usr/lib/jvm/default")?;
+        unix::set_java_home(".bashrc.custom", "/usr/lib/jvm/default")?;
+        Ok(())
     }
 
     fn install_keepassxc(&self) {
@@ -265,8 +264,9 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_minikube(&self) {
+    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("minikube");
+        Ok(())
     }
 
     fn install_mkvtoolnix(&self) {
@@ -317,17 +317,19 @@ impl System for Arch {
         self.install_application("python");
     }
 
-    fn install_rust(&self) {
+    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("rustup");
         self.execute("rustup default stable", true);
+        Ok(())
     }
 
     fn install_slack(&self) {
         self.aur_install_application("slack-desktop");
     }
 
-    fn install_spotify(&self) {
+    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("spotify");
+        Ok(())
     }
 
     fn install_steam(&self) {
@@ -361,9 +363,13 @@ impl System for Arch {
         let mut new_pacman_file = OpenOptions::new()
             .write(true)
             .open("/etc/pacman.conf")?;
-        new_pacman_file.write_all(new_lines.join("\n").as_bytes());
+        new_pacman_file.write_all(new_lines.join("\n").as_bytes())?;
 
-        self.install_applications(vec!["yay", "wget"]);
+        self.install_applications(vec!["wget"]);
+
+        system::download_file("https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz", "yay.tar.gz").await?;
+        linux::untar_rename_root("yay.tar.gz", "yay")?;
+        self.execute_path("makepkg -si -p PKGBUILD", false, &format!("{}/yay", std::env::current_dir().unwrap().into_os_string().into_string().unwrap()));
         Ok(())
     }
 
@@ -371,11 +377,12 @@ impl System for Arch {
         self.install_application("inetutils");
     }
 
-    fn install_themes(&self) {
-        fs::create_dir_all(&format!("{}/.themes", system::get_home_dir()));
+    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
+        fs::create_dir_all(&format!("{}/.themes", system::get_home_dir()))?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
-        unix::recursively_chown(&format!("{}/.themes", system::get_home_dir()), &user_id, &group_id);
+        unix::recursively_chown(&format!("{}/.themes", system::get_home_dir()), &user_id, &group_id)?;
+        Ok(())
     }
 
     fn install_tlp(&self) {
@@ -383,10 +390,10 @@ impl System for Arch {
         self.enable_service("tlp")
     }
 
-    fn install_tmux(&self) {
+    fn install_tmux(&self) -> Result<(), std::io::Error> {
         self.install_applications(vec!["tmux", "xclip"]);
         self.aur_install_application("tmux-bash-completion");
-        linux::setup_tmux(self);
+        linux::setup_tmux()
     }
 
     fn install_vim(&self) {
@@ -401,16 +408,18 @@ impl System for Arch {
         self.install_application("open-vm-tools");
     }
 
-    fn install_vscode(&self) {
+    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("code");
+        Ok(())
     }
 
-    fn install_wifi(&self) {
+    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
         fs::copy("/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
-                 "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak");
+                 "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak")?;
         system::download_file(
             "https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035",
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin");
+            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin").await?;
+        Ok(())
     }
 
     fn install_window_manager(&self) {
@@ -442,12 +451,13 @@ impl System for Arch {
         linux::gnome_development_shortcuts(self);
     }
 
-    fn set_development_environment_settings(&self) {
-        linux::set_development_environment_settings();
+    fn set_development_environment_settings(&self) -> Result<(), std::io::Error> {
+        linux::set_development_environment_settings()
     }
 
-    fn setup_power_saving_tweaks(&self) {
-        linux::setup_power_saving_tweaks();
+    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error> {
+        linux::setup_power_saving_tweaks()?;
+        Ok(())
     }
 
     fn update_os(&self) {

@@ -20,7 +20,7 @@ impl Default for Linux {
     fn default() -> Self {
         let distro_str = whoami::distro();
         let distro = match distro_str {
-            distro if distro.starts_with("arch") => Arch {},
+            distro if distro.starts_with("Arch") => Arch {},
             _ => panic!("Unable to determine the distro {}", distro_str),
         };
         Linux {
@@ -110,8 +110,8 @@ impl System for Linux {
         install_google_chrome.await
     }
 
-    fn install_google_cloud_sdk(&self) {
-        self.distro.install_google_cloud_sdk();
+    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error> {
+        self.distro.install_google_cloud_sdk()
     }
 
     fn install_google_drive(&self) {
@@ -162,8 +162,8 @@ impl System for Linux {
         self.distro.install_intellij();
     }
 
-    fn install_jdk(&self) {
-        self.distro.install_jdk();
+    fn install_jdk(&self) -> Result<(), std::io::Error> {
+        self.distro.install_jdk()
     }
 
     fn install_keepassxc(&self) {
@@ -199,8 +199,8 @@ impl System for Linux {
         self.distro.install_microcode()
     }
 
-    fn install_minikube(&self) {
-        self.distro.install_minikube();
+    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_minikube().await
     }
 
     fn install_mkvtoolnix(&self) {
@@ -249,16 +249,16 @@ impl System for Linux {
         self.distro.install_python();
     }
 
-    fn install_rust(&self) {
-        self.distro.install_rust();
+    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_rust().await
     }
 
     fn install_slack(&self) {
         self.distro.install_slack();
     }
 
-    fn install_spotify(&self) {
-        self.distro.install_spotify();
+    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_spotify()
     }
 
     fn install_steam(&self) {
@@ -278,16 +278,16 @@ impl System for Linux {
         self.distro.install_telnet();
     }
 
-    fn install_themes(&self) {
-        self.distro.install_themes();
+    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_themes().await
     }
 
     fn install_tlp(&self) {
         self.distro.install_tlp();
     }
 
-    fn install_tmux(&self) {
-        self.distro.install_tmux();
+    fn install_tmux(&self) -> Result<(), std::io::Error> {
+        self.distro.install_tmux()
     }
 
     fn install_vim(&self) {
@@ -302,12 +302,12 @@ impl System for Linux {
         self.distro.install_vm_tools();
     }
 
-    fn install_vscode(&self) {
-        self.distro.install_vscode();
+    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_vscode()
     }
 
-    fn install_wifi(&self) {
-        self.distro.install_wifi();
+    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_wifi().await
     }
 
     fn install_window_manager(&self) {
@@ -335,12 +335,12 @@ impl System for Linux {
         self.distro.set_development_shortcuts();
     }
 
-    fn set_development_environment_settings(&self) {
-        self.distro.set_development_environment_settings();
+    fn set_development_environment_settings(&self) -> Result<(), std::io::Error> {
+        self.distro.set_development_environment_settings()
     }
 
-    fn setup_power_saving_tweaks(&self) {
-        self.distro.setup_power_saving_tweaks();
+    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error> {
+        self.distro.setup_power_saving_tweaks()
     }
 
     fn update_os(&self) {
@@ -380,7 +380,7 @@ pub(crate) fn setup_docker(system: &dyn System) {
 pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
     let mut file = File::open("/sys/devices/virtual/dmi/id/product_name")?;
     let mut device_name = String::new();
-    file.read_to_string(&mut device_name);
+    file.read_to_string(&mut device_name)?;
 
     if device_name == "XPS 15 9570" {
         let mut mem_sleep_file = OpenOptions::new()
@@ -405,13 +405,13 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
         }).collect::<Vec<String>>();
 
         let mut new_grub_file = OpenOptions::new().append(true).open("/etc/default/grub")?;
-        new_grub_file.write_all(new_lines.join("\n").as_bytes());
+        new_grub_file.write_all(new_lines.join("\n").as_bytes())?;
     }
     Ok(())
 }
 
-pub(crate) fn setup_tmux(system: &dyn System) -> Result<(), std::io::Error> {
-    unix::setup_tmux(system);
+pub(crate) fn setup_tmux() -> Result<(), std::io::Error> {
+    unix::setup_tmux()?;
     let mut file = OpenOptions::new().append(true).open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
     writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'")?;
     Ok(())

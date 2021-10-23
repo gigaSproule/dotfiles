@@ -17,13 +17,11 @@ extern "C" {
 }
 
 pub(crate) fn get_group_id() -> u32 {
-    // unsafe { getegid() }
-    0
+    unsafe { getegid() }
 }
 
 pub(crate) fn get_user_id() -> u32 {
-    // unsafe { geteuid() }
-    0
+    unsafe { geteuid() }
 }
 
 pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> {
@@ -36,44 +34,57 @@ pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> 
     Ok(())
 }
 
-pub(crate) fn copy_config(system: &dyn System, src: &str, dst: &str) -> Result<(), std::io::Error> {
+pub(crate) fn copy_config(src: &str, dst: &str) -> Result<(), std::io::Error> {
     let actual_src = format!("{:?}/{}", std::env::current_exe(), src);
     let actual_dst = format!("{}/{}", system::get_home_dir(), dst);
-    fs::create_dir_all(&actual_dst);
-    fs::copy(&actual_src, &actual_dst);
+    fs::create_dir_all(&actual_dst)?;
+    fs::copy(&actual_src, &actual_dst)?;
     let user_id = get_user_id();
     let group_id = get_group_id();
     recursively_chown(&actual_dst, &user_id, &group_id)
 }
 
 pub(crate) fn execute(command: &str, super_user: bool) -> Output {
-    let mut actual_command = if super_user {
+    let mut actual_command = if !super_user {
         let mut return_command = Command::new("sudo");
-        return_command.arg("--");
+        return_command.args(["-u", &std::env::var("SUDO_USER").unwrap()]);
+        println!("sudo -u {} {}", &std::env::var("SUDO_USER").unwrap(), command);
         return_command
     } else {
         let mut return_command = Command::new("sh");
         return_command.arg("-c");
+        println!("sh -c {}", command);
         return_command
     };
+    let mut split = command.split_whitespace();
     actual_command
-        .args(&[command])
+        .args(&mut split)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .output()
         .expect(format!("Failed to execute process `{}`", command).as_str())
 }
 
-pub(crate) async fn install_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
-    system::download_file(
-        "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
-        "nvm-install.sh",
-    ).await?;
-    recursively_chmod("nvm-install.sh", &0o644, &0o644)?;
-    system.execute("./nvm-install.sh", false);
-    fs::remove_file("nvm-install.sh")?;
-    setup_nodejs(system)?;
-    Ok(())
+pub(crate) fn execute_path(command: &str, super_user: bool, path: &str) -> Output {
+    let mut actual_command = if !super_user {
+        let mut return_command = Command::new("sudo");
+        return_command.args(["-u", &std::env::var("SUDO_USER").unwrap()]);
+        println!("sudo -u {} {}", &std::env::var("SUDO_USER").unwrap(), command);
+        return_command
+    } else {
+        let mut return_command = Command::new("sh");
+        return_command.arg("-c");
+        println!("sh -c {}", command);
+        return_command
+    };
+    let mut split = command.split_whitespace();
+    actual_command
+        .args(&mut split)
+        .current_dir(path)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .output()
+        .expect(format!("Failed to execute process `{}`", command).as_str())
 }
 
 pub(crate) async fn install_rust(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
@@ -81,8 +92,9 @@ pub(crate) async fn install_rust(system: &dyn System) -> Result<(), Box<dyn std:
     recursively_chmod("rustup-install", &0o644, &0o644)?;
     system.execute("./rustup-install -y", false);
     fs::remove_file("rustup-install")?;
-    add_to_path(".zshrc.custom", "$HOME/.cargo/bin")?;
-    add_to_path(".bashrc.custom", "$HOME/.cargo/bin")?;
+    add_to_path(".zshrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()))?;
+    add_to_path(".bashrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()))?;
+    system.execute("rustup default stable", true);
     Ok(())
 }
 
@@ -154,8 +166,8 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-pub(crate) fn setup_tmux(system: &dyn System) {
-    copy_config(system, "tmux/tmux.conf", ".tmux.conf");
+pub(crate) fn setup_tmux() -> Result<(), std::io::Error> {
+    copy_config("tmux/tmux.conf", ".tmux.conf")
 }
 
 pub(crate) async fn setup_zsh(system: &dyn System, zsh_bin: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
@@ -166,7 +178,7 @@ pub(crate) async fn setup_zsh(system: &dyn System, zsh_bin: Option<&str>) -> Res
     ).await?;
     recursively_chmod("./oh-my-zsh.sh", &0o644, &0o644)?;
     system.execute("./oh-my-zsh.sh", false);
-    copy_config(system, "zsh/zshrc", ".zshrc");
+    copy_config("zsh/zshrc", ".zshrc")?;
     system.execute(&format!("chsh -s {}", zsh), true);
     system.execute(&format!("chsh -s {} {}", zsh, whoami::username()), true);
     fs::remove_file("oh-my-zsh.sh")?;
