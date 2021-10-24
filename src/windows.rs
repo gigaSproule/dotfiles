@@ -18,10 +18,8 @@ impl Default for Windows {
 
 impl Windows {
     fn execute_powershell(&self, command: &str, _super_user: bool) -> Output {
-        let mut split = command.split_whitespace();
         Command::new("powershell")
-            .arg("/C")
-            .args(&mut split)
+            .arg(command)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
@@ -32,10 +30,8 @@ impl Windows {
 #[async_trait]
 impl System for Windows {
     fn execute(&self, command: &str, _super_user: bool) -> Output {
-        let mut split = command.split_whitespace();
         Command::new("cmd")
-            .arg("/C")
-            .args(&mut split)
+            .arg(command)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .output()
@@ -224,6 +220,7 @@ impl System for Windows {
 
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("minikube");
+        Ok(())
     }
 
     fn install_mkvtoolnix(&self) {
@@ -332,16 +329,18 @@ impl System for Windows {
         self.install_application("python");
     }
 
-    fn install_rust(&self) {
+    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("rustup.install");
+        Ok(())
     }
 
     fn install_slack(&self) {
         self.install_application("slack");
     }
 
-    fn install_spotify(&self) {
+    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("spotify");
+        Ok(())
     }
 
     fn install_steam(&self) {
@@ -382,8 +381,8 @@ impl System for Windows {
         // no-op
     }
 
-    fn install_tmux(&self) {
-        // no-op
+    fn install_tmux(&self) -> Result<(), std::io::Error> {
+        Ok(())
     }
 
     fn install_vim(&self) {
@@ -398,8 +397,9 @@ impl System for Windows {
         // no-op
     }
 
-    fn install_vscode(&self) {
+    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("vscode");
+        Ok(())
     }
 
     async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -430,12 +430,12 @@ impl System for Windows {
         // no-op
     }
 
-    fn set_development_environment_settings(&self) {
-        // no-op
+    fn set_development_environment_settings(&self) -> Result<(), std::io::Error> {
+        Ok(())
     }
 
-    fn setup_power_saving_tweaks(&self) {
-        // no-op
+    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error> {
+        Ok(())
     }
 
     fn update_os(&self) {

@@ -45,41 +45,27 @@ pub(crate) fn copy_config(src: &str, dst: &str) -> Result<(), std::io::Error> {
 }
 
 pub(crate) fn execute(command: &str, super_user: bool) -> Output {
-    let mut actual_command = if !super_user {
-        let mut return_command = Command::new("sudo");
-        return_command.args(["-u", &std::env::var("SUDO_USER").unwrap()]);
-        println!("sudo -u {} {}", &std::env::var("SUDO_USER").unwrap(), command);
-        return_command
-    } else {
-        let mut return_command = Command::new("sh");
-        return_command.arg("-c");
-        println!("sh -c {}", command);
-        return_command
-    };
-    let mut split = command.split_whitespace();
-    actual_command
-        .args(&mut split)
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .output()
-        .expect(format!("Failed to execute process `{}`", command).as_str())
+    execute_path(command, super_user, &std::env::current_dir().unwrap().into_os_string().into_string().unwrap())
 }
 
 pub(crate) fn execute_path(command: &str, super_user: bool, path: &str) -> Output {
     let mut actual_command = if !super_user {
+        let split = command.split_whitespace().collect::<Vec<&str>>();
+        let sudo_user = std::env::var("SUDO_USER").unwrap();
+        let mut args = vec!["-u", &sudo_user];
+        args.extend(split);
         let mut return_command = Command::new("sudo");
-        return_command.args(["-u", &std::env::var("SUDO_USER").unwrap()]);
-        println!("sudo -u {} {}", &std::env::var("SUDO_USER").unwrap(), command);
+        return_command.args(args);
+        println!("sudo -u {} {}", &sudo_user, command);
         return_command
     } else {
-        let mut return_command = Command::new("sh");
-        return_command.arg("-c");
-        println!("sh -c {}", command);
+        let mut split = command.split_whitespace();
+        let mut return_command = Command::new(split.nth(0).unwrap());
+        return_command.args(split.collect::<Vec<&str>>());
+        println!("{}", command);
         return_command
     };
-    let mut split = command.split_whitespace();
     actual_command
-        .args(&mut split)
         .current_dir(path)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())

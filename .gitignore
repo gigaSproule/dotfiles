@@ -206,3 +206,5 @@ install.ps1
 # Added by cargo
 
 /target
+yay/
+yay.tar.gz
