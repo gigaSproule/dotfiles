@@ -11,13 +11,15 @@ use crate::system;
 use crate::system::System;
 
 pub(crate) fn get_group_id() -> u32 {
-    let sudo_user = std::env::var("SUDO_USER").unwrap();
-    users::get_group_by_name(&sudo_user).unwrap().gid()
+    std::env::var("SUDO_GID").unwrap().parse::<u32>().unwrap()
 }
 
 pub(crate) fn get_user_id() -> u32 {
-    let sudo_user = std::env::var("SUDO_USER").unwrap();
-    users::get_user_by_name(&sudo_user).unwrap().uid()
+    std::env::var("SUDO_UID").unwrap().parse::<u32>().unwrap()
+}
+
+pub(crate) fn get_username() -> u32 {
+    std::env::var("SUDO_USER").unwrap().parse::<u32>().unwrap()
 }
 
 pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> {
@@ -162,7 +164,7 @@ pub(crate) async fn setup_zsh(system: &dyn System, zsh_bin: Option<&str>) -> Res
     system.execute("./oh-my-zsh.sh", false);
     copy_config("zsh/zshrc", ".zshrc")?;
     system.execute(&format!("chsh -s {}", zsh), true);
-    system.execute(&format!("chsh -s {} {}", zsh, whoami::username()), true);
+    system.execute(&format!("chsh -s {} {}", zsh, get_username()), true);
     fs::remove_file("oh-my-zsh.sh")?;
     Ok(())
 }

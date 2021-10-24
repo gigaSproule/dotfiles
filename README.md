@@ -4,15 +4,64 @@ A collection of configs and scripts to setup everything I need
 
 ## Install
 
-This requires python 3 and pip (for installing distro and lxml)
-
 1. Run
 
 ```bash
-cd ~
-git clone https://github.com/gigaSproule/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-sudo XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP} su -c 'pip3 install -r requirements.txt && ./install.py [-d | --development | -p | --personal | -s | --server | -v | --vm | -h | --help]'
+sudo dotfiles [options]'
+```
+
+## Testing
+
+### Arch
+
+#### Build Docker image
+
+```bash
+docker build -t arch -f ./docker/arch.dockerfile .
+```
+
+#### Run with local mounted
+
+```bash
+docker run -ti -v ${PWD}:/app arch
+cargo build
+su -- archuser
+sudo target/debug/dotfiles [options]
+```
+
+#### Run alone
+
+```bash
+docker run -ti arch
+cargo build
+su -- archuser
+sudo target/debug/dotfiles [options]
+```
+
+### Ubuntu
+
+#### Build Docker image
+
+```bash
+docker build -t ubuntu -f ./docker/ubuntu.dockerfile .
+```
+
+#### Run with local mounted
+
+```bash
+docker run -ti -v ${PWD}:/app ubuntu
+cargo build
+sudo su -- ubuntuuser
+sudo target/debug/dotfiles [options]
+```
+
+#### Run alone
+
+```bash
+docker run -ti ubuntu
+cargo build
+sudo su -- ubuntuuser
+sudo target/debug/dotfiles [options]
 ```
 
 ## Install Root CA Certificate

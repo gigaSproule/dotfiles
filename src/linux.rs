@@ -10,10 +10,11 @@ use tar::Archive;
 use crate::arch::Arch;
 use crate::system;
 use crate::system::System;
+use crate::ubuntu::Ubuntu;
 use crate::unix;
 
 pub(crate) struct Linux {
-    distro: Box<dyn System + Sync + Send + 'static>,
+    distro: Box<dyn System>,
 }
 
 impl Default for Linux {
@@ -23,12 +24,13 @@ impl Default for Linux {
             panic!("Need to run this with sudo.")
         }
         let distro_str = whoami::distro();
-        let distro = match distro_str {
-            distro if distro.starts_with("Arch") => Arch {},
+        let distro: Box<dyn System> = match distro_str {
+            distro if distro == "Arch Linux" => Box::new(Arch {}),
+            distro if distro.starts_with("Ubuntu") => Box::new(Ubuntu {}),
             _ => panic!("Unable to determine the distro {}.", distro_str),
         };
         Linux {
-            distro: Box::new(distro),
+            distro,
         }
     }
 }
@@ -376,7 +378,7 @@ pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Erro
 
 pub(crate) fn setup_docker(system: &dyn System) {
     system.execute(
-        format!("usermod -a -G docker {}", whoami::username()).as_str(),
+        format!("usermod -a -G docker {}", unix::get_username()).as_str(),
         true,
     );
 }
