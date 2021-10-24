@@ -369,7 +369,10 @@ impl System for Arch {
 
         system::download_file("https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz", "yay.tar.gz").await?;
         linux::untar_rename_root("yay.tar.gz", "yay")?;
-        self.execute_path("makepkg -si -p PKGBUILD", false, &format!("{}/yay", std::env::current_dir().unwrap().into_os_string().into_string().unwrap()));
+        let user_id = unix::get_user_id();
+        let group_id = unix::get_group_id();
+        unix::recursively_chown("yay", &user_id, &group_id)?;
+        self.execute_path("makepkg -si --noconfirm", false, &format!("{}/yay", std::env::current_dir().unwrap().into_os_string().into_string().unwrap()));
         Ok(())
     }
 

@@ -12,6 +12,9 @@ pub(crate) struct Windows {}
 
 impl Default for Windows {
     fn default() -> Self {
+        if !is_elevated::is_elevated() {
+            panic!("Need to run this with administrator privileges.")
+        }
         Windows {}
     }
 }

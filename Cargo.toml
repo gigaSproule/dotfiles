@@ -6,14 +6,20 @@ edition = "2018"
 [dependencies]
 async-trait = "0.1.51"
 dirs = "4.0.0"
-flate2 = "1.0.22"
-open = "2.0.1"
-regex = "1.5.4"
 reqwest = "0.11.6"
-tar = "0.4.37"
 tokio = { version = "1.12.0", features = [ "full" ] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+flate2 = "1.0.22"
+tar = "0.4.37"
 uuid = { version = "0.8.2", features = [ "v4" ] }
+
+[target.'cfg(unix)'.dependencies]
+nix = "0.23.0"
+users = "0.11.0"
 walkdir = "2.3.2"
 whoami = "1.1.5"
-libc = "0.2.104"
-nix = "0.23.0"
+
+[target.'cfg(windows)'.dependencies]
+is_elevated = "0.1.2"
+open = "2.0.1"

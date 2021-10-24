@@ -10,18 +10,14 @@ use walkdir::WalkDir;
 use crate::system;
 use crate::system::System;
 
-#[link(name = "c")]
-extern "C" {
-    fn geteuid() -> u32;
-    fn getegid() -> u32;
-}
-
 pub(crate) fn get_group_id() -> u32 {
-    unsafe { getegid() }
+    let sudo_user = std::env::var("SUDO_USER").unwrap();
+    users::get_group_by_name(&sudo_user).unwrap().gid()
 }
 
 pub(crate) fn get_user_id() -> u32 {
-    unsafe { geteuid() }
+    let sudo_user = std::env::var("SUDO_USER").unwrap();
+    users::get_user_by_name(&sudo_user).unwrap().uid()
 }
 
 pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> {

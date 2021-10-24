@@ -18,10 +18,14 @@ pub(crate) struct Linux {
 
 impl Default for Linux {
     fn default() -> Self {
+        let sudo_user = std::env::var("SUDO_USER");
+        if sudo_user.is_err() {
+            panic!("Need to run this with sudo.")
+        }
         let distro_str = whoami::distro();
         let distro = match distro_str {
             distro if distro.starts_with("Arch") => Arch {},
-            _ => panic!("Unable to determine the distro {}", distro_str),
+            _ => panic!("Unable to determine the distro {}.", distro_str),
         };
         Linux {
             distro: Box::new(distro),
