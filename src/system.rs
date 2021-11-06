@@ -311,7 +311,7 @@ pub(crate) async fn download_file(
     Ok(())
 }
 
-/// Returns the users home directory.
+/// Returns the users home directory _without_ the trailing slash.
 ///
 /// # Examples
 ///

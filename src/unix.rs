@@ -25,6 +25,7 @@ pub(crate) fn get_username() -> u32 {
 pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> {
     let mut file =
         OpenOptions::new()
+            .create(true)
             .append(true)
             .open(format!("{}/{}", system::get_home_dir(), file))?;
 
@@ -115,6 +116,7 @@ pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(
 pub(crate) fn set_java_home(file: &str, jdk_path: &str) -> Result<(), std::io::Error> {
     let mut file =
         OpenOptions::new()
+            .create(true)
             .append(true)
             .open(format!("{}/{}", system::get_home_dir(), file))?;
 
@@ -128,6 +130,7 @@ pub(crate) fn set_java_home(file: &str, jdk_path: &str) -> Result<(), std::io::E
 
 pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), std::io::Error> {
     let mut zshrc = OpenOptions::new()
+        .create(true)
         .append(true)
         .open(format!("{}/.zshrc.custom", system::get_home_dir()))?;
     writeln!(zshrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
@@ -137,6 +140,7 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), std::io::Error> {
     )?;
 
     let mut bashrc = OpenOptions::new()
+        .create(true)
         .append(true)
         .open(format!("{}/.bashrc.custom", system::get_home_dir()))?;
     writeln!(bashrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;

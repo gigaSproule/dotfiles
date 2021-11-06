@@ -370,6 +370,7 @@ pub(crate) fn gnome_development_shortcuts(system: &dyn System) {
 pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Error> {
     println!("Setting mmapfs limit for Elasticsearch");
     let mut file = OpenOptions::new()
+        .create(true)
         .append(true)
         .open("/etc/sysctl.conf")?;
     writeln!(file, "vm.max_map_count=262144")?;
@@ -390,6 +391,7 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
 
     if device_name == "XPS 15 9570" {
         let mut mem_sleep_file = OpenOptions::new()
+            .create(true)
             .append(true)
             .open("/sys/power/mem_sleep")?;
         writeln!(mem_sleep_file, "s2idle [deep]")?;
@@ -418,7 +420,10 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
 
 pub(crate) fn setup_tmux() -> Result<(), std::io::Error> {
     unix::setup_tmux()?;
-    let mut file = OpenOptions::new().append(true).open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
     writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'")?;
     Ok(())
 }

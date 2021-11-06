@@ -236,9 +236,10 @@ impl System for Windows {
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("nvm");
-        let mut file = OpenOptions::new()
-            .append(true)
-            .open("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1")?;
+        let mut file = OpenOptions::new().create(true).append(true).open(format!(
+            "{}\\Documents\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1",
+            system::get_home_dir()
+        ))?;
 
         writeln!(file, "function callnvm() {{")?;
         writeln!(file, "   # Always use argument version if there is one")?;

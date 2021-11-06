@@ -19,6 +19,7 @@ impl Ubuntu {
 
     fn add_apt_repo(&self, file_name: &str, urls: Vec<&str>) -> Result<(), std::io::Error>{
         let mut file = OpenOptions::new()
+            .create(true)
             .append(true)
             .open(format!("/etc/apt/sources.list.d/{}", file_name))?;
         for url in urls {
@@ -41,7 +42,10 @@ impl Ubuntu {
 
     fn set_debconf(&self, installer: &str, conf: &str, value: &str) -> Result<(), std::io::Error> {
         let debconf_file = format!("{}.debconf", Uuid::new_v4());
-        let mut file = OpenOptions::new().append(true).open(&debconf_file)?;
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&debconf_file)?;
         writeln!(file, "{} {} select {}", installer, conf, value)?;
         writeln!(file, "{} {} seen {}", installer, conf, value)?;
         self.execute(&format!("debconf-set-selections {}", &debconf_file), true);
@@ -400,7 +404,7 @@ impl System for Ubuntu {
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.set_debconf("ttf-mscorefonts-installer", "msttcorefonts/accepted-mscorefonts-eula", "true")?;
-        self.install_applications(vec!["ubuntu-restricted-extras", "chrome-gnome-shell", "gnome-tweaks"]);
+        self.install_applications(vec!["ubuntu-restricted-extras", "chrome-gnome-shell", "gnome-tweaks", "software-properties-common"]);
         Ok(())
     }
 
