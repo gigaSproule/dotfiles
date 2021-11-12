@@ -1,7 +1,9 @@
 .idea/
 *.iws
 *.iml
+*.ipr
 out/
+
 oh-my-zsh.sh
 **/.DS_Store
 install.ps1

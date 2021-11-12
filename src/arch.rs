@@ -6,8 +6,8 @@ use std::process::Output;
 
 use async_trait::async_trait;
 
-use crate::{linux, system, unix};
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Arch {}
 
@@ -24,10 +24,7 @@ impl Arch {
     }
 
     fn enable_service(&self, service: &str) {
-        self.execute(
-            &format!("systemctl enable service {}", service),
-            true,
-        );
+        self.execute(&format!("systemctl enable service {}", service), true);
     }
 
     fn execute_path(&self, command: &str, super_user: bool, path: &str) -> Output {
@@ -44,7 +41,7 @@ impl System for Arch {
     fn install_applications(&self, application: Vec<&str>) -> Output {
         self.execute(
             &format!("pacman -S --noconfirm --needed {}", application.join(" ")),
-            true
+            true,
         )
     }
 
@@ -68,6 +65,15 @@ impl System for Arch {
             "libdvdnav",
             "libbluray",
             "libaacs",
+            "x264",
+            "x265",
+            "xvidcore",
+            "libmpeg2",
+            "svt-av1",
+            "libvpx",
+            "libtheora",
+            "gst-plugins-ugly",
+            "gst-libav",
         ]);
         system::setup_codecs().await?;
         let user_id = unix::get_user_id();
@@ -117,7 +123,11 @@ impl System for Arch {
             fs::create_dir_all("/opt/eclipse")?;
         }
 
-        system::download_file("https://projectlombok.org/downloads/lombok.jar", "/opt/eclipse/lombok.jar").await?;
+        system::download_file(
+            "https://projectlombok.org/downloads/lombok.jar",
+            "/opt/eclipse/lombok.jar",
+        )
+        .await?;
 
         let mut file = OpenOptions::new()
             .append(true)
@@ -217,7 +227,7 @@ impl System for Arch {
         self.install_application("keepassxc");
     }
 
-    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>>{
+    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("kubectl");
         Ok(())
     }
@@ -290,7 +300,14 @@ impl System for Arch {
     }
 
     fn install_nvidia_tools(&self) {
-        self.install_applications(vec!["nvidia", "nvidia-utils", "lib32-nvidia-utils", "nvidia-settings", "vulkan-icd-loader", "lib32-vulkan-icd-loader"]);
+        self.install_applications(vec![
+            "nvidia",
+            "nvidia-utils",
+            "lib32-nvidia-utils",
+            "nvidia-settings",
+            "vulkan-icd-loader",
+            "lib32-vulkan-icd-loader",
+        ]);
     }
 
     fn install_nvidia_laptop_tools(&self) {
@@ -346,33 +363,50 @@ impl System for Arch {
         let original_pacman_file = File::open("/etc/pacman.conf")?;
         let original_lines = BufReader::new(original_pacman_file).lines();
         let mut enable_multilib = false;
-        let new_lines = original_lines.map(|line| {
-            let unwrapped_line = line.unwrap();
-            return if unwrapped_line.starts_with("#[multilib]") {
-                // Crude way to signify that we are under the multilib section
-                enable_multilib = true;
-                unwrapped_line.replacen("#", "", 1)
-            } else if enable_multilib && unwrapped_line.starts_with("#Include = /etc/pacman.d/mirrorlist") {
-                enable_multilib = false;
-                unwrapped_line.replacen("#", "", 1)
-            } else {
-                unwrapped_line
-            };
-        }).collect::<Vec<String>>();
+        let new_lines = original_lines
+            .map(|line| {
+                let unwrapped_line = line.unwrap();
+                return if unwrapped_line.starts_with("#[multilib]") {
+                    // Crude way to signify that we are under the multilib section
+                    enable_multilib = true;
+                    unwrapped_line.replacen("#", "", 1)
+                } else if enable_multilib
+                    && unwrapped_line.starts_with("#Include = /etc/pacman.d/mirrorlist")
+                {
+                    enable_multilib = false;
+                    unwrapped_line.replacen("#", "", 1)
+                } else {
+                    unwrapped_line
+                };
+            })
+            .collect::<Vec<String>>();
 
-        let mut new_pacman_file = OpenOptions::new()
-            .write(true)
-            .open("/etc/pacman.conf")?;
+        let mut new_pacman_file = OpenOptions::new().write(true).open("/etc/pacman.conf")?;
         new_pacman_file.write_all(new_lines.join("\n").as_bytes())?;
 
         self.install_applications(vec!["wget"]);
 
-        system::download_file("https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz", "yay.tar.gz").await?;
+        system::download_file(
+            "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
+            "yay.tar.gz",
+        )
+        .await?;
         linux::untar_rename_root("yay.tar.gz", "yay")?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown("yay", &user_id, &group_id)?;
-        self.execute_path("makepkg -si --noconfirm", false, &format!("{}/yay", std::env::current_dir().unwrap().into_os_string().into_string().unwrap()));
+        self.execute_path(
+            "makepkg -si --noconfirm",
+            false,
+            &format!(
+                "{}/yay",
+                std::env::current_dir()
+                    .unwrap()
+                    .into_os_string()
+                    .into_string()
+                    .unwrap()
+            ),
+        );
         Ok(())
     }
 
@@ -384,7 +418,11 @@ impl System for Arch {
         fs::create_dir_all(&format!("{}/.themes", system::get_home_dir()))?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
-        unix::recursively_chown(&format!("{}/.themes", system::get_home_dir()), &user_id, &group_id)?;
+        unix::recursively_chown(
+            &format!("{}/.themes", system::get_home_dir()),
+            &user_id,
+            &group_id,
+        )?;
         Ok(())
     }
 
@@ -417,8 +455,10 @@ impl System for Arch {
     }
 
     async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
-        fs::copy("/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
-                 "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak")?;
+        fs::copy(
+            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
+            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak",
+        )?;
         system::download_file(
             "https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035",
             "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin").await?;
