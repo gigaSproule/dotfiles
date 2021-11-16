@@ -23,11 +23,11 @@ pub(crate) fn get_username() -> u32 {
 }
 
 pub(crate) fn add_to_path(file: &str, path: &str) -> Result<(), std::io::Error> {
-    let mut file =
-        OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(format!("{}/{}", system::get_home_dir(), file))?;
+    let mut file = OpenOptions::new().create(true).append(true).open(format!(
+        "{}/{}",
+        system::get_home_dir(),
+        file
+    ))?;
 
     writeln!(file, "export PATH = $PATH: {}\n", path)?;
     Ok(())
@@ -44,7 +44,15 @@ pub(crate) fn copy_config(src: &str, dst: &str) -> Result<(), std::io::Error> {
 }
 
 pub(crate) fn execute(command: &str, super_user: bool) -> Output {
-    execute_path(command, super_user, &std::env::current_dir().unwrap().into_os_string().into_string().unwrap())
+    execute_path(
+        command,
+        super_user,
+        &std::env::current_dir()
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap(),
+    )
 }
 
 pub(crate) fn execute_path(command: &str, super_user: bool, path: &str) -> Output {
@@ -72,17 +80,6 @@ pub(crate) fn execute_path(command: &str, super_user: bool, path: &str) -> Outpu
         .expect(format!("Failed to execute process `{}`", command).as_str())
 }
 
-pub(crate) async fn install_rust(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
-    system::download_file("https://sh.rustup.rs", "rustup-install").await?;
-    recursively_chmod("rustup-install", &0o644, &0o644)?;
-    system.execute("./rustup-install -y", false);
-    fs::remove_file("rustup-install")?;
-    add_to_path(".zshrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()))?;
-    add_to_path(".bashrc.custom", &format!("{}/.cargo/bin", system::get_home_dir()))?;
-    system.execute("rustup default stable", true);
-    Ok(())
-}
-
 pub(crate) fn recursively_chmod(
     path: &str,
     directory_permission: &u32,
@@ -104,21 +101,29 @@ pub(crate) fn recursively_chmod(
 }
 
 pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(), std::io::Error> {
-    nix::unistd::chown(path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)))?;
+    nix::unistd::chown(
+        path,
+        Some(Uid::from_raw(*user)),
+        Some(Gid::from_raw(*group)),
+    )?;
     for entry in WalkDir::new(path).follow_links(true) {
         let entr = entry?;
         let child_path = entr.path();
-        nix::unistd::chown(child_path, Some(Uid::from_raw(*user)), Some(Gid::from_raw(*group)))?;
+        nix::unistd::chown(
+            child_path,
+            Some(Uid::from_raw(*user)),
+            Some(Gid::from_raw(*group)),
+        )?;
     }
     Ok(())
 }
 
 pub(crate) fn set_java_home(file: &str, jdk_path: &str) -> Result<(), std::io::Error> {
-    let mut file =
-        OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(format!("{}/{}", system::get_home_dir(), file))?;
+    let mut file = OpenOptions::new().create(true).append(true).open(format!(
+        "{}/{}",
+        system::get_home_dir(),
+        file
+    ))?;
 
     let mut buff = String::new();
     file.read_to_string(&mut buff)?;
@@ -128,42 +133,20 @@ pub(crate) fn set_java_home(file: &str, jdk_path: &str) -> Result<(), std::io::E
     Ok(())
 }
 
-pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), std::io::Error> {
-    let mut zshrc = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(format!("{}/.zshrc.custom", system::get_home_dir()))?;
-    writeln!(zshrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
-    writeln!(
-        zshrc,
-        "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
-    )?;
-
-    let mut bashrc = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(format!("{}/.bashrc.custom", system::get_home_dir()))?;
-    writeln!(bashrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
-    writeln!(
-        bashrc,
-        "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
-    )?;
-
-    system.execute("nvm install node --latest-npm", false);
-    system.execute("npm install --global yarn", false);
-    Ok(())
-}
-
 pub(crate) fn setup_tmux() -> Result<(), std::io::Error> {
     copy_config("tmux/tmux.conf", ".tmux.conf")
 }
 
-pub(crate) async fn setup_zsh(system: &dyn System, zsh_bin: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn setup_zsh(
+    system: &dyn System,
+    zsh_bin: Option<&str>,
+) -> Result<(), Box<dyn std::error::Error>> {
     let zsh = zsh_bin.unwrap_or("/usr/bin/zsh");
     system::download_file(
         "https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh",
         "oh-my-zsh.sh",
-    ).await?;
+    )
+    .await?;
     recursively_chmod("./oh-my-zsh.sh", &0o644, &0o644)?;
     system.execute("./oh-my-zsh.sh", false);
     copy_config("zsh/zshrc", ".zshrc")?;

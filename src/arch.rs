@@ -279,7 +279,7 @@ impl System for Arch {
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("nvm");
-        unix::setup_nodejs(self)?;
+        linux::setup_nodejs(self)?;
         Ok(())
     }
 

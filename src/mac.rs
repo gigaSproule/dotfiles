@@ -1,10 +1,12 @@
+use std::fs::OpenOptions;
 use std::io::Error;
+use std::io::Write;
 use std::process::Output;
 
 use async_trait::async_trait;
 
-use crate::system::System;
-use crate::unix::Unix;
+use crate::system::{self, System};
+use crate::unix;
 
 pub(crate) struct Mac {}
 
@@ -14,82 +16,95 @@ impl Default for Mac {
     }
 }
 
+impl Mac {
+    fn app_store_install_application(&self, application_id: &str) -> Output {
+        self.execute(&format!("mas install {}", application_id), true)
+    }
+
+    fn cask_install_application(&self, application: &str) -> Output {
+        self.execute(&format!("brew install --cask {}", application), true)
+    }
+}
+
 #[async_trait]
 impl System for Mac {
     fn execute(&self, command: &str, super_user: bool) -> Output {
-        self.unix.execute(command, super_user)
+        unix::execute(command, super_user)
     }
 
     fn install_applications(&self, applications: Vec<&str>) -> Output {
-        todo!()
+        self.execute(&format!("brew install {}", applications.join(" ")), true)
     }
 
     fn install_android_studio(&self) {
-        todo!()
+        self.cask_install_application("android-studio");
     }
 
     fn install_blender(&self) {
-        todo!()
+        self.cask_install_application("blender");
     }
 
     fn install_bluetooth(&self) {
-        todo!()
+        // no-op
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        system::setup_codecs().await
     }
 
     fn install_conemu(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_cryptomator(&self) {
-        todo!()
+        self.cask_install_application("cryptomator");
     }
 
     fn install_curl(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_davinci_resolve(&self) -> Result<(), Error> {
-        todo!()
+        open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")
     }
 
     fn install_discord(&self) {
-        todo!()
+        self.cask_install_application("discord");
     }
 
     fn install_docker(&self) -> Result<(), Error> {
-        todo!()
+        self.cask_install_application("docker");
+        Ok(())
     }
 
     fn install_dropbox(&self) {
-        todo!()
+        self.cask_install_application("dropbox");
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        self.cask_install_application("eclipse-java");
+        Ok(())
     }
 
     fn install_epic_games(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_firefox(&self) {
-        todo!()
+        self.cask_install_application("firefox");
     }
 
     fn install_firmware_updater(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_gog_galaxy(&self) {
-        todo!()
+        // no-op
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        self.cask_install_application("google-chrome");
+        Ok(())
     }
 
     fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error> {
@@ -97,59 +112,67 @@ impl System for Mac {
     }
 
     fn install_google_drive(&self) {
-        todo!()
+        self.cask_install_application("google-drive");
     }
 
     fn install_git(&self) -> Result<(), Error> {
-        todo!()
+        self.install_application("git");
+        system::setup_git_config(self)
     }
 
     fn install_gimp(&self) {
-        todo!()
+        self.cask_install_application("gimp");
     }
 
     fn install_gpg(&self) {
-        todo!()
+        self.cask_install_application("gpg-suite");
     }
 
     fn install_gradle(&self) {
-        todo!()
+        self.install_applications(vec!["gradle", "gradle-completion"]);
     }
 
     fn install_graphic_card_tools(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_graphic_card_laptop_tools(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_groovy(&self) {
-        todo!()
+        self.install_application("groovy");
     }
 
     fn install_handbrake(&self) {
-        todo!()
+        self.cask_install_application("handbrake");
     }
 
     fn install_inkscape(&self) {
-        todo!()
+        self.cask_install_application("inkscape");
     }
 
     fn install_insync(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_intellij(&self) {
-        todo!()
+        self.cask_install_application("intellij-idea");
     }
 
     fn install_jdk(&self) -> Result<(), std::io::Error> {
-        todo!()
+        self.install_application("openjdk");
+        // TODO: Replace `/opt/homebrew` with `$(brew --prefix)` (which needs to return correct value)
+        unix::symlink(
+            "/opt/homebrew/openjdk/libexec/openjdk.jdk",
+            "/Library/Java/JavaVirtualMachines/openjdk.jdk",
+        );
+        unix::set_java_home(".zshrc.custom", "$(/usr/libexec/java_home)")?;
+        Ok(())
     }
 
     fn install_keepassxc(&self) {
-        todo!()
+        self.cask_install_application("keepassxc");
     }
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -165,11 +188,11 @@ impl System for Mac {
     }
 
     fn install_lutris(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_maven(&self) {
-        todo!()
+        self.install_application("maven");
     }
 
     fn install_makemkv(&self) {
@@ -177,7 +200,7 @@ impl System for Mac {
     }
 
     fn install_microcode(&self) -> Result<(), std::io::Error> {
-        todo!()
+        Ok(())
     }
 
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -189,27 +212,47 @@ impl System for Mac {
     }
 
     fn install_nextcloud_client(&self) {
-        todo!()
+        self.cask_install_application("nextcloud");
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        self.install_application("nvm");
+        let mut zshrc = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(format!("{}/.zshrc.custom", system::get_home_dir()))?;
+        writeln!(zshrc, "export NVM_DIR=\"$HOME/.nvm\"")?;
+        writeln!(zshrc, "[ -s \"/opt/homebrew/opt/nvm/nvm.sh\" ] && . \"/opt/homebrew/opt/nvm/nvm.sh\"  # This loads nvm")?;
+        writeln!(zshrc, "[ -s \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion")?;
+
+        let mut bashrc = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(format!("{}/.bashrc.custom", system::get_home_dir()))?;
+        writeln!(bashrc, "export NVM_DIR=\"$HOME/.nvm\"")?;
+        writeln!(bashrc, "[ -s \"/opt/homebrew/opt/nvm/nvm.sh\" ] && . \"/opt/homebrew/opt/nvm/nvm.sh\"  # This loads nvm")?;
+        writeln!(bashrc, "[ -s \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion")?;
+
+        self.execute("nvm install node --latest-npm", false);
+        self.execute("npm install --global yarn", false);
+        Ok(())
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        self.app_store_install_application("1116599239");
+        Ok(())
     }
 
     fn install_nvidia_tools(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_nvidia_laptop_tools(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_obs_studio(&self) {
-        todo!()
+        self.cask_install_application("obs");
     }
 
     fn install_onedrive(&self) {
@@ -217,27 +260,30 @@ impl System for Mac {
     }
 
     fn install_origin(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_powertop(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_python(&self) {
-        todo!()
+        self.install_application("python");
     }
 
-    fn install_rust(&self) {
-        todo!()
+    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_application("rustup");
+        self.execute("rustup-init -y", true);
+        Ok(())
     }
 
     fn install_slack(&self) {
-        todo!()
+        self.app_store_install_application("803453959");
     }
 
-    fn install_spotify(&self) {
-        todo!()
+    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("spotify");
+        Ok(())
     }
 
     fn install_steam(&self) {
@@ -245,7 +291,7 @@ impl System for Mac {
     }
 
     fn install_sweet_home_3d(&self) {
-        todo!()
+        self.cask_install_application("sweet-home3d");
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -257,74 +303,85 @@ impl System for Mac {
     }
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        Ok(())
     }
 
     fn install_tlp(&self) {
-        todo!()
+        // no-op
     }
 
-    fn install_tmux(&self) {
-        todo!()
+    fn install_tmux(&self) -> Result<(), std::io::Error> {
+        self.install_applications(vec!["tmux", "reattach-to-user-namespace"]);
+        unix::setup_tmux()?;
+        let mut file = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
+        writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'")?;
+        Ok(())
     }
 
     fn install_vim(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_vlc(&self) {
-        todo!()
+        self.cask_install_application("vlc");
     }
 
     fn install_vm_tools(&self) {
         todo!()
     }
 
-    fn install_vscode(&self) {
-        todo!()
+    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("visual-studio-code");
+        Ok(())
     }
 
     async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        Ok(())
     }
 
     fn install_window_manager(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_wget(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_wine(&self) {
-        todo!()
+        // no-op
     }
 
     fn install_xcode(&self) {
-        todo!()
+        self.app_store_install_application("497799835");
     }
 
     async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        self.install_applications(vec!["zsh", "zsh-autosuggestions"]);
+        unix::setup_zsh(self, Some("/usr/local/bin/zsh")).await?;
+        Ok(())
     }
 
     fn set_development_shortcuts(&self) {
-        todo!()
+        // no-op
     }
 
-    fn set_development_environment_settings(&self) {
-        todo!()
+    fn set_development_environment_settings(&self) -> Result<(), std::io::Error> {
+        Ok(())
     }
 
-    fn setup_power_saving_tweaks(&self) {
-        todo!()
+    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error> {
+        Ok(())
     }
 
     fn update_os(&self) {
-        todo!()
+        self.update_os_repo();
+        self.execute("brew -y upgrade", true);
     }
 
     fn update_os_repo(&self) {
-        todo!()
+        self.execute("brew update", true);
     }
 }

@@ -334,7 +334,7 @@ impl System for Ubuntu {
         unix::recursively_chmod("nvm-install.sh", &0o644, &0o644)?;
         self.execute("./nvm-install.sh", false);
         fs::remove_file("nvm-install.sh")?;
-        unix::setup_nodejs(self)?;
+        linux::setup_nodejs(self)?;
         Ok(())
     }
 
@@ -378,8 +378,21 @@ impl System for Ubuntu {
         self.install_application("python3");
     }
 
-    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
-        unix::install_rust(self).await
+    async fn install_rust(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
+        system::download_file("https://sh.rustup.rs", "rustup-install").await?;
+        recursively_chmod("rustup-install", &0o644, &0o644)?;
+        system.execute("./rustup-install -y", false);
+        fs::remove_file("rustup-install")?;
+        unix::add_to_path(
+            ".zshrc.custom",
+            &format!("{}/.cargo/bin", system::get_home_dir()),
+        )?;
+        unix::add_to_path(
+            ".bashrc.custom",
+            &format!("{}/.cargo/bin", system::get_home_dir()),
+        )?;
+        system.execute("rustup default stable", true);
+        Ok(())
     }
 
     fn install_slack(&self) {

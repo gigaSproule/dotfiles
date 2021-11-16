@@ -384,6 +384,32 @@ pub(crate) fn setup_docker(system: &dyn System) {
     );
 }
 
+pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), std::io::Error> {
+    let mut zshrc = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(format!("{}/.zshrc.custom", system::get_home_dir()))?;
+    writeln!(zshrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
+    writeln!(
+        zshrc,
+        "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
+    )?;
+
+    let mut bashrc = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(format!("{}/.bashrc.custom", system::get_home_dir()))?;
+    writeln!(bashrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
+    writeln!(
+        bashrc,
+        "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
+    )?;
+
+    system.execute("nvm install node --latest-npm", false);
+    system.execute("npm install --global yarn", false);
+    Ok(())
+}
+
 pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
     let mut file = File::open("/sys/devices/virtual/dmi/id/product_name")?;
     let mut device_name = String::new();
