@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::OpenOptions;
 use std::io::Error;
 use std::io::Write;
@@ -22,7 +23,7 @@ impl Mac {
     }
 
     fn cask_install_application(&self, application: &str) -> Output {
-        self.execute(&format!("brew install --cask {}", application), true)
+        self.execute(&format!("brew install --cask {}", application), false)
     }
 }
 
@@ -33,7 +34,7 @@ impl System for Mac {
     }
 
     fn install_applications(&self, applications: Vec<&str>) -> Output {
-        self.execute(&format!("brew install {}", applications.join(" ")), true)
+        self.execute(&format!("brew install {}", applications.join(" ")), false)
     }
 
     fn install_android_studio(&self) {
@@ -256,7 +257,7 @@ impl System for Mac {
     }
 
     fn install_onedrive(&self) {
-        todo!()
+        self.cask_install_application("onedrive");
     }
 
     fn install_origin(&self) {
@@ -287,7 +288,7 @@ impl System for Mac {
     }
 
     fn install_steam(&self) {
-        todo!()
+        self.cask_install_application("steam");
     }
 
     fn install_sweet_home_3d(&self) {
@@ -295,11 +296,22 @@ impl System for Mac {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        system::download_file(
+            "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
+            "brew-install",
+        )
+        .await?;
+        self.execute("chmod +x brew-install", false);
+        self.execute("./brew-install", false);
+        fs::remove_file("brew-install")?;
+
+        self.install_application("mas");
+        self.cask_install_application("scroll-reverser");
+        Ok(())
     }
 
     fn install_telnet(&self) {
-        todo!()
+        self.install_application("telnet");
     }
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -378,10 +390,10 @@ impl System for Mac {
 
     fn update_os(&self) {
         self.update_os_repo();
-        self.execute("brew -y upgrade", true);
+        self.execute("brew -y upgrade", false);
     }
 
     fn update_os_repo(&self) {
-        self.execute("brew update", true);
+        self.execute("brew update", false);
     }
 }
