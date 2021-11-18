@@ -161,11 +161,12 @@ impl System for Mac {
         self.cask_install_application("intellij-idea");
     }
 
-    fn install_jdk(&self) -> Result<(), std::io::Error> {
+    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("openjdk");
+        let brew_prefix = String::from_utf8(self.execute("brew --prefix", false).stdout)?;
         // TODO: Replace `/opt/homebrew` with `$(brew --prefix)` (which needs to return correct value)
         unix::symlink(
-            "/opt/homebrew/openjdk/libexec/openjdk.jdk",
+            &format!("{}/opt/homebrew/openjdk/libexec/openjdk.jdk", brew_prefix),
             "/Library/Java/JavaVirtualMachines/openjdk.jdk",
         );
         unix::set_java_home(".zshrc.custom", "$(/usr/libexec/java_home)")?;

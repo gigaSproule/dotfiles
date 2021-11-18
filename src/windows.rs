@@ -33,12 +33,19 @@ impl Windows {
 #[async_trait]
 impl System for Windows {
     fn execute(&self, command: &str, _super_user: bool) -> Output {
-        Command::new("cmd")
+        let output = Command::new("cmd")
             .arg(command)
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .output()
-            .expect(format!("Failed to execute process `{}`", command).as_str())
+            .expect(format!("Failed to execute process `{}`", command).as_str());
+
+        if output.stderr.len() > 0 {
+            print!("{}", String::from_utf8(output.stderr.clone()).unwrap());
+        } else {
+            print!("{}", String::from_utf8(output.stdout.clone()).unwrap());
+        }
+        output
     }
 
     fn install_applications(&self, applications: Vec<&str>) -> Output {
@@ -182,7 +189,7 @@ impl System for Windows {
         self.install_application("intellijidea-ultimate");
     }
 
-    fn install_jdk(&self) -> Result<(), std::io::Error> {
+    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("adoptopenjdk");
         Ok(())
     }

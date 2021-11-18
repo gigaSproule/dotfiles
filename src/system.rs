@@ -113,7 +113,7 @@ pub(crate) trait System: Send + Sync + 'static {
 
     fn install_intellij(&self);
 
-    fn install_jdk(&self) -> Result<(), std::io::Error>;
+    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_keepassxc(&self);
 

@@ -168,7 +168,7 @@ impl System for Linux {
         self.distro.install_intellij();
     }
 
-    fn install_jdk(&self) -> Result<(), std::io::Error> {
+    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.distro.install_jdk()
     }
 

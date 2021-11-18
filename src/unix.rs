@@ -72,12 +72,19 @@ pub(crate) fn execute_path(command: &str, super_user: bool, path: &str) -> Outpu
         println!("{}", command);
         return_command
     };
-    actual_command
+    let output = actual_command
         .current_dir(path)
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .output()
-        .expect(format!("Failed to execute process `{}`", command).as_str())
+        .expect(format!("Failed to execute process `{}`", command).as_str());
+
+    if output.stderr.len() > 0 {
+        print!("{}", String::from_utf8(output.stderr.clone()).unwrap());
+    } else {
+        print!("{}", String::from_utf8(output.stdout.clone()).unwrap());
+    }
+    output
 }
 
 pub(crate) fn recursively_chmod(

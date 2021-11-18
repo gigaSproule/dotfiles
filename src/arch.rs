@@ -206,7 +206,7 @@ impl System for Arch {
         self.aur_install_application("intellij-idea-ultimate-edition");
     }
 
-    fn install_jdk(&self) -> Result<(), std::io::Error> {
+    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("jdk-openjdk");
         unix::set_java_home(".zshrc.custom", "/usr/lib/jvm/default")?;
         unix::set_java_home(".bashrc.custom", "/usr/lib/jvm/default")?;

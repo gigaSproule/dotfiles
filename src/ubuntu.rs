@@ -237,7 +237,7 @@ impl System for Ubuntu {
         self.snap_install_application("intellij-idea-ultimate", true);
     }
 
-    fn install_jdk(&self) -> Result<(), std::io::Error> {
+    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_applications(vec!["openjdk-16-jdk"]);
         unix::set_java_home(
             ".zshrc.custom",
