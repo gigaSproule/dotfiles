@@ -4,8 +4,10 @@ use std::io::Write;
 use std::process::Output;
 
 use async_trait::async_trait;
+use mockall::automock;
 
 #[async_trait]
+#[automock]
 pub(crate) trait System: Send + Sync + 'static {
     /// Executes the given command. It will run it as a super user if `super_user` is `true`.
     ///
@@ -49,7 +51,7 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.install_applications(vec!["application1", "application2"]);
     /// ```
-    fn install_applications(&self, applications: Vec<&str>) -> Output;
+    fn install_applications<'a>(&self, applications: Vec<&'a str>) -> Output;
 
     fn install_android_studio(&self);
 
