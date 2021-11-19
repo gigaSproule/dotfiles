@@ -402,6 +402,416 @@ mod tests {
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
 
+    #[test]
+    fn test_install_gcp() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: true,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_google_cloud_sdk()
+            .times(1)
+            .returning(|| Ok(()));
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_images() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: true,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system.expect_install_gimp().times(1).returning(|| ());
+        mock_system
+            .expect_install_inkscape()
+            .times(1)
+            .returning(|| ());
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_laptop() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: true,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_bluetooth()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_firmware_updater()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_graphic_card_tools()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_graphic_card_laptop_tools()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_microcode()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_powertop()
+            .times(1)
+            .returning(|| ());
+        mock_system.expect_install_tlp().times(1).returning(|| ());
+        mock_system
+            .expect_install_wifi()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
+        mock_system
+            .expect_setup_power_saving_tweaks()
+            .times(1)
+            .returning(|| Ok(()));
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_modelling() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: true,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_blender()
+            .times(1)
+            .returning(|| ());
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_personal() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: true,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_dropbox()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_google_drive()
+            .times(1)
+            .returning(|| ());
+        mock_system.expect_install_gpg().times(1).returning(|| ());
+        mock_system
+            .expect_install_insync()
+            .times(1)
+            .returning(|| ());
+        mock_system.expect_install_latex().times(1).returning(|| ());
+        mock_system
+            .expect_install_nextcloud_client()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_onedrive()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_spotify()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_sweet_home_3d()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_themes()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_recording() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: true,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_obs_studio()
+            .times(1)
+            .returning(|| ());
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_ripping() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: true,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_handbrake()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_makemkv()
+            .times(1)
+            .returning(|| ());
+        mock_system
+            .expect_install_mkvtoolnix()
+            .times(1)
+            .returning(|| ());
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_video() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: true,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_codecs()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
+        mock_system.expect_install_vlc().times(1).returning(|| ());
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_video_editing() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: true,
+            vm: false,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_davinci_resolve()
+            .times(1)
+            .returning(|| Ok(()));
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_vm() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: true,
+            vpn: false,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_vm_tools()
+            .times(1)
+            .returning(|| ());
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
+    #[test]
+    fn test_install_vpn() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            development: false,
+            docker: false,
+            gaming: false,
+            gcp: false,
+            help: false,
+            images: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: true,
+        };
+        let mut mock_system = get_mock_system();
+        mock_system
+            .expect_install_nordvpn()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
+
+        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+    }
+
     fn get_mock_system() -> MockSystem {
         let mut mock_system = MockSystem::new();
         mock_system
