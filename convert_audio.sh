@@ -5,7 +5,7 @@ shopt -s extglob nullglob
 directory=$1
 backup_dir="$directory/original"
 extensions="${@:2}"
-extensions="${extensions:-mp4 MP4}"
+extensions="${extensions:-m4a aac}"
 echo $extensions
 
 if [ ! -d "$backup_dir" ];
@@ -15,12 +15,12 @@ then
 fi
 
 for ext in $extensions; do
-    for video in "$directory"/*.$ext; do
-        noext=$(basename "$video")
+    for audio in "$directory"/*.$ext; do
+        noext=$(basename "$audio")
         noext="${noext%.$ext}"
         echo $noext
-        ffmpeg -i "$video" -acodec pcm_s16le -vcodec copy "converted.mov"
-        mv "$video" "$backup_dir"
-        mv "converted.mov" "$directory/${noext// /_}.mov"
+        ffmpeg -i "$audio" -f flac "converted.flac"
+        mv "$audio" "$backup_dir"
+        mv "converted.flac" "$directory/${noext// /_}.flac"
     done
 done
