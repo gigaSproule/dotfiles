@@ -9,33 +9,33 @@ pub(crate) async fn install(
 
     println!("Installing Distro Specific Extras");
     system.install_system_extras().await?;
-    system.update_os();
+    system.update_os()?;
 
     println!("Installing Window Manager");
-    system.install_window_manager();
+    system.install_window_manager()?;
     println!("Installing Graphic Card Tools");
-    system.install_graphic_card_tools();
+    system.install_graphic_card_tools()?;
 
     println!("Installing Cryptomator");
-    system.install_cryptomator();
+    system.install_cryptomator()?;
     println!("Installing ConEmu");
-    system.install_conemu();
+    system.install_conemu()?;
     println!("Installing Curl");
-    system.install_curl();
+    system.install_curl()?;
     println!("Installing KeepassXC");
-    system.install_keepassxc();
+    system.install_keepassxc()?;
     println!("Installing tmux");
     system.install_tmux()?;
     println!("Installing Vim");
-    system.install_vim();
+    system.install_vim()?;
     println!("Installing Wget");
-    system.install_wget();
+    system.install_wget()?;
     println!("Installing ZSH");
     system.install_zsh().await?;
 
     if config.browsers {
         println!("Installing Firefox");
-        system.install_firefox();
+        system.install_firefox()?;
         println!("Installing Google Chrome");
         system.install_google_chrome().await?;
     }
@@ -46,31 +46,31 @@ pub(crate) async fn install(
         println!("Installing Eclipse");
         // system.install_eclipse().await?;
         println!("Installing Gradle");
-        system.install_gradle();
+        system.install_gradle()?;
         println!("Installing Git");
         system.install_git()?;
         println!("Installing Groovy");
-        system.install_groovy();
+        system.install_groovy()?;
         println!("Installing IntelliJ");
-        system.install_intellij();
+        system.install_intellij()?;
         println!("Installing Java");
         system.install_jdk()?;
         println!("Installing Maven");
-        system.install_maven();
+        system.install_maven()?;
         println!("Installing NodeJS");
         system.install_nodejs().await?;
         println!("Installing Python");
-        system.install_python();
+        system.install_python()?;
         println!("Installing Rust");
         system.install_rust().await?;
         println!("Installing Slack");
-        system.install_slack();
+        system.install_slack()?;
         println!("Installing VSCode");
         system.install_vscode()?;
         println!("Installing Xcode");
-        system.install_xcode();
+        system.install_xcode()?;
         println!("Setting development specific shortcuts");
-        system.set_development_shortcuts();
+        system.set_development_shortcuts()?;
         println!("Setting development environment settings");
         system.set_development_environment_settings()?;
     }
@@ -81,26 +81,26 @@ pub(crate) async fn install(
         println!("Installing Kubectl");
         system.install_kubectl().await?;
         println!("Installing Helm");
-        system.install_helm();
+        system.install_helm()?;
         println!("Installing Minikube");
         // system.install_minikube();
     }
 
     if config.gaming {
         println!("Installing Discord");
-        system.install_discord();
+        system.install_discord()?;
         println!("Installing Epic Games");
-        system.install_epic_games();
+        system.install_epic_games()?;
         println!("Installing GOG Galaxy");
-        system.install_gog_galaxy();
+        system.install_gog_galaxy()?;
         println!("Installing Lutris");
-        system.install_lutris();
+        system.install_lutris()?;
         println!("Installing Origin");
-        system.install_origin();
+        system.install_origin()?;
         println!("Installing Steam");
-        system.install_steam();
+        system.install_steam()?;
         println!("Installing Wine");
-        system.install_wine();
+        system.install_wine()?;
     }
 
     if config.gcp {
@@ -110,26 +110,24 @@ pub(crate) async fn install(
 
     if config.images {
         println!("Installing Gimp");
-        system.install_gimp();
+        system.install_gimp()?;
         println!("Installing Inkscape");
-        system.install_inkscape();
+        system.install_inkscape()?;
     }
 
     if config.laptop {
         println!("Installing Bluetooth");
-        system.install_bluetooth();
+        system.install_bluetooth()?;
         println!("Installing FWUPD");
-        system.install_firmware_updater();
-        println!("Installing Graphic Card Tools");
-        system.install_graphic_card_tools();
+        system.install_firmware_updater()?;
         println!("Installing Graphics Card Tools for Laptop");
-        system.install_graphic_card_laptop_tools();
+        system.install_graphic_card_laptop_tools()?;
         println!("Installing Microcode");
         system.install_microcode()?;
         println!("Installing Powertop");
-        system.install_powertop();
+        system.install_powertop()?;
         println!("Installing TLP");
-        system.install_tlp();
+        system.install_tlp()?;
         println!("Install WiFi");
         system.install_wifi().await?;
         println!("Setup power saving tweaks");
@@ -138,51 +136,51 @@ pub(crate) async fn install(
 
     if config.modelling {
         println!("Installing Blender");
-        system.install_blender();
+        system.install_blender()?;
     }
 
     if config.personal {
         println!("Installing Dropbox");
-        system.install_dropbox();
+        system.install_dropbox()?;
         println!("Installing Google Drive");
-        system.install_google_drive();
+        system.install_google_drive()?;
         println!("Installing GPG");
-        system.install_gpg();
+        system.install_gpg()?;
         println!("Installing Insync");
-        system.install_insync();
+        system.install_insync()?;
         println!("Installing LaTeX");
-        system.install_latex();
+        system.install_latex()?;
         println!("Installing Nextcloud Client");
-        system.install_nextcloud_client();
+        system.install_nextcloud_client()?;
         println!("Installing OneDrive");
-        system.install_onedrive();
+        system.install_onedrive()?;
         println!("Installing Spotify");
         system.install_spotify()?;
         println!("Installing SweetHome3D");
-        system.install_sweet_home_3d();
+        system.install_sweet_home_3d()?;
         println!("Installing themes");
         system.install_themes().await?;
     }
 
     if config.recording {
         println!("Installing OBS Studio");
-        system.install_obs_studio();
+        system.install_obs_studio()?;
     }
 
     if config.ripping {
         println!("Installing Handbrake");
-        system.install_handbrake();
+        system.install_handbrake()?;
         println!("Installing MakeMKV");
-        system.install_makemkv();
+        system.install_makemkv()?;
         println!("Installing MKVToolNix");
-        system.install_mkvtoolnix();
+        system.install_mkvtoolnix()?;
     }
 
     if config.video {
         println!("Installing Codecs");
         system.install_codecs().await?;
         println!("Installing VLC");
-        system.install_vlc();
+        system.install_vlc()?;
     }
 
     if config.video_editing {
@@ -192,7 +190,7 @@ pub(crate) async fn install(
 
     if config.vm {
         println!("Installing VM Tools");
-        system.install_vm_tools();
+        system.install_vm_tools()?;
     }
 
     if config.vpn {
@@ -834,7 +832,7 @@ mod tests {
         mock_system
             .expect_install_cryptomator()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_conemu()
             .times(1)

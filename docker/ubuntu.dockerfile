@@ -1,10 +1,9 @@
 FROM ubuntu:21.10
 
 ENV TZ=Europe/London
-RUN apt-get update && apt-get install -y build-essential curl libssl-dev sudo
+RUN apt-get update && apt-get install -y build-essential curl libssl-dev locales pkg-config sudo
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
+RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 ENV LANG en_GB.UTF-8
 ENV LANGUAGE en_GB:en
 ENV LC_ALL en_GB.UTF-8

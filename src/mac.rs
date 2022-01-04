@@ -2,7 +2,6 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::io::Error;
 use std::io::Write;
-use std::process::Output;
 
 use async_trait::async_trait;
 
@@ -18,190 +17,208 @@ impl Default for Mac {
 }
 
 impl Mac {
-    fn app_store_install_application(&self, application_id: &str) -> Output {
+    fn app_store_install_application(&self, application_id: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.execute(&format!("mas install {}", application_id), true)
     }
 
-    fn cask_install_application(&self, application: &str) -> Output {
+    fn cask_install_application(&self, application: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.execute(&format!("brew install --cask {}", application), false)
     }
 }
 
 #[async_trait]
 impl System for Mac {
-    fn execute(&self, command: &str, super_user: bool) -> Output {
+    fn execute(&self, command: &str, super_user: bool) -> Result<(), Box<dyn std::error::Error>> {
         unix::execute(command, super_user)
     }
 
-    fn install_applications(&self, applications: Vec<&str>) -> Output {
+    fn install_applications(&self, applications: Vec<&str>) -> Result<(), Box<dyn std::error::Error>> {
         self.execute(&format!("brew install {}", applications.join(" ")), false)
     }
 
-    fn install_android_studio(&self) {
-        self.cask_install_application("android-studio");
+    fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("android-studio")?;
+        Ok(())
     }
 
-    fn install_blender(&self) {
-        self.cask_install_application("blender");
+    fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("blender")?;
+        Ok(())
     }
 
-    fn install_bluetooth(&self) {
-        // no-op
+    fn install_bluetooth(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
         system::setup_codecs().await
     }
 
-    fn install_conemu(&self) {
-        // no-op
-    }
-
-    fn install_cryptomator(&self) {
-        self.cask_install_application("cryptomator");
-    }
-
-    fn install_curl(&self) {
-        // no-op
-    }
-
-    fn install_davinci_resolve(&self) -> Result<(), Error> {
-        open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")
-    }
-
-    fn install_discord(&self) {
-        self.cask_install_application("discord");
-    }
-
-    fn install_docker(&self) -> Result<(), Error> {
-        self.cask_install_application("docker");
+    fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     }
 
-    fn install_dropbox(&self) {
-        self.cask_install_application("dropbox");
+    fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("cryptomator")?;
+        Ok(())
+    }
+
+    fn install_curl(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
+    }
+
+    fn install_davinci_resolve(&self) -> Result<(), Box<dyn std::error::Error>> {
+        open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")?;
+        Ok(())
+    }
+
+    fn install_discord(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("discord")?;
+        Ok(())
+    }
+
+    fn install_docker(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("docker")?;
+        Ok(())
+    }
+
+    fn install_dropbox(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("dropbox")?;
+        Ok(())
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.cask_install_application("eclipse-java");
+        self.cask_install_application("eclipse-java")?;
         Ok(())
     }
 
-    fn install_epic_games(&self) {
-        // no-op
+    fn install_epic_games(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_firefox(&self) {
-        self.cask_install_application("firefox");
+    fn install_firefox(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("firefox")?;
+        Ok(())
     }
 
-    fn install_firmware_updater(&self) {
-        // no-op
+    fn install_firmware_updater(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_gog_galaxy(&self) {
-        // no-op
+    fn install_gog_galaxy(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.cask_install_application("google-chrome");
+        self.cask_install_application("google-chrome")?;
         Ok(())
     }
 
-    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error> {
+    fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn install_google_drive(&self) {
-        self.cask_install_application("google-drive");
+    fn install_google_drive(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("google-drive")?;
+        Ok(())
     }
 
-    fn install_git(&self) -> Result<(), Error> {
-        self.install_application("git");
-        system::setup_git_config(self)
+    fn install_git(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_application("git")?;
+        system::setup_git_config(self)?;
+        Ok(())
     }
 
-    fn install_gimp(&self) {
-        self.cask_install_application("gimp");
+    fn install_gimp(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("gimp")?;
+        Ok(())
     }
 
-    fn install_gpg(&self) {
-        self.cask_install_application("gpg-suite");
+    fn install_gpg(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("gpg-suite")?;
+        Ok(())
     }
 
-    fn install_gradle(&self) {
-        self.install_applications(vec!["gradle", "gradle-completion"]);
+    fn install_gradle(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_applications(vec!["gradle", "gradle-completion"])?;
+        Ok(())
     }
 
-    fn install_graphic_card_tools(&self) {
-        // no-op
+    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_graphic_card_laptop_tools(&self) {
-        // no-op
+    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_groovy(&self) {
-        self.install_application("groovy");
+    fn install_groovy(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_application("groovy")?;
+        Ok(())
     }
 
-    fn install_handbrake(&self) {
-        self.cask_install_application("handbrake");
+    fn install_handbrake(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("handbrake")?;
+        Ok(())
     }
 
-    fn install_inkscape(&self) {
-        self.cask_install_application("inkscape");
+    fn install_inkscape(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("inkscape")?;
+        Ok(())
     }
 
-    fn install_insync(&self) {
-        // no-op
+    fn install_insync(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_intellij(&self) {
-        self.cask_install_application("intellij-idea");
+    fn install_intellij(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("intellij-idea")?;
+        Ok(())
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("openjdk");
-        let brew_prefix = String::from_utf8(self.execute("brew --prefix", false).stdout)?;
+        self.install_application("openjdk")?;
+        let brew_prefix = self.execute("brew --prefix", false);
         // TODO: Replace `/opt/homebrew` with `$(brew --prefix)` (which needs to return correct value)
         unix::symlink(
             &format!("{}/opt/homebrew/openjdk/libexec/openjdk.jdk", brew_prefix),
             "/Library/Java/JavaVirtualMachines/openjdk.jdk",
-        );
+        )?;
         unix::set_java_home(".zshrc.custom", "$(/usr/libexec/java_home)")?;
         Ok(())
     }
 
-    fn install_keepassxc(&self) {
-        self.cask_install_application("keepassxc");
+    fn install_keepassxc(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("keepassxc")?;
+        Ok(())
     }
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn install_helm(&self) {
+    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>>{
         todo!()
     }
 
-    fn install_latex(&self) {
+    fn install_latex(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn install_lutris(&self) {
-        // no-op
+    fn install_lutris(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_maven(&self) {
-        self.install_application("maven");
+    fn install_maven(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_application("maven")?;
+        Ok(())
     }
 
-    fn install_makemkv(&self) {
+    fn install_makemkv(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn install_microcode(&self) -> Result<(), std::io::Error> {
+    fn install_microcode(&self) -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     }
 
@@ -209,16 +226,17 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_mkvtoolnix(&self) {
+    fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
-    fn install_nextcloud_client(&self) {
-        self.cask_install_application("nextcloud");
+    fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("nextcloud")?;
+        Ok(())
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("nvm");
+        self.install_application("nvm")?;
         let mut zshrc = OpenOptions::new()
             .create(true)
             .append(true)
@@ -235,65 +253,71 @@ impl System for Mac {
         writeln!(bashrc, "[ -s \"/opt/homebrew/opt/nvm/nvm.sh\" ] && . \"/opt/homebrew/opt/nvm/nvm.sh\"  # This loads nvm")?;
         writeln!(bashrc, "[ -s \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion")?;
 
-        self.execute("nvm install node --latest-npm", false);
-        self.execute("npm install --global yarn", false);
+        self.execute("nvm install node --latest-npm", false)?;
+        self.execute("npm install --global yarn", false)?;
         Ok(())
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.app_store_install_application("1116599239");
+        self.app_store_install_application("1116599239")?;
         Ok(())
     }
 
-    fn install_nvidia_tools(&self) {
-        // no-op
+    fn install_nvidia_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_nvidia_laptop_tools(&self) {
-        // no-op
+    fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_obs_studio(&self) {
-        self.cask_install_application("obs");
+    fn install_obs_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("obs")?;
+        Ok(())
     }
 
-    fn install_onedrive(&self) {
-        self.cask_install_application("onedrive");
+    fn install_onedrive(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("onedrive")?;
+        Ok(())
     }
 
-    fn install_origin(&self) {
-        // no-op
+    fn install_origin(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_powertop(&self) {
-        // no-op
+    fn install_powertop(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_python(&self) {
-        self.install_application("python");
+    fn install_python(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_application("python")?;
+        Ok(())
     }
 
     async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("rustup");
-        self.execute("rustup-init -y", true);
+        self.install_application("rustup")?;
+        self.execute("rustup-init -y", true)?;
         Ok(())
     }
 
-    fn install_slack(&self) {
-        self.app_store_install_application("803453959");
+    fn install_slack(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.app_store_install_application("803453959")?;
+        Ok(())
     }
 
     fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.cask_install_application("spotify");
+        self.cask_install_application("spotify")?;
         Ok(())
     }
 
-    fn install_steam(&self) {
-        self.cask_install_application("steam");
+    fn install_steam(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("steam")?;
+        Ok(())
     }
 
-    fn install_sweet_home_3d(&self) {
-        self.cask_install_application("sweet-home3d");
+    fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("sweet-home3d")?;
+        Ok(())
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -301,30 +325,30 @@ impl System for Mac {
             "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
             "brew-install",
         )
-        .await?;
-        self.execute("chmod +x brew-install", false);
-        self.execute("./brew-install", false);
+            .await?;
+        self.execute("chmod +x brew-install", false)?;
+        self.execute("./brew-install", false)?;
         fs::remove_file("brew-install")?;
 
-        self.install_application("mas");
-        self.cask_install_application("scroll-reverser");
+        self.install_application("mas")?;
+        self.cask_install_application("scroll-reverser")?;
         Ok(())
     }
 
-    fn install_telnet(&self) {
-        self.install_application("telnet");
+    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_application("telnet")?;
     }
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     }
 
-    fn install_tlp(&self) {
-        // no-op
+    fn install_tlp(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
     fn install_tmux(&self) -> Result<(), std::io::Error> {
-        self.install_applications(vec!["tmux", "reattach-to-user-namespace"]);
+        self.install_applications(vec!["tmux", "reattach-to-user-namespace"])?;
         unix::setup_tmux()?;
         let mut file = OpenOptions::new()
             .create(true)
@@ -334,20 +358,21 @@ impl System for Mac {
         Ok(())
     }
 
-    fn install_vim(&self) {
-        // no-op
+    fn install_vim(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_vlc(&self) {
-        self.cask_install_application("vlc");
+    fn install_vlc(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("vlc")?;
+        Ok(())
     }
 
-    fn install_vm_tools(&self) {
+    fn install_vm_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
     fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.cask_install_application("visual-studio-code");
+        self.cask_install_application("visual-studio-code")?;
         Ok(())
     }
 
@@ -355,46 +380,47 @@ impl System for Mac {
         Ok(())
     }
 
-    fn install_window_manager(&self) {
-        // no-op
+    fn install_window_manager(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_wget(&self) {
-        // no-op
+    fn install_wget(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_wine(&self) {
-        // no-op
+    fn install_wine(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn install_xcode(&self) {
+    fn install_xcode(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.app_store_install_application("497799835");
+        Ok(())
     }
 
     async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec!["zsh", "zsh-autosuggestions"]);
+        self.install_applications(vec!["zsh", "zsh-autosuggestions"])?;
         unix::setup_zsh(self, Some("/usr/local/bin/zsh")).await?;
         Ok(())
     }
 
-    fn set_development_shortcuts(&self) {
-        // no-op
-    }
-
-    fn set_development_environment_settings(&self) -> Result<(), std::io::Error> {
+    fn set_development_shortcuts(&self) -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     }
 
-    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error> {
+    fn set_development_environment_settings(&self) -> Result<(), Box<dyn std::error::Error>> {
         Ok(())
     }
 
-    fn update_os(&self) {
-        self.update_os_repo();
-        self.execute("brew -y upgrade", false);
+    fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
     }
 
-    fn update_os_repo(&self) {
-        self.execute("brew update", false);
+    fn update_os(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.update_os_repo()?;
+        self.execute("brew -y upgrade", false)?;
+    }
+
+    fn update_os_repo(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.execute("brew update", false)?;
     }
 }

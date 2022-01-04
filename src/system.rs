@@ -1,7 +1,7 @@
 use std::fs;
 use std::fs::File;
-use std::io::Write;
-use std::process::Output;
+use std::io::{BufRead, BufReader, Write};
+use std::process::{Command, Stdio};
 
 use async_trait::async_trait;
 use mockall::automock;
@@ -10,6 +10,8 @@ use mockall::automock;
 #[automock]
 pub(crate) trait System: Send + Sync + 'static {
     /// Executes the given command. It will run it as a super user if `super_user` is `true`.
+    ///
+    /// The returned Result contains the output of the command.
     ///
     /// # Examples
     ///
@@ -21,7 +23,11 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.execute("mkdir /path/to/create", true);
     /// ```
-    fn execute(&self, command: &str, super_user: bool) -> Output;
+    fn execute(
+        &self,
+        command: &str,
+        super_user: bool,
+    ) -> Result<String, Box<dyn std::error::Error>>;
 
     /// Installs the provided application.
     ///
@@ -35,7 +41,7 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.install_application("application");
     /// ```
-    fn install_application(&self, application: &str) -> Output {
+    fn install_application(&self, application: &str) -> Result<String, Box<dyn std::error::Error>> {
         self.install_applications(vec![application])
     }
 
@@ -51,147 +57,150 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.install_applications(vec!["application1", "application2"]);
     /// ```
-    fn install_applications<'a>(&self, applications: Vec<&'a str>) -> Output;
+    fn install_applications<'a>(
+        &self,
+        applications: Vec<&'a str>,
+    ) -> Result<String, Box<dyn std::error::Error>>;
 
-    fn install_android_studio(&self);
+    fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_blender(&self);
+    fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_bluetooth(&self);
+    fn install_bluetooth(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_conemu(&self);
+    fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_cryptomator(&self);
+    fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_curl(&self);
+    fn install_curl(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_davinci_resolve(&self) -> Result<(), std::io::Error>;
+    fn install_davinci_resolve(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_discord(&self);
+    fn install_discord(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_docker(&self) -> Result<(), std::io::Error>;
+    fn install_docker(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_dropbox(&self);
+    fn install_dropbox(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_epic_games(&self);
+    fn install_epic_games(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_firefox(&self);
+    fn install_firefox(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_firmware_updater(&self);
+    fn install_firmware_updater(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_gog_galaxy(&self);
+    fn install_gog_galaxy(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_google_cloud_sdk(&self) -> Result<(), std::io::Error>;
+    fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_google_drive(&self);
+    fn install_google_drive(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_git(&self) -> Result<(), std::io::Error>;
+    fn install_git(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_gimp(&self);
+    fn install_gimp(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_gpg(&self);
+    fn install_gpg(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_gradle(&self);
+    fn install_gradle(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_graphic_card_tools(&self);
+    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_graphic_card_laptop_tools(&self);
+    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_groovy(&self);
+    fn install_groovy(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_handbrake(&self);
+    fn install_handbrake(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_inkscape(&self);
+    fn install_inkscape(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_insync(&self);
+    fn install_insync(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_intellij(&self);
+    fn install_intellij(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_keepassxc(&self);
+    fn install_keepassxc(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_helm(&self);
+    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_latex(&self);
+    fn install_latex(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_lutris(&self);
+    fn install_lutris(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_maven(&self);
+    fn install_maven(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_makemkv(&self);
+    fn install_makemkv(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_microcode(&self) -> Result<(), std::io::Error>;
+    fn install_microcode(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_mkvtoolnix(&self);
+    fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_nextcloud_client(&self);
+    fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_nvidia_tools(&self);
+    fn install_nvidia_tools(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_nvidia_laptop_tools(&self);
+    fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_obs_studio(&self);
+    fn install_obs_studio(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_onedrive(&self);
+    fn install_onedrive(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_origin(&self);
+    fn install_origin(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_powertop(&self);
+    fn install_powertop(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_python(&self);
+    fn install_python(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_slack(&self);
+    fn install_slack(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_steam(&self);
+    fn install_steam(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_sweet_home_3d(&self);
+    fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_telnet(&self);
+    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_tlp(&self);
+    fn install_tlp(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_tmux(&self) -> Result<(), std::io::Error>;
+    fn install_tmux(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_vim(&self);
+    fn install_vim(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_vlc(&self);
+    fn install_vlc(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_vm_tools(&self);
+    fn install_vm_tools(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_window_manager(&self);
+    fn install_window_manager(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_wget(&self);
+    fn install_wget(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_wine(&self);
+    fn install_wine(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_xcode(&self);
+    fn install_xcode(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>>;
 
@@ -207,7 +216,7 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.set_development_shortcuts();
     /// ```
-    fn set_development_shortcuts(&self);
+    fn set_development_shortcuts(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Sets the environment configuration for common local development requirements.
     ///
@@ -221,7 +230,7 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.set_development_environment_settings();
     /// ```
-    fn set_development_environment_settings(&self) -> Result<(), std::io::Error>;
+    fn set_development_environment_settings(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Sets the environment configuration to enable the best possible power savings.
     ///
@@ -235,7 +244,7 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.setup_power_saving_tweaks();
     /// ```
-    fn setup_power_saving_tweaks(&self) -> Result<(), std::io::Error>;
+    fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Creates a directory for storing user specific binaries to be included on the PATH.
     ///
@@ -251,9 +260,10 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.setup_user_bin();
     /// ```
-    fn setup_user_bin(&self) -> Result<(), std::io::Error> {
+    fn setup_user_bin(&self) -> Result<(), Box<dyn std::error::Error>> {
         fs::create_dir_all(format!("{}/bin", get_home_dir()).as_str())?;
-        fs::create_dir_all(format!("{}/.local/bin", get_home_dir()).as_str())
+        fs::create_dir_all(format!("{}/.local/bin", get_home_dir()).as_str())?;
+        Ok(())
     }
 
     /// Updates all of the OS's software.
@@ -268,7 +278,7 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.update_os();
     /// ```
-    fn update_os(&self);
+    fn update_os(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     /// Updates all of the OS's software repositories.
     ///
@@ -284,7 +294,7 @@ pub(crate) trait System: Send + Sync + 'static {
     /// let system: System = ...
     /// system.update_os_repo();
     /// ```
-    fn update_os_repo(&self);
+    fn update_os_repo(&self) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 /// Downloads the file found at the given URL and saves it to the specified location.
@@ -332,6 +342,54 @@ pub(crate) fn get_home_dir() -> String {
         .expect("Could not convert home directory to a &str")
 }
 
+/// Runs to given Command, printing out the std out and std error, returning a Result with a String of the joined std out and std error.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use system;
+///
+/// let mut command = Command::new("ls").args(vec!["-la", "."]);
+/// system::run_command(command);
+/// ```
+pub(crate) fn run_command(command: &mut Command) -> Result<String, Box<dyn std::error::Error>> {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect(format!("Failed to execute process").as_str());
+
+    let mut output = Vec::new();
+
+    {
+        let stdout = child.stdout.as_mut().expect("Wasn't stdout");
+        let stderr = child.stderr.as_mut().expect("Wasn't stderr");
+
+        let stdout_reader = BufReader::new(stdout);
+        let stderr_reader = BufReader::new(stderr);
+
+        let stdout_lines = stdout_reader.lines();
+        for line in stdout_lines {
+            let string_line = line.unwrap();
+            println!("{}", &string_line);
+            output.push(string_line);
+        }
+
+        let stderr_lines = stderr_reader.lines();
+        for line in stderr_lines {
+            let string_line = line.unwrap();
+            println!("{}", &string_line);
+            output.push(string_line);
+        }
+    }
+
+    child.wait()?;
+    let string_output = output.join("\n");
+    Ok(string_output)
+}
+
 /// Downloads and configures the codecs.
 ///
 /// # Examples
@@ -372,22 +430,22 @@ pub(crate) async fn setup_codecs() -> Result<(), Box<dyn std::error::Error>> {
 /// let system: system::System = ...
 /// system::setup_git_config(&system);
 /// ```
-pub(crate) fn setup_git_config(system: &dyn System) -> Result<(), std::io::Error> {
-    system.execute("git config --global user.name \"Benjamin Sproule\"", false);
+pub(crate) fn setup_git_config(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
+    system.execute("git config --global user.name \"Benjamin Sproule\"", false)?;
     system.execute(
         "git config --global user.email benjamin@benjaminsproule.com",
         false,
-    );
+    )?;
     system.execute(
         "git config --global credential.helper cache --timeout=86400",
         false,
-    );
+    )?;
     system.execute(
         &format!(
             "git config --global core.excludesfile {}/.gitignore",
             get_home_dir()
         ),
         false,
-    );
+    )?;
     Ok(())
 }
