@@ -1,6 +1,5 @@
 use std::fs;
 use std::fs::OpenOptions;
-use std::io::Error;
 use std::io::Write;
 
 use async_trait::async_trait;
@@ -17,22 +16,43 @@ impl Default for Mac {
 }
 
 impl Mac {
-    fn app_store_install_application(&self, application_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn app_store_install_application(
+        &self,
+        application_id: &str,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         self.execute(&format!("mas install {}", application_id), true)
     }
 
-    fn cask_install_application(&self, application: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn cask_install_application(
+        &self,
+        application: &str,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         self.execute(&format!("brew install --cask {}", application), false)
+    }
+
+    fn get_brew_prefix(&self) -> Result<String, Box<dyn std::error::Error>> {
+        self.execute("brew --prefix", false)
     }
 }
 
 #[async_trait]
 impl System for Mac {
-    fn execute(&self, command: &str, super_user: bool) -> Result<(), Box<dyn std::error::Error>> {
+    fn execute(
+        &self,
+        command: &str,
+        super_user: bool,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         unix::execute(command, super_user)
     }
 
-    fn install_applications(&self, applications: Vec<&str>) -> Result<(), Box<dyn std::error::Error>> {
+    fn get_home_dir(&self) -> String {
+        system::get_home_dir()
+    }
+
+    fn install_applications(
+        &self,
+        applications: Vec<&str>,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         self.execute(&format!("brew install {}", applications.join(" ")), false)
     }
 
@@ -51,7 +71,15 @@ impl System for Mac {
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        system::setup_codecs().await
+        system::setup_codecs(self).await?;
+        let user_id = unix::get_user_id();
+        let group_id = unix::get_group_id();
+        unix::recursively_chown(
+            &format!("{}/.config", self.get_home_dir()),
+            &user_id,
+            &group_id,
+        )?;
+        Ok(())
     }
 
     fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -178,13 +206,15 @@ impl System for Mac {
 
     fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("openjdk")?;
-        let brew_prefix = self.execute("brew --prefix", false);
-        // TODO: Replace `/opt/homebrew` with `$(brew --prefix)` (which needs to return correct value)
         unix::symlink(
-            &format!("{}/opt/homebrew/openjdk/libexec/openjdk.jdk", brew_prefix),
+            self,
+            &format!("{}/openjdk/libexec/openjdk.jdk", self.get_brew_prefix()?),
             "/Library/Java/JavaVirtualMachines/openjdk.jdk",
         )?;
-        unix::set_java_home(".zshrc.custom", "$(/usr/libexec/java_home)")?;
+        unix::set_java_home(self, ".zshrc", "$(/usr/libexec/java_home)")?;
+        unix::set_java_home(self, ".bashrc", "$(/usr/libexec/java_home)")?;
+        unix::add_to_path(self, ".zshrc", "$JAVA_HOME/bin")?;
+        unix::add_to_path(self, ".bashrc", "$JAVA_HOME/bin")?;
         Ok(())
     }
 
@@ -197,7 +227,7 @@ impl System for Mac {
         todo!()
     }
 
-    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>>{
+    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
@@ -237,21 +267,20 @@ impl System for Mac {
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("nvm")?;
+        let brew_prefix = self.get_brew_prefix()?;
         let mut zshrc = OpenOptions::new()
-            .create(true)
             .append(true)
-            .open(format!("{}/.zshrc.custom", system::get_home_dir()))?;
+            .open(format!("{}/.zshrc", self.get_home_dir()))?;
         writeln!(zshrc, "export NVM_DIR=\"$HOME/.nvm\"")?;
-        writeln!(zshrc, "[ -s \"/opt/homebrew/opt/nvm/nvm.sh\" ] && . \"/opt/homebrew/opt/nvm/nvm.sh\"  # This loads nvm")?;
-        writeln!(zshrc, "[ -s \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion")?;
+        writeln!(zshrc, "[ -s \"{}/opt/nvm/nvm.sh\" ] && . \"{}/opt/nvm/nvm.sh\"  # This loads nvm", &brew_prefix, &brew_prefix)?;
+        writeln!(zshrc, "[ -s \"{}/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"{}/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion", &brew_prefix, &brew_prefix)?;
 
         let mut bashrc = OpenOptions::new()
-            .create(true)
             .append(true)
-            .open(format!("{}/.bashrc.custom", system::get_home_dir()))?;
+            .open(format!("{}/.bashrc", self.get_home_dir()))?;
         writeln!(bashrc, "export NVM_DIR=\"$HOME/.nvm\"")?;
-        writeln!(bashrc, "[ -s \"/opt/homebrew/opt/nvm/nvm.sh\" ] && . \"/opt/homebrew/opt/nvm/nvm.sh\"  # This loads nvm")?;
-        writeln!(bashrc, "[ -s \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion")?;
+        writeln!(bashrc, "[ -s \"{}/opt/nvm/nvm.sh\" ] && . \"{}/opt/nvm/nvm.sh\"  # This loads nvm", &brew_prefix, &brew_prefix)?;
+        writeln!(bashrc, "[ -s \"{}/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"{}/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion", &brew_prefix, &brew_prefix)?;
 
         self.execute("nvm install node --latest-npm", false)?;
         self.execute("npm install --global yarn", false)?;
@@ -324,9 +353,8 @@ impl System for Mac {
         system::download_file(
             "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
             "brew-install",
-        )
-            .await?;
-        self.execute("chmod +x brew-install", false)?;
+        ).await?;
+        unix::recursively_chmod("brew-install", &0o755, &0o755)?;
         self.execute("./brew-install", false)?;
         fs::remove_file("brew-install")?;
 
@@ -337,6 +365,7 @@ impl System for Mac {
 
     fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("telnet")?;
+        Ok(())
     }
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -347,13 +376,12 @@ impl System for Mac {
         Ok(())
     }
 
-    fn install_tmux(&self) -> Result<(), std::io::Error> {
+    fn install_tmux(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_applications(vec!["tmux", "reattach-to-user-namespace"])?;
-        unix::setup_tmux()?;
+        unix::setup_tmux(self)?;
         let mut file = OpenOptions::new()
-            .create(true)
             .append(true)
-            .open(format!("{}/.tmux.custom.conf", system::get_home_dir()))?;
+            .open(format!("{}/.tmux.conf", self.get_home_dir()))?;
         writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'")?;
         Ok(())
     }
@@ -393,13 +421,13 @@ impl System for Mac {
     }
 
     fn install_xcode(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.app_store_install_application("497799835");
+        self.app_store_install_application("497799835")?;
         Ok(())
     }
 
     async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_applications(vec!["zsh", "zsh-autosuggestions"])?;
-        unix::setup_zsh(self, Some("/usr/local/bin/zsh")).await?;
+        unix::setup_zsh(self, Some(&format!("{}/bin/zsh", self.get_brew_prefix()?))).await?;
         Ok(())
     }
 
@@ -417,10 +445,12 @@ impl System for Mac {
 
     fn update_os(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.update_os_repo()?;
-        self.execute("brew -y upgrade", false)?;
+        self.execute("brew upgrade", false)?;
+        Ok(())
     }
 
     fn update_os_repo(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.execute("brew update", false)?;
+        Ok(())
     }
 }

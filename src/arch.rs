@@ -5,8 +5,8 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
-use crate::system::System;
 use crate::{linux, system, unix};
+use crate::system::System;
 
 pub(crate) struct Arch {}
 
@@ -33,15 +33,6 @@ impl Arch {
     fn enable_service(&self, service: &str) -> Result<String, Box<dyn std::error::Error>> {
         self.execute(&format!("systemctl enable service {}", service), true)
     }
-
-    fn execute_path(
-        &self,
-        command: &str,
-        super_user: bool,
-        path: &str,
-    ) -> Result<String, Box<dyn std::error::Error>> {
-        unix::execute_path(command, super_user, path)
-    }
 }
 
 #[async_trait]
@@ -52,6 +43,10 @@ impl System for Arch {
         super_user: bool,
     ) -> Result<String, Box<dyn std::error::Error>> {
         unix::execute(command, super_user)
+    }
+
+    fn get_home_dir(&self) -> String {
+        linux::get_home_dir(self)
     }
 
     fn install_applications(
@@ -97,11 +92,11 @@ impl System for Arch {
             "gst-plugins-ugly",
             "gst-libav",
         ])?;
-        system::setup_codecs().await?;
+        system::setup_codecs(self).await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
-            &format!("{}/.config", unix::get_home_dir()),
+            &format!("{}/.config", self.get_home_dir()),
             &user_id,
             &group_id,
         )?;
@@ -155,7 +150,7 @@ impl System for Arch {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-        .await?;
+            .await?;
 
         let mut file = OpenOptions::new()
             .append(true)
@@ -259,10 +254,10 @@ impl System for Arch {
 
     fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("jdk-openjdk")?;
-        unix::set_java_home(".zshrc.custom", JAVA_HOME)?;
-        unix::set_java_home(".bashrc.custom", JAVA_HOME)?;
-        unix::add_to_path(".zshrc.custom", &format!("{}/bin", JAVA_HOME))?;
-        unix::add_to_path(".bashrc.custom", &format!("{}/bin", JAVA_HOME))?;
+        unix::set_java_home(self, ".zshrc", JAVA_HOME)?;
+        unix::set_java_home(self, ".bashrc", JAVA_HOME)?;
+        unix::add_to_path(self, ".zshrc", "$JAVA_HOME/bin")?;
+        unix::add_to_path(self, ".bashrc", "$JAVA_HOME/bin")?;
         Ok(())
     }
 
@@ -455,13 +450,12 @@ impl System for Arch {
         system::download_file(
             "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
             "yay.tar.gz",
-        )
-        .await?;
+        ).await?;
         linux::untar_rename_root("yay.tar.gz", "yay")?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown("yay", &user_id, &group_id)?;
-        self.execute_path(
+        unix::execute_path(
             "makepkg -si --noconfirm",
             false,
             &format!(
@@ -482,11 +476,11 @@ impl System for Arch {
     }
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
-        fs::create_dir_all(&format!("{}/.themes", unix::get_home_dir()))?;
+        fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()))?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
-            &format!("{}/.themes", unix::get_home_dir()),
+            &format!("{}/.themes", self.get_home_dir()),
             &user_id,
             &group_id,
         )?;
@@ -502,7 +496,7 @@ impl System for Arch {
     fn install_tmux(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_applications(vec!["tmux", "xclip"])?;
         self.aur_install_application("tmux-bash-completion")?;
-        linux::setup_tmux()?;
+        linux::setup_tmux(self)?;
         Ok(())
     }
 

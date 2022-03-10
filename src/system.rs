@@ -1,10 +1,15 @@
 use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::process::{Command, Stdio};
+#[cfg(not(test))]
+use std::process::Command;
+use std::process::Stdio;
 
 use async_trait::async_trait;
 use mockall::automock;
+
+#[cfg(test)]
+use tests::MockCommand as Command;
 
 #[async_trait]
 #[automock]
@@ -28,6 +33,8 @@ pub(crate) trait System: Send + Sync + 'static {
         command: &str,
         super_user: bool,
     ) -> Result<String, Box<dyn std::error::Error>>;
+
+    fn get_home_dir(&self) -> String;
 
     /// Installs the provided application.
     ///
@@ -315,7 +322,7 @@ pub(crate) async fn download_file(
     let response = reqwest::get(url).await?;
 
     let mut file = match File::create(downloaded_file) {
-        Err(why) => panic!("couldn't create {}", why),
+        Err(why) => panic!("Couldn't create {}: {}", downloaded_file, why),
         Ok(file) => file,
     };
     let content = response.bytes().await?;
@@ -359,7 +366,7 @@ pub(crate) fn run_command(command: &mut Command) -> Result<String, Box<dyn std::
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect(format!("Failed to execute process").as_str());
+        .expect("Failed to execute process");
 
     let mut output = Vec::new();
 
@@ -401,20 +408,12 @@ pub(crate) fn run_command(command: &mut Command) -> Result<String, Box<dyn std::
 ///
 /// system::setup_codecs();
 /// ```
-pub(crate) async fn setup_codecs() -> Result<(), Box<dyn std::error::Error>> {
-    fs::create_dir_all(format!("{}/.config/aacs", get_home_dir()).as_str())?;
+pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
+    fs::create_dir_all(format!("{}/.config/aacs", system.get_home_dir()).as_str())?;
     download_file(
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
-        format!("{}/.config/aacs/KEYDB.cfg", get_home_dir()).as_str(),
-    )
-    .await?;
-    // let user_id = system.get_user_id();
-    // let group_id = system.get_group_id();
-    // system.recursively_chown(
-    //     format!("{}/.config", get_home_dir()).as_str(),
-    //     user_id,
-    //     group_id,
-    // )?;
+        format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
+    ).await?;
     Ok(())
 }
 
@@ -430,7 +429,7 @@ pub(crate) async fn setup_codecs() -> Result<(), Box<dyn std::error::Error>> {
 /// let system: system::System = ...
 /// system::setup_git_config(&system);
 /// ```
-pub(crate) fn setup_git_config(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
     system.execute("git config --global user.name \"Benjamin Sproule\"", false)?;
     system.execute(
         "git config --global user.email benjamin@benjaminsproule.com",

@@ -35,6 +35,10 @@ impl System for Windows {
         system::run_command(child)
     }
 
+    fn get_home_dir(&self) -> String {
+        system::get_home_dir()
+    }
+
     fn install_applications(&self, applications: Vec<&str>) -> Result<(), Box<dyn std::error::Error>> {
         self.execute(
             format!("choco install {}", applications.join(" ")).as_str(),
@@ -57,7 +61,7 @@ impl System for Windows {
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        system::setup_codecs().await
+        system::setup_codecs(self).await
     }
 
     fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -260,7 +264,7 @@ impl System for Windows {
         self.install_application("nvm")?;
         let mut file = OpenOptions::new().create(true).append(true).open(format!(
             "{}\\Documents\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1",
-            system::get_home_dir()
+            self.get_home_dir()
         ))?;
 
         writeln!(file, "function callnvm() {{")?;

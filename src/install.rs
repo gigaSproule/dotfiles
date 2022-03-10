@@ -3,7 +3,7 @@ use crate::system::System;
 
 pub(crate) async fn install(
     config: Config,
-    system: &dyn System,
+    system: &impl System,
 ) -> Result<(), Box<dyn std::error::Error>> {
     system.setup_user_bin()?;
 
@@ -203,8 +203,9 @@ pub(crate) async fn install(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::system::MockSystem;
+
+    use super::*;
 
     #[test]
     fn test_install_browsers() {
@@ -232,7 +233,7 @@ mod tests {
         mock_system
             .expect_install_firefox()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_google_chrome()
             .times(1)
@@ -267,7 +268,7 @@ mod tests {
         mock_system
             .expect_install_gradle()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_git()
             .times(1)
@@ -275,16 +276,19 @@ mod tests {
         mock_system
             .expect_install_groovy()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_intellij()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_jdk()
             .times(1)
             .returning(|| Ok(()));
-        mock_system.expect_install_maven().times(1).returning(|| ());
+        mock_system
+            .expect_install_maven()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_nodejs()
             .times(1)
@@ -292,21 +296,27 @@ mod tests {
         mock_system
             .expect_install_python()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_rust()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
-        mock_system.expect_install_slack().times(1).returning(|| ());
+        mock_system
+            .expect_install_slack()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_vscode()
             .times(1)
             .returning(|| Ok(()));
-        mock_system.expect_install_xcode().times(1).returning(|| ());
+        mock_system
+            .expect_install_xcode()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_set_development_shortcuts()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_set_development_environment_settings()
             .times(1)
@@ -346,7 +356,10 @@ mod tests {
             .expect_install_kubectl()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
-        mock_system.expect_install_helm().times(1).returning(|| ());
+        mock_system
+            .expect_install_helm()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -377,25 +390,31 @@ mod tests {
         mock_system
             .expect_install_discord()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_epic_games()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_gog_galaxy()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_lutris()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_origin()
             .times(1)
-            .returning(|| ());
-        mock_system.expect_install_steam().times(1).returning(|| ());
-        mock_system.expect_install_wine().times(1).returning(|| ());
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_steam()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_wine()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -454,11 +473,14 @@ mod tests {
             vpn: false,
         };
         let mut mock_system = get_mock_system();
-        mock_system.expect_install_gimp().times(1).returning(|| ());
+        mock_system
+            .expect_install_gimp()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_inkscape()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -489,19 +511,19 @@ mod tests {
         mock_system
             .expect_install_bluetooth()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_firmware_updater()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_graphic_card_tools()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_graphic_card_laptop_tools()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_microcode()
             .times(1)
@@ -509,8 +531,11 @@ mod tests {
         mock_system
             .expect_install_powertop()
             .times(1)
-            .returning(|| ());
-        mock_system.expect_install_tlp().times(1).returning(|| ());
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_tlp()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_wifi()
             .times(1)
@@ -549,7 +574,7 @@ mod tests {
         mock_system
             .expect_install_blender()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -580,25 +605,31 @@ mod tests {
         mock_system
             .expect_install_dropbox()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_google_drive()
             .times(1)
-            .returning(|| ());
-        mock_system.expect_install_gpg().times(1).returning(|| ());
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_gpg()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_insync()
             .times(1)
-            .returning(|| ());
-        mock_system.expect_install_latex().times(1).returning(|| ());
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_latex()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_nextcloud_client()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_onedrive()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_spotify()
             .times(1)
@@ -606,7 +637,7 @@ mod tests {
         mock_system
             .expect_install_sweet_home_3d()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_themes()
             .times(1)
@@ -641,7 +672,7 @@ mod tests {
         mock_system
             .expect_install_obs_studio()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -672,15 +703,15 @@ mod tests {
         mock_system
             .expect_install_handbrake()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_makemkv()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_mkvtoolnix()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -712,7 +743,10 @@ mod tests {
             .expect_install_codecs()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
-        mock_system.expect_install_vlc().times(1).returning(|| ());
+        mock_system
+            .expect_install_vlc()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -774,7 +808,7 @@ mod tests {
         mock_system
             .expect_install_vm_tools()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }
@@ -811,7 +845,7 @@ mod tests {
     }
 
     fn get_mock_system() -> MockSystem {
-        let mut mock_system = MockSystem::new();
+        let mut mock_system = MockSystem::new(false);
         mock_system
             .expect_setup_user_bin()
             .times(1)
@@ -820,15 +854,15 @@ mod tests {
             .expect_install_system_extras()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
-        mock_system.expect_update_os().times(1).returning(|| ());
+        mock_system.expect_update_os().times(1).returning(|| Ok(()));
         mock_system
             .expect_install_window_manager()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_graphic_card_tools()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_cryptomator()
             .times(1)
@@ -836,18 +870,27 @@ mod tests {
         mock_system
             .expect_install_conemu()
             .times(1)
-            .returning(|| ());
-        mock_system.expect_install_curl().times(1).returning(|| ());
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_curl()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_keepassxc()
             .times(1)
-            .returning(|| ());
+            .returning(|| Ok(()));
         mock_system
             .expect_install_tmux()
             .times(1)
             .returning(|| Ok(()));
-        mock_system.expect_install_vim().times(1).returning(|| ());
-        mock_system.expect_install_wget().times(1).returning(|| ());
+        mock_system
+            .expect_install_vim()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_wget()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_zsh()
             .times(1)

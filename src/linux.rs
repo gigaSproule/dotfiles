@@ -11,6 +11,7 @@ use crate::arch::Arch;
 use crate::system::System;
 use crate::ubuntu::Ubuntu;
 use crate::unix;
+use crate::unix::file_contains;
 
 pub(crate) struct Linux {
     distro: Box<dyn System>,
@@ -40,6 +41,10 @@ impl System for Linux {
         super_user: bool,
     ) -> Result<String, Box<dyn std::error::Error>> {
         self.distro.execute(command, super_user)
+    }
+
+    fn get_home_dir(&self) -> String {
+        self.distro.get_home_dir()
     }
 
     fn install_applications(
@@ -181,8 +186,7 @@ impl System for Linux {
     }
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let install_kubectl = self.distro.install_kubectl();
-        install_kubectl.await
+        self.distro.install_kubectl().await
     }
 
     fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -361,6 +365,24 @@ impl System for Linux {
     }
 }
 
+/// Returns the users home directory _without_ the trailing slash.
+/// When using $HOME or other methods, on Linux, it returns `/root` rather than the actual user's
+/// home directory, so have to utilise this approach
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use linux;
+///
+/// linux::get_home_dir();
+/// ```
+pub(crate) fn get_home_dir(system: &impl System) -> String {
+    let passwd_entry = system.execute(&format!("getent passwd {}", get_username()), true).unwrap();
+    passwd_entry.split(":").nth(5).unwrap().to_string()
+}
+
 pub(crate) fn gnome_development_shortcuts(
     system: &dyn System,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -408,9 +430,8 @@ pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error
 
 pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
     let mut zshrc = OpenOptions::new()
-        .create(true)
         .append(true)
-        .open(format!("{}/.zshrc.custom", unix::get_home_dir()))?;
+        .open(format!("{}/.zshrc", system.get_home_dir()))?;
     writeln!(zshrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
     writeln!(
         zshrc,
@@ -418,9 +439,8 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
     )?;
 
     let mut bashrc = OpenOptions::new()
-        .create(true)
         .append(true)
-        .open(format!("{}/.bashrc.custom", unix::get_home_dir()))?;
+        .open(format!("{}/.bashrc", system.get_home_dir()))?;
     writeln!(bashrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
     writeln!(
         bashrc,
@@ -438,23 +458,22 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
     file.read_to_string(&mut device_name)?;
 
     if device_name == "XPS 15 9570" {
-        let mut mem_sleep_file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open("/sys/power/mem_sleep")?;
-        writeln!(mem_sleep_file, "s2idle [deep]")?;
+        let mem_sleep = "/sys/power/mem_sleep";
+        if !file_contains(mem_sleep, "s2idle [deep]") {
+            let mut mem_sleep_file = OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(mem_sleep)?;
+            writeln!(mem_sleep_file, "s2idle [deep]")?;
+        }
 
         let original_grub_file = File::open("/etc/default/grub")?;
         let buffer = BufReader::new(original_grub_file);
         let new_lines = buffer
             .lines()
             .map(|line| {
-                if line
-                    .as_ref()
-                    .unwrap()
-                    .starts_with("GRUB_CMDLINE_LINUX_DEFAULT=")
-                {
-                    let unwrapped_line = line.unwrap();
+                let unwrapped_line = line.unwrap();
+                if unwrapped_line.starts_with("GRUB_CMDLINE_LINUX_DEFAULT=") && !unwrapped_line.contains("mem_sleep_default = deep") {
                     let mut split_line = unwrapped_line.split('=');
                     split_line.next();
                     let unwrapped_next_split = split_line.next().unwrap();
@@ -462,7 +481,7 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
                     value += "mem_sleep_default = deep";
                     format!("{}=\"{}\"", "GRUB_CMDLINE_LINUX_DEFAULT", value)
                 } else {
-                    line.unwrap()
+                    unwrapped_line
                 }
             })
             .collect::<Vec<String>>();
@@ -473,12 +492,11 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
     Ok(())
 }
 
-pub(crate) fn setup_tmux() -> Result<(), std::io::Error> {
-    unix::setup_tmux()?;
+pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
+    unix::setup_tmux(system)?;
     let mut file = OpenOptions::new()
-        .create(true)
         .append(true)
-        .open(format!("{}/.tmux.custom.conf", unix::get_home_dir()))?;
+        .open(format!("{}/.tmux.conf", system.get_home_dir()))?;
     writeln!(
         file,
         "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'"
