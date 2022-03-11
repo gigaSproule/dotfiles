@@ -20,7 +20,7 @@ impl Mac {
         &self,
         application_id: &str,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        self.execute(&format!("mas install {}", application_id), true)
+        self.execute(&format!("mas install {}", application_id), false)
     }
 
     fn cask_install_application(
@@ -58,6 +58,14 @@ impl System for Mac {
 
     fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.cask_install_application("android-studio")?;
+        Ok(())
+    }
+
+    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
+        unix::setup_bash(self)?;
+        let bashrc = format!("{}/.bashrc", self.get_home_dir());
+        let mut bashrc_file = OpenOptions::new().append(true).open(&bashrc)?;
+        writeln!(bashrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
         Ok(())
     }
 
@@ -208,7 +216,7 @@ impl System for Mac {
         self.install_application("openjdk")?;
         unix::symlink(
             self,
-            &format!("{}/openjdk/libexec/openjdk.jdk", self.get_brew_prefix()?),
+            &format!("{}/opt/openjdk/libexec/openjdk.jdk", self.get_brew_prefix()?),
             "/Library/Java/JavaVirtualMachines/openjdk.jdk",
         )?;
         unix::set_java_home(self, ".zshrc", "$(/usr/libexec/java_home)")?;
@@ -268,19 +276,11 @@ impl System for Mac {
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("nvm")?;
         let brew_prefix = self.get_brew_prefix()?;
-        let mut zshrc = OpenOptions::new()
-            .append(true)
-            .open(format!("{}/.zshrc", self.get_home_dir()))?;
-        writeln!(zshrc, "export NVM_DIR=\"$HOME/.nvm\"")?;
-        writeln!(zshrc, "[ -s \"{}/opt/nvm/nvm.sh\" ] && . \"{}/opt/nvm/nvm.sh\"  # This loads nvm", &brew_prefix, &brew_prefix)?;
-        writeln!(zshrc, "[ -s \"{}/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"{}/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion", &brew_prefix, &brew_prefix)?;
-
-        let mut bashrc = OpenOptions::new()
-            .append(true)
-            .open(format!("{}/.bashrc", self.get_home_dir()))?;
-        writeln!(bashrc, "export NVM_DIR=\"$HOME/.nvm\"")?;
-        writeln!(bashrc, "[ -s \"{}/opt/nvm/nvm.sh\" ] && . \"{}/opt/nvm/nvm.sh\"  # This loads nvm", &brew_prefix, &brew_prefix)?;
-        writeln!(bashrc, "[ -s \"{}/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"{}/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion", &brew_prefix, &brew_prefix)?;
+        let content = format!("export NVM_DIR=\"$HOME/.nvm\"\n\
+        [ -s \"{}/opt/nvm/nvm.sh\" ] && . \"{}/opt/nvm/nvm.sh\"  # This loads nvm\n\
+        [ -s \"{}/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"{}/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion", &brew_prefix, &brew_prefix, &brew_prefix, &brew_prefix);
+        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content)?;
+        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content)?;
 
         self.execute("nvm install node --latest-npm", false)?;
         self.execute("npm install --global yarn", false)?;
@@ -288,7 +288,7 @@ impl System for Mac {
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.app_store_install_application("1116599239")?;
+        self.app_store_install_application("905953485")?;
         Ok(())
     }
 
@@ -326,6 +326,10 @@ impl System for Mac {
     async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("rustup")?;
         self.execute("rustup-init -y", true)?;
+        let content = "source $HOME/.cargo/env";
+        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), content)?;
+        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), content)?;
+
         Ok(())
     }
 
@@ -355,11 +359,22 @@ impl System for Mac {
             "brew-install",
         ).await?;
         unix::recursively_chmod("brew-install", &0o755, &0o755)?;
-        self.execute("./brew-install", false)?;
+        self.execute("NONINTERACTIVE=1 ./brew-install", false)?;
         fs::remove_file("brew-install")?;
+
+        let zshrc = format!("{}/.zshrc", self.get_home_dir());
+        let mut zshrc_file = OpenOptions::new().append(true).open(&zshrc)?;
+        writeln!(zshrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+
+        let bashrc = format!("{}/.bashrc", self.get_home_dir());
+        let mut bashrc_file = OpenOptions::new().append(true).open(&bashrc)?;
+        writeln!(bashrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
 
         self.install_application("mas")?;
         self.cask_install_application("scroll-reverser")?;
+        if cfg!(target_arch="aarch64") {
+            self.execute("softwareupdate --install-rosetta --agree-to-license", true)?;
+        }
         Ok(())
     }
 
@@ -428,6 +443,11 @@ impl System for Mac {
     async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_applications(vec!["zsh", "zsh-autosuggestions"])?;
         unix::setup_zsh(self, Some(&format!("{}/bin/zsh", self.get_brew_prefix()?))).await?;
+
+        let zshrc = format!("{}/.zshrc", self.get_home_dir());
+        let mut zshrc_file = OpenOptions::new().append(true).open(&zshrc)?;
+        writeln!(zshrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+
         Ok(())
     }
 

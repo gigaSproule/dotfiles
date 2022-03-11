@@ -64,6 +64,11 @@ impl System for Arch {
         Ok(())
     }
 
+    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
+        unix::setup_bash(self)?;
+        Ok(())
+    }
+
     fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("blender")?;
         Ok(())

@@ -20,8 +20,9 @@ impl Ubuntu {
     fn add_apt_repo(&self, file_name: &str, urls: Vec<&str>) -> Result<(), std::io::Error> {
         let mut file = OpenOptions::new()
             .create(true)
-            .append(true)
-            .open(format!("/etc/apt/sources.list.d/{}", file_name))?;
+            .write(true)
+            .truncate(true)
+            .open(format!("/etc/apt/sources.list.d/{}.list", file_name))?;
         for url in urls {
             writeln!(file, "{}", url)?;
         }
@@ -96,6 +97,11 @@ impl System for Ubuntu {
         Ok(())
     }
 
+    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
+        unix::setup_bash(self)?;
+        Ok(())
+    }
+
     fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("blender")?;
         Ok(())
@@ -129,6 +135,8 @@ impl System for Ubuntu {
     }
 
     fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.add_ppa("sebastian-stenzel/cryptomator")?;
+        self.update_os_repo()?;
         self.install_application("cryptomator")?;
         Ok(())
     }
@@ -297,6 +305,7 @@ impl System for Ubuntu {
 
     fn install_keepassxc(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.add_ppa("phoerious/keepassxc")?;
+        self.update_os_repo()?;
         self.install_application("keepassxc")?;
         Ok(())
     }
@@ -413,6 +422,7 @@ impl System for Ubuntu {
     fn install_nvidia_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.add_ppa("graphics-drivers/ppa")?;
         self.update_os_repo()?;
+        self.install_application("ubuntu-drivers-common")?;
         self.execute("ubuntu-drivers autoinstall", true)?;
         Ok(())
     }
@@ -452,14 +462,8 @@ impl System for Ubuntu {
         unix::recursively_chmod("rustup-install", &0o755, &0o755)?;
         self.execute("./rustup-install -y", false)?;
         fs::remove_file("rustup-install")?;
-        unix::add_to_path(
-            ".zshrc",
-            &format!("{}/.cargo/bin", self.get_home_dir()),
-        )?;
-        unix::add_to_path(
-            ".bashrc",
-            &format!("{}/.cargo/bin", self.get_home_dir()),
-        )?;
+        unix::add_to_path(self, ".zshrc", &format!("{}/.cargo/bin", self.get_home_dir()))?;
+        unix::add_to_path(self, ".bashrc", &format!("{}/.cargo/bin", self.get_home_dir()))?;
         self.execute("rustup default stable", true)?;
         Ok(())
     }
@@ -499,6 +503,7 @@ impl System for Ubuntu {
         self.install_applications(vec![
             "ubuntu-restricted-extras",
             "gnome-tweaks",
+            "snapd",
             "software-properties-common",
         ])?;
         Ok(())
@@ -577,7 +582,7 @@ impl System for Ubuntu {
         self.add_apt_key("https://packages.microsoft.com/keys/microsoft.asc")?;
         self.add_apt_repo(
             "vscode",
-            vec!["deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"],
+            vec!["deb [arch=amd64] https://packages.microsoft.com/repos/code stable main"],
         )?;
         self.update_os_repo()?;
         self.install_application("code")?;
@@ -629,7 +634,7 @@ impl System for Ubuntu {
 
     fn update_os(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.update_os_repo()?;
-        self.execute("apt-get dist-upgrade", true)?;
+        self.execute("apt-get dist-upgrade -y", true)?;
         Ok(())
     }
 

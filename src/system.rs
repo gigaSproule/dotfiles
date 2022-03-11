@@ -1,15 +1,11 @@
 use std::fs;
-use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
-#[cfg(not(test))]
+use std::fs::{File, OpenOptions};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::process::Command;
 use std::process::Stdio;
 
 use async_trait::async_trait;
 use mockall::automock;
-
-#[cfg(test)]
-use tests::MockCommand as Command;
 
 #[async_trait]
 #[automock]
@@ -70,6 +66,8 @@ pub(crate) trait System: Send + Sync + 'static {
     ) -> Result<String, Box<dyn std::error::Error>>;
 
     fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>>;
+
+    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>>;
 
@@ -330,6 +328,34 @@ pub(crate) async fn download_file(
     Ok(())
 }
 
+/// Returns whether the file contains the given string or not.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use system;
+///
+/// let contains_text = system::file_contains("/path/to/file", "text");
+/// ```
+pub(crate) fn file_contains(file: &str, contains: &str) -> bool {
+    let file_result = OpenOptions::new().read(true).open(file);
+    if file_result.is_err() {
+        return false;
+    }
+    let mut actual_file = file_result.unwrap();
+    if actual_file.metadata().is_err() {
+        return false;
+    }
+    let mut buff = String::new();
+    let result = actual_file.read_to_string(&mut buff);
+    if result.is_err() {
+        return false;
+    }
+    buff.contains(contains)
+}
+
 /// Returns the users home directory _without_ the trailing slash.
 ///
 /// # Examples
@@ -447,4 +473,27 @@ pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn std::
         false,
     )?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_file_contains_file_does_not_exist() {
+        let result = file_contains("tests/does-not-exist.txt", "content");
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_file_contains_file_does_not_contain_text() {
+        let result = file_contains("tests/test-file.txt", "does not exist");
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn test_file_contains_file_contains_text() {
+        let result = file_contains("tests/test-file.txt", "content");
+        assert_eq!(result, true);
+    }
 }

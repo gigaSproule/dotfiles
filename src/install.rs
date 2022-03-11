@@ -16,6 +16,8 @@ pub(crate) async fn install(
     println!("Installing Graphic Card Tools");
     system.install_graphic_card_tools()?;
 
+    println!("Installing Bash");
+    system.install_bash()?;
     println!("Installing Cryptomator");
     system.install_cryptomator()?;
     println!("Installing ConEmu");
@@ -845,7 +847,7 @@ mod tests {
     }
 
     fn get_mock_system() -> MockSystem {
-        let mut mock_system = MockSystem::new(false);
+        let mut mock_system = MockSystem::new();
         mock_system
             .expect_setup_user_bin()
             .times(1)

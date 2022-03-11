@@ -1,7 +1,7 @@
 use std::env;
 use std::fs;
 use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::process::Command;
 
@@ -23,18 +23,29 @@ pub(crate) fn get_username() -> String {
     env::var("SUDO_USER").unwrap()
 }
 
+pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Error> {
+    if !system::file_contains(file, content) {
+        let mut actual_file = OpenOptions::new().append(true).open(&file)?;
+        writeln!(actual_file, "{}", content)?;
+    }
+    Ok(())
+}
+
 pub(crate) fn add_to_path(system: &impl System, file: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    if file_contains(file, "export PATH") {
+    if system::file_contains(file, "export PATH") {
         let original_file = File::open(file)?;
         let original_lines = BufReader::new(original_file).lines();
         let new_lines = original_lines
             .map(|line| {
                 let unwrapped_line = line.unwrap();
-                return if unwrapped_line.starts_with("export PATH") {
-                    format!("export PATH=$PATH:{}", path)
+                if unwrapped_line.starts_with("export PATH=") && !unwrapped_line.contains(&path) {
+                    let mut split_line = unwrapped_line.split("=");
+                    split_line.next();
+                    let unwrapped_next_split = split_line.next().unwrap();
+                    format!("export PATH={}{}", unwrapped_next_split, path)
                 } else {
                     unwrapped_line
-                };
+                }
             })
             .collect::<Vec<String>>();
 
@@ -46,9 +57,17 @@ pub(crate) fn add_to_path(system: &impl System, file: &str, path: &str) -> Resul
             system.get_home_dir(),
             file
         ))?;
-        writeln!(append_file, "export PATH = $PATH:{}\n", path)?;
+        writeln!(append_file, "export PATH=$PATH:{}\n", path)?;
     }
     std::env::set_var("PATH", format!("{}:{}", std::env::var("PATH")?, path));
+    Ok(())
+}
+
+pub(crate) fn add_variable_to_file(file: &str, key: &str, value: &str) -> Result<(), std::io::Error> {
+    if !system::file_contains(&file, key) {
+        let mut actual_file = OpenOptions::new().append(true).open(&file)?;
+        writeln!(actual_file, "export {}={}", key, value)?;
+    }
     Ok(())
 }
 
@@ -136,30 +155,53 @@ pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(
 pub(crate) fn set_java_home(system: &impl System, file: &str, jdk_path: &str) -> Result<(), std::io::Error> {
     let path = format!("{}/{}", system.get_home_dir(), file);
     println!("Appending JAVA_HOME as {} to {}", jdk_path, &path);
-
-    if !file_contains(&path, "JAVA_HOME") {
-        let mut actual_file = OpenOptions::new().append(true).open(&path)?;
-        writeln!(actual_file, "export JAVA_HOME={}", jdk_path)?;
-    }
+    add_variable_to_file(&path, "JAVA_HOME", jdk_path)?;
     std::env::set_var("JAVA_HOME", jdk_path);
     Ok(())
 }
 
-pub(crate) fn file_contains(file: &str, contains: &str) -> bool {
-    let file_result = OpenOptions::new().read(true).open(file);
-    if file_result.is_err() {
-        return false;
+pub(crate) fn setup_bash(
+    system: &impl System,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let bashrc = format!("{}/.bashrc", system.get_home_dir());
+    println!("Creating bashrc at {}", &bashrc);
+    let mut bashrc_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .open(&bashrc)?;
+    writeln!(bashrc_file, "")?;
+
+    let user_id = get_user_id();
+    let group_id = get_group_id();
+    recursively_chown(
+        &bashrc,
+        &user_id,
+        &group_id,
+    )?;
+
+    let bashrc_custom = format!("{}/.bashrc.custom", system.get_home_dir());
+    let bashrc_custom_path = std::path::Path::new(&bashrc_custom);
+    if !bashrc_custom_path.exists() {
+        println!("Creating bashrc custom at {}", bashrc_custom);
+        let mut bashrc_custom_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(bashrc_custom_path)?;
+        writeln!(
+            bashrc_custom_file,
+            "# File to contain custom config that won't get overwritten"
+        )?;
+        writeln!(bashrc_custom_file, "")?;
+
+        let user_id = get_user_id();
+        let group_id = get_group_id();
+        recursively_chown(
+            &bashrc_custom,
+            &user_id,
+            &group_id,
+        )?;
     }
-    let mut actual_file = file_result.unwrap();
-    if actual_file.metadata().is_err() {
-        return false;
-    }
-    let mut buff = String::new();
-    let result = actual_file.read_to_string(&mut buff);
-    if result.is_err() {
-        return false;
-    }
-    buff.contains(contains)
+    Ok(())
 }
 
 pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {

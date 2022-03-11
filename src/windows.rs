@@ -51,6 +51,10 @@ impl System for Windows {
         Ok(())
     }
 
+    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
+    }
+
     fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("blender")?;
         Ok(())

@@ -8,10 +8,10 @@ use flate2::read::GzDecoder;
 use tar::Archive;
 
 use crate::arch::Arch;
+use crate::system::file_contains;
 use crate::system::System;
 use crate::ubuntu::Ubuntu;
 use crate::unix;
-use crate::unix::file_contains;
 
 pub(crate) struct Linux {
     distro: Box<dyn System>,
@@ -56,6 +56,10 @@ impl System for Linux {
 
     fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.distro.install_android_studio()
+    }
+
+    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_bash()
     }
 
     fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -379,7 +383,7 @@ impl System for Linux {
 /// linux::get_home_dir();
 /// ```
 pub(crate) fn get_home_dir(system: &impl System) -> String {
-    let passwd_entry = system.execute(&format!("getent passwd {}", get_username()), true).unwrap();
+    let passwd_entry = system.execute(&format!("getent passwd {}", unix::get_username()), true).unwrap();
     passwd_entry.split(":").nth(5).unwrap().to_string()
 }
 
@@ -474,12 +478,12 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
             .map(|line| {
                 let unwrapped_line = line.unwrap();
                 if unwrapped_line.starts_with("GRUB_CMDLINE_LINUX_DEFAULT=") && !unwrapped_line.contains("mem_sleep_default = deep") {
-                    let mut split_line = unwrapped_line.split('=');
+                    let mut split_line = unwrapped_line.split("=");
                     split_line.next();
                     let unwrapped_next_split = split_line.next().unwrap();
                     let mut value = unwrapped_next_split.replace("\"", "");
                     value += "mem_sleep_default = deep";
-                    format!("{}=\"{}\"", "GRUB_CMDLINE_LINUX_DEFAULT", value)
+                    format!("GRUB_CMDLINE_LINUX_DEFAULT=\"{}\"", value)
                 } else {
                     unwrapped_line
                 }
