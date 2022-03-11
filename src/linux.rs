@@ -419,6 +419,76 @@ pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Erro
     Ok(())
 }
 
+pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::Error> {
+    println!("Setting up DaVinci Resolve helper scripts");
+
+    let convert_audio = format!("{}/bin/convert_audio", system.get_home_dir());
+    let mut convert_audio_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(&convert_audio)?;
+
+    writeln!(convert_audio_file, "#!/usr/bin/env bash")?;
+    writeln!(convert_audio_file, "set -e")?;
+    writeln!(convert_audio_file, "shopt -s extglob nullglob")?;
+    writeln!(convert_audio_file, "directory=$1")?;
+    writeln!(convert_audio_file, "backup_dir=\"$directory/original\"")?;
+    writeln!(convert_audio_file, "extensions=\"${{@:2}}\"")?;
+    writeln!(convert_audio_file, "extensions=\"${{extensions:-m4a aac}}\"")?;
+    writeln!(convert_audio_file, "echo $extensions")?;
+    writeln!(convert_audio_file, "if [ ! -d \"$backup_dir\" ];")?;
+    writeln!(convert_audio_file, "then")?;
+    writeln!(convert_audio_file, "echo \"Creating $backup_dir directory.\"")?;
+    writeln!(convert_audio_file, "mkdir \"$backup_dir\"")?;
+    writeln!(convert_audio_file, "fi")?;
+    writeln!(convert_audio_file, "for ext in $extensions; do")?;
+    writeln!(convert_audio_file, "    for audio in \"$directory\"/*.$ext; do")?;
+    writeln!(convert_audio_file, "        noext=$(basename \"$audio\")")?;
+    writeln!(convert_audio_file, "        noext=\"${{noext%.$ext}}\"")?;
+    writeln!(convert_audio_file, "        echo $noext")?;
+    writeln!(convert_audio_file, "        ffmpeg -i \"$audio\" -f flac \"converted.flac\"")?;
+    writeln!(convert_audio_file, "        mv \"$audio\" \"$backup_dir\"")?;
+    writeln!(convert_audio_file, "        mv \"converted.flac\" \"$directory/${{noext// /_}}.flac\"")?;
+    writeln!(convert_audio_file, "    done")?;
+    writeln!(convert_audio_file, "done")?;
+    writeln!(convert_audio_file, "")?;
+    unix::recursively_chmod(&convert_audio, &0o755, &0o755)?;
+
+    let convert_video = format!("{}/bin/convert_video", system.get_home_dir());
+    let mut convert_video_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(&convert_video)?;
+
+    writeln!(convert_video_file, "#!/usr/bin/env bash")?;
+    writeln!(convert_video_file, "set -e")?;
+    writeln!(convert_video_file, "shopt -s extglob nullglob")?;
+    writeln!(convert_video_file, "directory=$1")?;
+    writeln!(convert_video_file, "backup_dir=\"$directory/original\"")?;
+    writeln!(convert_video_file, "extensions=\"${{@:2}}\"")?;
+    writeln!(convert_video_file, "extensions=\"${{extensions:-mp4 MP4}}\"")?;
+    writeln!(convert_video_file, "echo $extensions")?;
+    writeln!(convert_video_file, "if [ ! -d \"$backup_dir\" ];")?;
+    writeln!(convert_video_file, "then")?;
+    writeln!(convert_video_file, "echo \"Creating $backup_dir directory.\"")?;
+    writeln!(convert_video_file, "mkdir \"$backup_dir\"")?;
+    writeln!(convert_video_file, "fi")?;
+    writeln!(convert_video_file, "for ext in $extensions; do")?;
+    writeln!(convert_video_file, "    for video in \"$directory\"/*.$ext; do")?;
+    writeln!(convert_video_file, "        noext=$(basename \"video\")")?;
+    writeln!(convert_video_file, "        noext=\"${{noext%.$ext}}\"")?;
+    writeln!(convert_video_file, "        echo $noext")?;
+    writeln!(convert_video_file, "        ffmpeg -i \"$video\" -acodec pcm_s16le -vcodec copy \"converted.mov\"")?;
+    writeln!(convert_video_file, "        mv \"$video\" \"$backup_dir\"")?;
+    writeln!(convert_video_file, "        mv \"converted.mov\" \"$directory/${{noext// /_}}.mov\"")?;
+    writeln!(convert_video_file, "    done")?;
+    writeln!(convert_video_file, "done")?;
+    writeln!(convert_video_file, "")?;
+    unix::recursively_chmod(&convert_video, &0o755, &0o755)?;
+}
+
 pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
     system.execute(
         format!("usermod -a -G docker {}", unix::get_username()).as_str(),
@@ -455,27 +525,27 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
         unix::recursively_chown(shared_mount, &user_id, &group_id)?;
     }
 
-    let mount_nas = format!("{}/bin/mount-nas.sh", system.get_home_dir());
+    let mount_nas = format!("{}/bin/mount-nas", system.get_home_dir());
     let mut mount_nas_file = OpenOptions::new()
         .create(true)
         .write(true)
         .truncate(true)
         .open(&mount_nas)?;
 
-    writeln!(mount_nas_file, "#!/bin/bash")?;
+    writeln!(mount_nas_file, "#!/usr/bin/env bash")?;
     writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/benjamin {}", benjamin_mount)?;
     writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/shared {}", shared_mount)?;
     writeln!(mount_nas_file, "")?;
     unix::recursively_chmod(&mount_nas, &0o755, &0o755)?;
 
-    let unmount_nas = format!("{}/bin/unmount-nas.sh", system.get_home_dir());
+    let unmount_nas = format!("{}/bin/unmount-nas", system.get_home_dir());
     let mut unmount_nas_file = OpenOptions::new()
         .create(true)
         .write(true)
         .truncate(true)
         .open(&unmount_nas)?;
 
-    writeln!(unmount_nas_file, "#!/bin/bash")?;
+    writeln!(unmount_nas_file, "#!/usr/bin/env bash")?;
     writeln!(unmount_nas_file, "sudo umount {}", benjamin_mount)?;
     writeln!(unmount_nas_file, "sudo umount {}", shared_mount)?;
     writeln!(unmount_nas_file, "")?;

@@ -148,6 +148,7 @@ impl System for Ubuntu {
 
     fn install_davinci_resolve(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("davinci-resolve-studio")?;
+        linux::setup_davinci_resolve(self)?;
         Ok(())
     }
 

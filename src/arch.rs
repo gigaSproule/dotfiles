@@ -126,6 +126,7 @@ impl System for Arch {
 
     fn install_davinci_resolve(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.aur_install_application("davinci-resolve-studio")?;
+        linux::setup_davinci_resolve(self)?;
         Ok(())
     }
 
