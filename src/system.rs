@@ -266,8 +266,8 @@ pub(crate) trait System: Send + Sync + 'static {
     /// system.setup_user_bin();
     /// ```
     fn setup_user_bin(&self) -> Result<(), Box<dyn std::error::Error>> {
-        fs::create_dir_all(format!("{}/bin", get_home_dir()).as_str())?;
-        fs::create_dir_all(format!("{}/.local/bin", get_home_dir()).as_str())?;
+        fs::create_dir_all(format!("{}/bin", self.get_home_dir()).as_str())?;
+        fs::create_dir_all(format!("{}/.local/bin", self.get_home_dir()).as_str())?;
         Ok(())
     }
 

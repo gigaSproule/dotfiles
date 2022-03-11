@@ -163,12 +163,14 @@ pub(crate) fn set_java_home(system: &impl System, file: &str, jdk_path: &str) ->
 pub(crate) fn setup_bash(
     system: &impl System,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let bashrc = format!("{}/.bashrc", system.get_home_dir());
+    let home_dir = system.get_home_dir();
+    let bashrc = format!("{}/.bashrc", home_dir);
     println!("Creating bashrc at {}", &bashrc);
     let mut bashrc_file = OpenOptions::new()
         .create(true)
         .write(true)
         .open(&bashrc)?;
+    writeln!(bashrc_file, "export PATH=$PATH:${{HOME}}/bin:${{HOME}}/.local/bin")?;
     writeln!(bashrc_file, "")?;
 
     let user_id = get_user_id();
@@ -179,7 +181,7 @@ pub(crate) fn setup_bash(
         &group_id,
     )?;
 
-    let bashrc_custom = format!("{}/.bashrc.custom", system.get_home_dir());
+    let bashrc_custom = format!("{}/.bashrc.custom", home_dir);
     let bashrc_custom_path = std::path::Path::new(&bashrc_custom);
     if !bashrc_custom_path.exists() {
         println!("Creating bashrc custom at {}", bashrc_custom);

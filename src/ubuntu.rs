@@ -506,6 +506,7 @@ impl System for Ubuntu {
             "snapd",
             "software-properties-common",
         ])?;
+        linux::setup_nas(self)?;
         Ok(())
     }
 

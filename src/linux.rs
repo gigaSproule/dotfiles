@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
@@ -12,6 +12,7 @@ use crate::system::file_contains;
 use crate::system::System;
 use crate::ubuntu::Ubuntu;
 use crate::unix;
+use crate::unix::get_username;
 
 pub(crate) struct Linux {
     distro: Box<dyn System>,
@@ -71,8 +72,7 @@ impl System for Linux {
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let install_codecs = self.distro.install_codecs();
-        install_codecs.await
+        self.distro.install_codecs().await
     }
 
     fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -104,8 +104,7 @@ impl System for Linux {
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let install_eclipse = self.distro.install_eclipse();
-        install_eclipse.await
+        self.distro.install_eclipse().await
     }
 
     fn install_epic_games(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -125,8 +124,7 @@ impl System for Linux {
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let install_google_chrome = self.distro.install_google_chrome();
-        install_google_chrome.await
+        self.distro.install_google_chrome().await
     }
 
     fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -230,13 +228,11 @@ impl System for Linux {
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let install_nodejs = self.distro.install_nodejs();
-        install_nodejs.await
+        self.distro.install_nodejs().await
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let install_nordvpn = self.distro.install_nordvpn();
-        install_nordvpn.await
+        self.distro.install_nordvpn().await
     }
 
     fn install_nvidia_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -288,8 +284,7 @@ impl System for Linux {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let install_system_extras = self.distro.install_system_extras();
-        install_system_extras.await
+        self.distro.install_system_extras().await
     }
 
     fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -429,6 +424,63 @@ pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error
         format!("usermod -a -G docker {}", unix::get_username()).as_str(),
         true,
     )?;
+    Ok(())
+}
+
+pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
+    println!("Setting up NAS scripts");
+    let smb_credentials = format!("{}/.smbcredentials", system.get_home_dir());
+    if !Path::new(&smb_credentials).exists() {
+        let mut smb_credentials_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(smb_credentials)?;
+
+        writeln!(smb_credentials_file, "username=")?;
+        writeln!(smb_credentials_file, "password=")?;
+        writeln!(smb_credentials_file, "")?;
+    }
+
+    let user_id = unix::get_user_id();
+    let group_id = unix::get_group_id();
+
+    let benjamin_mount = "/mnt/benjamin";
+    if !Path::new(benjamin_mount).exists() {
+        fs::create_dir_all(benjamin_mount)?;
+        unix::recursively_chown(benjamin_mount, &user_id, &group_id)?;
+    }
+    let shared_mount = "/mnt/shared";
+    if !Path::new(shared_mount).exists() {
+        fs::create_dir_all(shared_mount)?;
+        unix::recursively_chown(shared_mount, &user_id, &group_id)?;
+    }
+
+    let mount_nas = format!("{}/bin/mount-nas.sh", system.get_home_dir());
+    let mut mount_nas_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(&mount_nas)?;
+
+    writeln!(mount_nas_file, "#!/bin/bash")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/benjamin {}", benjamin_mount)?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/shared {}", shared_mount)?;
+    writeln!(mount_nas_file, "")?;
+    unix::recursively_chmod(&mount_nas, &0o755, &0o755)?;
+
+    let unmount_nas = format!("{}/bin/unmount-nas.sh", system.get_home_dir());
+    let mut unmount_nas_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(&unmount_nas)?;
+
+    writeln!(unmount_nas_file, "#!/bin/bash")?;
+    writeln!(unmount_nas_file, "sudo umount {}", benjamin_mount)?;
+    writeln!(unmount_nas_file, "sudo umount {}", shared_mount)?;
+    writeln!(unmount_nas_file, "")?;
+    unix::recursively_chmod(&unmount_nas, &0o755, &0o755)?;
+
     Ok(())
 }
 

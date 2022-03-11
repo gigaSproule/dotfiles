@@ -472,6 +472,7 @@ impl System for Arch {
                     .unwrap()
             ),
         )?;
+        linux::setup_nas(self)?;
         Ok(())
     }
 
