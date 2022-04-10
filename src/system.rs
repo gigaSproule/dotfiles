@@ -149,6 +149,8 @@ pub(crate) trait System: Send + Sync + 'static {
 
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>>;
 
+    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>>;
+
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>>;
@@ -180,8 +182,6 @@ pub(crate) trait System: Send + Sync + 'static {
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>>;
-
-    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>>;
 
@@ -439,7 +439,8 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn std
     download_file(
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
-    ).await?;
+    )
+    .await?;
     Ok(())
 }
 

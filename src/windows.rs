@@ -259,6 +259,12 @@ impl System for Windows {
         Ok(())
     }
 
+    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_application("nmap")?;
+        self.execute("dism /online /Enable-Feature /FeatureName:TelnetClient")?;
+        Ok(())
+    }
+
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("nextcloud-client")?;
         Ok(())
@@ -407,11 +413,6 @@ impl System for Windows {
         self.execute_powershell("refreshenv", true)?;
         self.execute("REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f", true)?;
         self.install_application("7zip")?;
-        Ok(())
-    }
-
-    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("telnet")?;
         Ok(())
     }
 

@@ -6,8 +6,8 @@ use std::path::Path;
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::{linux, system, unix};
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Ubuntu {}
 
@@ -178,7 +178,7 @@ impl System for Ubuntu {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-            .await?;
+        .await?;
 
         let mut file = OpenOptions::new()
             .append(true)
@@ -211,7 +211,7 @@ impl System for Ubuntu {
             "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
             "google-chrome.deb",
         )
-            .await?;
+        .await?;
         self.execute("dpkg -i google-chrome-stable_current_amd64.deb", true)?;
         self.install_application("chrome-gnome-shell")?;
         fs::remove_file("google-chrome.deb")?;
@@ -293,13 +293,15 @@ impl System for Ubuntu {
 
     fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_applications(vec!["openjdk-16-jdk"])?;
-        unix::set_java_home(self,
-                            ".zshrc",
-                            &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
+        unix::set_java_home(
+            self,
+            ".zshrc",
+            &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
         )?;
-        unix::set_java_home(self,
-                            ".bashrc",
-                            &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
+        unix::set_java_home(
+            self,
+            ".bashrc",
+            &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
         )?;
         Ok(())
     }
@@ -380,13 +382,19 @@ impl System for Ubuntu {
         system::download_file(
             "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
             "/usr/local/bin/minikube",
-        ).await?;
+        )
+        .await?;
         unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
         Ok(())
     }
 
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("mkvtoolnix-gui")?;
+        Ok(())
+    }
+
+    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_applications(vec!["inetutils", "nmap"])?;
         Ok(())
     }
 
@@ -400,7 +408,7 @@ impl System for Ubuntu {
             "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
             "nvm-install.sh",
         )
-            .await?;
+        .await?;
         unix::recursively_chmod("nvm-install.sh", &0o755, &0o755)?;
         self.execute("./nvm-install.sh", false)?;
         fs::remove_file("nvm-install.sh")?;
@@ -413,7 +421,7 @@ impl System for Ubuntu {
             "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb",
             "nordvpn.deb",
         )
-            .await?;
+        .await?;
         self.install_application("./nordvpn.deb")?;
         self.update_os_repo()?;
         self.install_application("nordvpn")?;
@@ -463,8 +471,16 @@ impl System for Ubuntu {
         unix::recursively_chmod("rustup-install", &0o755, &0o755)?;
         self.execute("./rustup-install -y", false)?;
         fs::remove_file("rustup-install")?;
-        unix::add_to_path(self, ".zshrc", &format!("{}/.cargo/bin", self.get_home_dir()))?;
-        unix::add_to_path(self, ".bashrc", &format!("{}/.cargo/bin", self.get_home_dir()))?;
+        unix::add_to_path(
+            self,
+            ".zshrc",
+            &format!("{}/.cargo/bin", self.get_home_dir()),
+        )?;
+        unix::add_to_path(
+            self,
+            ".bashrc",
+            &format!("{}/.cargo/bin", self.get_home_dir()),
+        )?;
         self.execute("rustup default stable", true)?;
         Ok(())
     }
@@ -511,11 +527,6 @@ impl System for Ubuntu {
         Ok(())
     }
 
-    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("telnet")?;
-        Ok(())
-    }
-
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
         fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()))?;
         self.execute(
@@ -540,7 +551,7 @@ impl System for Ubuntu {
             "https://raw.githubusercontent.com/gusbemacbe/suru-plus/master/install.sh",
             "suru-plus-install.sh",
         )
-            .await?;
+        .await?;
         unix::recursively_chmod("suru-plus-install.sh", &0o755, &0o755)?;
         self.execute("./suru-plus-install.sh", true)?;
 

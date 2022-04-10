@@ -5,8 +5,8 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
-use crate::{linux, system, unix};
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Arch {}
 
@@ -156,7 +156,7 @@ impl System for Arch {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-            .await?;
+        .await?;
 
         let mut file = OpenOptions::new()
             .append(true)
@@ -334,6 +334,11 @@ impl System for Arch {
         Ok(())
     }
 
+    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_applications(vec!["inetutils", "nmap"])?;
+        Ok(())
+    }
+
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("nextcloud-client")?;
         Ok(())
@@ -456,7 +461,8 @@ impl System for Arch {
         system::download_file(
             "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
             "yay.tar.gz",
-        ).await?;
+        )
+        .await?;
         linux::untar_rename_root("yay.tar.gz", "yay")?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
@@ -474,11 +480,6 @@ impl System for Arch {
             ),
         )?;
         linux::setup_nas(self)?;
-        Ok(())
-    }
-
-    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("inetutils")?;
         Ok(())
     }
 

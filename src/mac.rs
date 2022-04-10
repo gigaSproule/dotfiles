@@ -268,6 +268,11 @@ impl System for Mac {
         todo!()
     }
 
+    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.install_applications(vec!["inetutils", "nmap"])?;
+        Ok(())
+    }
+
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.cask_install_application("nextcloud")?;
         Ok(())
@@ -375,11 +380,6 @@ impl System for Mac {
         if cfg!(target_arch="aarch64") {
             self.execute("softwareupdate --install-rosetta --agree-to-license", true)?;
         }
-        Ok(())
-    }
-
-    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("telnet")?;
         Ok(())
     }
 

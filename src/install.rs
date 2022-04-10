@@ -26,6 +26,8 @@ pub(crate) async fn install(
     system.install_curl()?;
     println!("Installing KeepassXC");
     system.install_keepassxc()?;
+    println!("Install Networking Tools");
+    system.install_networking_tools()?;
     println!("Installing tmux");
     system.install_tmux()?;
     println!("Installing Vim");
@@ -519,10 +521,6 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
         mock_system
-            .expect_install_graphic_card_tools()
-            .times(1)
-            .returning(|| Ok(()));
-        mock_system
             .expect_install_graphic_card_laptop_tools()
             .times(1)
             .returning(|| Ok(()));
@@ -866,6 +864,10 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
         mock_system
+            .expect_install_bash()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
             .expect_install_cryptomator()
             .times(1)
             .returning(|| Ok(()));
@@ -879,6 +881,10 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_keepassxc()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_networking_tools()
             .times(1)
             .returning(|| Ok(()));
         mock_system

@@ -1,7 +1,7 @@
-use std::{env, fs};
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
@@ -223,6 +223,10 @@ impl System for Linux {
         self.distro.install_mkvtoolnix()
     }
 
+    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.distro.install_networking_tools()
+    }
+
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.distro.install_nextcloud_client()
     }
@@ -285,10 +289,6 @@ impl System for Linux {
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.distro.install_system_extras().await
-    }
-
-    fn install_telnet(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.distro.install_telnet()
     }
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -378,7 +378,9 @@ impl System for Linux {
 /// linux::get_home_dir();
 /// ```
 pub(crate) fn get_home_dir(system: &impl System) -> String {
-    let passwd_entry = system.execute(&format!("getent passwd {}", unix::get_username()), true).unwrap();
+    let passwd_entry = system
+        .execute(&format!("getent passwd {}", unix::get_username()), true)
+        .unwrap();
     passwd_entry.split(":").nth(5).unwrap().to_string()
 }
 
@@ -435,21 +437,36 @@ pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::
     writeln!(convert_audio_file, "directory=$1")?;
     writeln!(convert_audio_file, "backup_dir=\"$directory/original\"")?;
     writeln!(convert_audio_file, "extensions=\"${{@:2}}\"")?;
-    writeln!(convert_audio_file, "extensions=\"${{extensions:-m4a aac}}\"")?;
+    writeln!(
+        convert_audio_file,
+        "extensions=\"${{extensions:-m4a aac}}\""
+    )?;
     writeln!(convert_audio_file, "echo $extensions")?;
     writeln!(convert_audio_file, "if [ ! -d \"$backup_dir\" ];")?;
     writeln!(convert_audio_file, "then")?;
-    writeln!(convert_audio_file, "echo \"Creating $backup_dir directory.\"")?;
+    writeln!(
+        convert_audio_file,
+        "echo \"Creating $backup_dir directory.\""
+    )?;
     writeln!(convert_audio_file, "mkdir \"$backup_dir\"")?;
     writeln!(convert_audio_file, "fi")?;
     writeln!(convert_audio_file, "for ext in $extensions; do")?;
-    writeln!(convert_audio_file, "    for audio in \"$directory\"/*.$ext; do")?;
+    writeln!(
+        convert_audio_file,
+        "    for audio in \"$directory\"/*.$ext; do"
+    )?;
     writeln!(convert_audio_file, "        noext=$(basename \"$audio\")")?;
     writeln!(convert_audio_file, "        noext=\"${{noext%.$ext}}\"")?;
     writeln!(convert_audio_file, "        echo $noext")?;
-    writeln!(convert_audio_file, "        ffmpeg -i \"$audio\" -f flac \"converted.flac\"")?;
+    writeln!(
+        convert_audio_file,
+        "        ffmpeg -i \"$audio\" -f flac \"converted.flac\""
+    )?;
     writeln!(convert_audio_file, "        mv \"$audio\" \"$backup_dir\"")?;
-    writeln!(convert_audio_file, "        mv \"converted.flac\" \"$directory/${{noext// /_}}.flac\"")?;
+    writeln!(
+        convert_audio_file,
+        "        mv \"converted.flac\" \"$directory/${{noext// /_}}.flac\""
+    )?;
     writeln!(convert_audio_file, "    done")?;
     writeln!(convert_audio_file, "done")?;
     writeln!(convert_audio_file, "")?;
@@ -468,25 +485,41 @@ pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::
     writeln!(convert_video_file, "directory=$1")?;
     writeln!(convert_video_file, "backup_dir=\"$directory/original\"")?;
     writeln!(convert_video_file, "extensions=\"${{@:2}}\"")?;
-    writeln!(convert_video_file, "extensions=\"${{extensions:-mp4 MP4}}\"")?;
+    writeln!(
+        convert_video_file,
+        "extensions=\"${{extensions:-mp4 MP4}}\""
+    )?;
     writeln!(convert_video_file, "echo $extensions")?;
     writeln!(convert_video_file, "if [ ! -d \"$backup_dir\" ];")?;
     writeln!(convert_video_file, "then")?;
-    writeln!(convert_video_file, "echo \"Creating $backup_dir directory.\"")?;
+    writeln!(
+        convert_video_file,
+        "echo \"Creating $backup_dir directory.\""
+    )?;
     writeln!(convert_video_file, "mkdir \"$backup_dir\"")?;
     writeln!(convert_video_file, "fi")?;
     writeln!(convert_video_file, "for ext in $extensions; do")?;
-    writeln!(convert_video_file, "    for video in \"$directory\"/*.$ext; do")?;
+    writeln!(
+        convert_video_file,
+        "    for video in \"$directory\"/*.$ext; do"
+    )?;
     writeln!(convert_video_file, "        noext=$(basename \"video\")")?;
     writeln!(convert_video_file, "        noext=\"${{noext%.$ext}}\"")?;
     writeln!(convert_video_file, "        echo $noext")?;
-    writeln!(convert_video_file, "        ffmpeg -i \"$video\" -acodec pcm_s16le -vcodec copy \"converted.mov\"")?;
+    writeln!(
+        convert_video_file,
+        "        ffmpeg -i \"$video\" -acodec pcm_s16le -vcodec copy \"converted.mov\""
+    )?;
     writeln!(convert_video_file, "        mv \"$video\" \"$backup_dir\"")?;
-    writeln!(convert_video_file, "        mv \"converted.mov\" \"$directory/${{noext// /_}}.mov\"")?;
+    writeln!(
+        convert_video_file,
+        "        mv \"converted.mov\" \"$directory/${{noext// /_}}.mov\""
+    )?;
     writeln!(convert_video_file, "    done")?;
     writeln!(convert_video_file, "done")?;
     writeln!(convert_video_file, "")?;
     unix::recursively_chmod(&convert_video, &0o755, &0o755)?;
+    Ok(())
 }
 
 pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
@@ -599,7 +632,9 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
             .lines()
             .map(|line| {
                 let unwrapped_line = line.unwrap();
-                if unwrapped_line.starts_with("GRUB_CMDLINE_LINUX_DEFAULT=") && !unwrapped_line.contains("mem_sleep_default = deep") {
+                if unwrapped_line.starts_with("GRUB_CMDLINE_LINUX_DEFAULT=")
+                    && !unwrapped_line.contains("mem_sleep_default = deep")
+                {
                     let mut split_line = unwrapped_line.split("=");
                     split_line.next();
                     let unwrapped_next_split = split_line.next().unwrap();
