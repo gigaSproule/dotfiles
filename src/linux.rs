@@ -606,6 +606,64 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
         "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
     )?;
 
+    let zsh_nvm_dir = "autoload -U add-zsh-hook\n\
+        load-nvmrc() {\n\
+            local node_version=\"$(nvm version)\"\n\
+            local nvmrc_path=\"$(nvm_find_nvmrc)\"\n\
+            if [ -n \"$nvmrc_path\" ]; then\n\
+                local nvmrc_node_version=$(nvm version \"$(cat \"${nvmrc_path}\")\")\n\
+                if [ \"$nvmrc_node_version\" = \"N/A\" ]; then\n\
+                    nvm install\n\
+                elif [ \"$nvmrc_node_version\" != \"$node_version\" ]; then\n\
+                    nvm use\n\
+                fi\n\
+            elif [ \"$node_version\" != \"$(nvm version default)\" ]; then\n\
+                echo \"Reverting to nvm default version\"\n\
+                nvm use default\n\
+            fi\n\
+        }\n\
+        add-zsh-hook chpwd load-nvmrc\n\
+        load-nvmrc";
+        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), zsh_nvm_dir)?;
+        let bash_nvm_dir = "cdnvm() {\n\
+            command cd \"$@\";\n\
+            nvm_path=$(nvm_find_up .nvmrc | tr -d '\n')\n\
+            # If there are no .nvmrc file, use the default nvm version\n\
+            if [[ ! $nvm_path = *[^[:space:]]* ]]; then\n\
+                declare default_version;\n\
+                default_version=$(nvm version default);\n\
+                # If there is no default version, set it to `node`\n\
+                # This will use the latest version on your machine\n\
+                if [[ $default_version == \"N/A\" ]]; then\n\
+                    nvm alias default node;\n\
+                    default_version=$(nvm version default);\n\
+                fi\n\
+                # If the current version is not the default version, set it to use the default version\n\
+                if [[ $(nvm current) != \"$default_version\" ]]; then\n\
+                    nvm use default;\n\
+                fi\n\
+            elif [[ -s $nvm_path/.nvmrc && -r $nvm_path/.nvmrc ]]; then\n\
+                declare nvm_version\n\
+                nvm_version=$(<\"$nvm_path\"/.nvmrc)\n\
+                declare locally_resolved_nvm_version\n\
+                # `nvm ls` will check all locally-available versions\n\
+                # If there are multiple matching versions, take the latest one\n\
+                # Remove the `->` and `*` characters and spaces\n\
+                # `locally_resolved_nvm_version` will be `N/A` if no local versions are found\n\
+                locally_resolved_nvm_version=$(nvm ls --no-colors \"$nvm_version\" | tail -1 | tr -d '\->*' | tr -d '[:space:]')\n\
+                # If it is not already installed, install it\n\
+                # `nvm install` will implicitly use the newly-installed version\n\
+                if [[ \"$locally_resolved_nvm_version\" == \"N/A\" ]]; then\n\
+                    nvm install \"$nvm_version\";\n\
+                elif [[ $(nvm current) != \"$locally_resolved_nvm_version\" ]]; then\n\
+                    nvm use \"$nvm_version\";\n\
+                fi\n\
+            fi\n\
+        }\n\
+        alias cd='cdnvm'\n\
+        cd \"$PWD\"";
+        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), bash_nvm_dir)?;
+
     system.execute("nvm install node --latest-npm", false)?;
     system.execute("npm install --global yarn", false)?;
     Ok(())
