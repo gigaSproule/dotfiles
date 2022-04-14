@@ -385,6 +385,9 @@ impl System for Mac {
 
     fn install_python(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("python")?;
+        let content = format!("export PATH=\"$PATH:{}/opt/python/libexec/bin\"", self.brew_prefix()?);
+        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content);
+        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content);
         Ok(())
     }
 
