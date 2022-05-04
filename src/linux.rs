@@ -379,7 +379,7 @@ impl System for Linux {
 /// ```
 pub(crate) fn get_home_dir(system: &impl System) -> String {
     let passwd_entry = system
-        .execute(&format!("getent passwd {}", unix::get_username()), true)
+        .execute(&format!("getent passwd {}", get_username()), true)
         .unwrap();
     passwd_entry.split(":").nth(5).unwrap().to_string()
 }
@@ -524,7 +524,7 @@ pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::
 
 pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
     system.execute(
-        format!("usermod -a -G docker {}", unix::get_username()).as_str(),
+        format!("usermod -a -G docker {}", get_username()).as_str(),
         true,
     )?;
     Ok(())
@@ -624,8 +624,8 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
         }\n\
         add-zsh-hook chpwd load-nvmrc\n\
         load-nvmrc";
-        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), zsh_nvm_dir)?;
-        let bash_nvm_dir = "cdnvm() {\n\
+    unix::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), zsh_nvm_dir)?;
+    let bash_nvm_dir = "cdnvm() {\n\
             command cd \"$@\";\n\
             nvm_path=$(nvm_find_up .nvmrc | tr -d '\n')\n\
             # If there are no .nvmrc file, use the default nvm version\n\
@@ -650,7 +650,7 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
                 # If there are multiple matching versions, take the latest one\n\
                 # Remove the `->` and `*` characters and spaces\n\
                 # `locally_resolved_nvm_version` will be `N/A` if no local versions are found\n\
-                locally_resolved_nvm_version=$(nvm ls --no-colors \"$nvm_version\" | tail -1 | tr -d '\->*' | tr -d '[:space:]')\n\
+                locally_resolved_nvm_version=$(nvm ls --no-colors \"$nvm_version\" | tail -1 | tr -d '\\->*' | tr -d '[:space:]')\n\
                 # If it is not already installed, install it\n\
                 # `nvm install` will implicitly use the newly-installed version\n\
                 if [[ \"$locally_resolved_nvm_version\" == \"N/A\" ]]; then\n\
@@ -662,7 +662,7 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
         }\n\
         alias cd='cdnvm'\n\
         cd \"$PWD\"";
-        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), bash_nvm_dir)?;
+    unix::add_to_file(&format!("{}/.bashrc", system.get_home_dir()), bash_nvm_dir)?;
 
     system.execute("nvm install node --latest-npm", false)?;
     system.execute("npm install --global yarn", false)?;

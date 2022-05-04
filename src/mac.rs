@@ -333,7 +333,7 @@ impl System for Mac {
                 # If there are multiple matching versions, take the latest one\n\
                 # Remove the `->` and `*` characters and spaces\n\
                 # `locally_resolved_nvm_version` will be `N/A` if no local versions are found\n\
-                locally_resolved_nvm_version=$(nvm ls --no-colors \"$nvm_version\" | tail -1 | tr -d '\->*' | tr -d '[:space:]')\n\
+                locally_resolved_nvm_version=$(nvm ls --no-colors \"$nvm_version\" | tail -1 | tr -d '\\->*' | tr -d '[:space:]')\n\
                 # If it is not already installed, install it\n\
                 # `nvm install` will implicitly use the newly-installed version\n\
                 if [[ \"$locally_resolved_nvm_version\" == \"N/A\" ]]; then\n\
@@ -426,7 +426,7 @@ impl System for Mac {
             "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
             "brew-install",
         )
-        .await?;
+            .await?;
         unix::recursively_chmod("brew-install", &0o755, &0o755)?;
         self.execute("NONINTERACTIVE=1 ./brew-install", false)?;
         fs::remove_file("brew-install")?;
