@@ -156,7 +156,7 @@ impl System for Arch {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-        .await?;
+            .await?;
 
         let mut file = OpenOptions::new()
             .append(true)
@@ -462,7 +462,7 @@ impl System for Arch {
             "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
             "yay.tar.gz",
         )
-        .await?;
+            .await?;
         linux::untar_rename_root("yay.tar.gz", "yay")?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
@@ -542,7 +542,7 @@ impl System for Arch {
     fn install_window_manager(&self) -> Result<(), Box<dyn std::error::Error>> {
         // Gnome
         self.install_applications(vec!["gnome", "libcanberra", "libappindicator-gtk3"])?;
-        self.aur_install_application("gnome-shell-extension-appindicator")?;
+        self.aur_install_applications(vec!["gnome-shell-extension-appindicator", "gnome-shell-extension-hidetopbar-git"])?;
         self.enable_service("gdm")?;
         self.enable_service("NetworkManager")?;
         // KDE/Plasma
