@@ -542,7 +542,7 @@ impl System for Arch {
     fn install_window_manager(&self) -> Result<(), Box<dyn std::error::Error>> {
         // Gnome
         self.install_applications(vec!["gnome", "libcanberra", "libappindicator-gtk3"])?;
-        self.aur_install_applications(vec!["gnome-shell-extension-appindicator", "gnome-shell-extension-hidetopbar-git"])?;
+        self.aur_install_applications(vec!["gnome-shell-extension-appindicator", "gnome-shell-extension-hidetopbar-git", "gnome-shell-extension-nordvpn-connect-git"])?;
         self.enable_service("gdm")?;
         self.enable_service("NetworkManager")?;
         // KDE/Plasma
@@ -563,6 +563,7 @@ impl System for Arch {
             "sddm",
             "sddm-kcm",
         ])?;
+        self.aur_install_applications(vec!["plasma5-runners-nordvpn"])?;
         self.enable_service("sddm")?;
         Ok(())
     }
