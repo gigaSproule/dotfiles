@@ -249,6 +249,10 @@ impl System for Windows {
         Ok(())
     }
 
+    fn install_microsoft_edge(&self) -> Result<(), std::io::Error> {
+        Ok(())
+    }
+
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("minikube")?;
         Ok(())

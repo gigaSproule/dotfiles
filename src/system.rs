@@ -145,6 +145,8 @@ pub(crate) trait System: Send + Sync + 'static {
 
     fn install_microcode(&self) -> Result<(), Box<dyn std::error::Error>>;
 
+    fn install_microsoft_edge(&self) -> Result<(), Box<dyn std::error::Error>>;
+
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>>;
@@ -440,7 +442,7 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn std
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
     )
-    .await?;
+        .await?;
     Ok(())
 }
 

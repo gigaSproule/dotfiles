@@ -42,6 +42,8 @@ pub(crate) async fn install(
         system.install_firefox()?;
         println!("Installing Google Chrome");
         system.install_google_chrome().await?;
+        println!("Installing Microsoft Edge");
+        system.install_microsoft_edge()?;
     }
 
     if config.development {
@@ -242,6 +244,10 @@ mod tests {
             .expect_install_google_chrome()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
+        mock_system
+            .expect_install_microsoft_edge()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(config, &mock_system)).is_ok());
     }

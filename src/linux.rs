@@ -2,6 +2,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
+use std::error::Error;
 
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
@@ -213,6 +214,10 @@ impl System for Linux {
 
     fn install_microcode(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.distro.install_microcode()
+    }
+
+    fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>> {
+        self.distro.install_microsoft_edge()
     }
 
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {

@@ -263,6 +263,11 @@ impl System for Mac {
         Ok(())
     }
 
+    fn install_microsoft_edge(&self) -> Result<(), Box<dyn std::error::Error>> {
+        self.cask_install_application("microsoft-edge")?;
+        Ok(())
+    }
+
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }

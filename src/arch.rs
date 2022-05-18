@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
@@ -321,6 +322,11 @@ impl System for Arch {
         } else {
             self.install_application("amd-ucode")?;
         }
+        Ok(())
+    }
+
+    fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>> {
+        self.aur_install_application("microsoft-edge-stable-bin")?;
         Ok(())
     }
 
