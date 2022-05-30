@@ -8,6 +8,7 @@ use mac::Mac as sys;
 use windows::Windows as sys;
 
 use crate::{config::parse, install::install};
+use crate::system::System;
 
 #[cfg(target_os = "linux")]
 mod arch;
@@ -41,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    let system = sys::default();
+    let system = sys::new(&config);
     install(config, &system).await
 }
 

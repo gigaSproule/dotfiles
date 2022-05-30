@@ -7,6 +7,7 @@ use std::path::Path;
 use async_trait::async_trait;
 use uuid::Uuid;
 
+use crate::config::Config;
 use crate::system::System;
 use crate::{linux, system, unix};
 
@@ -523,7 +524,7 @@ impl System for Ubuntu {
         Ok(())
     }
 
-    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
         self.set_debconf(
             "ttf-mscorefonts-installer",
             "msttcorefonts/accepted-mscorefonts-eula",

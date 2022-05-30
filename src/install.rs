@@ -8,7 +8,7 @@ pub(crate) async fn install(
     system.setup_user_bin()?;
 
     println!("Installing Distro Specific Extras");
-    system.install_system_extras().await?;
+    system.install_system_extras(&config).await?;
     system.update_os()?;
 
     println!("Installing Window Manager");

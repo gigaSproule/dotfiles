@@ -1,14 +1,15 @@
+use std::{env, fs};
+use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
-use std::{env, fs};
-use std::error::Error;
 
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
 use tar::Archive;
 
 use crate::arch::Arch;
+use crate::config::Config;
 use crate::system::file_contains;
 use crate::system::System;
 use crate::ubuntu::Ubuntu;
@@ -31,6 +32,14 @@ impl Default for Linux {
             distro if distro.starts_with("Ubuntu") => Box::new(Ubuntu {}),
             _ => panic!("Unable to determine the distro {}.", distro_str),
         };
+        new(distro)
+    }
+
+    fn new(distro: Box<dyn System>) -> Self {
+        Linux { distro }
+    }
+
+    fn new(config: &Config, distro: Box<dyn System>) -> Self {
         Linux { distro }
     }
 }
@@ -292,7 +301,7 @@ impl System for Linux {
         self.distro.install_sweet_home_3d()
     }
 
-    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
         self.distro.install_system_extras().await
     }
 

@@ -5,24 +5,42 @@ use std::process::{Command, Stdio};
 
 use async_trait::async_trait;
 
+use crate::config::Config;
+use crate::linux::Linux;
 use crate::system;
 use crate::system::System;
 
-pub(crate) struct Windows {}
+pub(crate) struct Windows {
+    wsl: Linux,
+}
 
 impl Default for Windows {
     fn default() -> Self {
         if !is_elevated::is_elevated() {
             panic!("Need to run this with administrator privileges.")
         }
-        Windows {}
+        Windows {
+            wsl: Linux::new(Ubuntu {})
+        }
     }
 }
 
 impl Windows {
+    fn new(config: &Config) -> Self {
+        Windows {
+            wsl: Linux::new(config, Ubuntu {})
+        }
+    }
+
     fn execute_powershell(&self, command: &str, _super_user: bool) -> Result<(), Box<dyn std::error::Error>> {
         let mut command = Command::new("powershell")
             .arg(command);
+        system::run_command(command)
+    }
+
+    fn execute_wsl(&self, command: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let mut command = Command::new("wsl")
+            .arg(format!("~ -e sh -c '{}'", command));
         system::run_command(command)
     }
 }
@@ -153,6 +171,7 @@ impl System for Windows {
         system::setup_git_config(self)?;
         self.execute("git config --system core.longpaths true", false)?;
         self.install_application("poshgit")?;
+        wsl.install_git()?;
         Ok(())
     }
 
@@ -402,7 +421,7 @@ impl System for Windows {
         Ok(())
     }
 
-    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
         system::download_file("https://chocolatey.org/install.ps1", "install.ps1").await?;
         self.execute_powershell("iex .\\install.ps1", true)?;
@@ -417,6 +436,10 @@ impl System for Windows {
         self.execute_powershell("refreshenv", true)?;
         self.execute("REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f", true)?;
         self.install_application("7zip")?;
+        self.install_application("microsoft-windows-terminal")?;
+        if config.development {
+            self.execute_powershell("wsl --install")?;
+        }
         Ok(())
     }
 

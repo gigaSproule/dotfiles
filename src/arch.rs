@@ -6,8 +6,9 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
-use crate::system::System;
 use crate::{linux, system, unix};
+use crate::config::Config;
+use crate::system::System;
 
 pub(crate) struct Arch {}
 
@@ -17,21 +18,21 @@ impl Arch {
     fn aur_install_application(
         &self,
         application: &str,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn Error>> {
         self.aur_install_applications(vec![application])
     }
 
     fn aur_install_applications(
         &self,
         applications: Vec<&str>,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn Error>> {
         self.execute(
             &format!("yay -S --noconfirm --needed {}", applications.join(" ")),
             false,
         )
     }
 
-    fn enable_service(&self, service: &str) -> Result<String, Box<dyn std::error::Error>> {
+    fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
         self.execute(&format!("systemctl enable service {}", service), true)
     }
 }
@@ -42,7 +43,7 @@ impl System for Arch {
         &self,
         command: &str,
         super_user: bool,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn Error>> {
         unix::execute(command, super_user)
     }
 
@@ -53,35 +54,35 @@ impl System for Arch {
     fn install_applications(
         &self,
         application: Vec<&str>,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, Box<dyn Error>> {
         self.execute(
             &format!("pacman -S --noconfirm --needed {}", application.join(" ")),
             true,
         )
     }
 
-    fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("android-studio")?;
         Ok(())
     }
 
-    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         Ok(())
     }
 
-    fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_blender(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("blender")?;
         Ok(())
     }
 
-    fn install_bluetooth(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_bluetooth(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["bluez", "bluez-utils"])?;
         self.enable_service("bluetooth")?;
         Ok(())
     }
 
-    async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec![
             "libdvdread",
             "libdvdcss",
@@ -109,45 +110,45 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_conemu(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         // Required as a dependency for cryptomator
         self.install_jdk()?;
         self.aur_install_application("cryptomator")?;
         Ok(())
     }
 
-    fn install_curl(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_curl(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("curl")?;
         Ok(())
     }
 
-    fn install_davinci_resolve(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("davinci-resolve-studio")?;
         linux::setup_davinci_resolve(self)?;
         Ok(())
     }
 
-    fn install_discord(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_discord(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("discord")?;
         Ok(())
     }
 
-    fn install_docker(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_docker(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("docker")?;
         linux::setup_docker(self)?;
         Ok(())
     }
 
-    fn install_dropbox(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["dropbox", "nautilus-dropbox"])?;
         Ok(())
     }
 
-    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("eclipse-jee")?;
         if Path::new("/opt/eclipse").exists() {
             fs::create_dir_all("/opt/eclipse")?;
@@ -167,99 +168,99 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_epic_games(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_firefox(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_firefox(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("firefox")?;
         Ok(())
     }
 
-    fn install_firmware_updater(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_firmware_updater(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("fwupd")?;
         self.enable_service("fwupd")?;
         Ok(())
     }
 
-    fn install_gog_galaxy(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("google-chrome")?;
         Ok(())
     }
 
-    fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("google-cloud-sdk")?;
         Ok(())
     }
 
-    fn install_google_drive(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_google_drive(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_git(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_git(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("git")?;
         system::setup_git_config(self)?;
         Ok(())
     }
 
-    fn install_gimp(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("gimp")?;
         Ok(())
     }
 
-    fn install_gpg(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["seahorse", "seahorse-nautilus"])?;
         Ok(())
     }
 
-    fn install_gradle(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("gradle")?;
         Ok(())
     }
 
-    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
         // if nvidia
         self.install_nvidia_tools()?;
         // else
         Ok(())
     }
 
-    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("xf86-video-intel")?;
         self.install_nvidia_laptop_tools()?;
         Ok(())
     }
 
-    fn install_groovy(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("groovy")?;
         Ok(())
     }
 
-    fn install_handbrake(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_handbrake(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("handbrake")?;
         Ok(())
     }
 
-    fn install_inkscape(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_inkscape(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("inkscape")?;
         Ok(())
     }
 
-    fn install_insync(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_insync(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("insync")?;
         Ok(())
     }
 
-    fn install_intellij(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_intellij(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("intellij-idea-ultimate-edition")?;
         Ok(())
     }
 
-    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("jdk-openjdk")?;
         unix::set_java_home(self, ".zshrc", JAVA_HOME)?;
         unix::set_java_home(self, ".bashrc", JAVA_HOME)?;
@@ -268,43 +269,43 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_keepassxc(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_keepassxc(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("keepassxc")?;
         Ok(())
     }
 
-    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_kubectl(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("kubectl")?;
         Ok(())
     }
 
-    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_helm(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("helm")?;
         Ok(())
     }
 
-    fn install_latex(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_latex(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("texlive-most")?;
         Ok(())
     }
 
-    fn install_lutris(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_lutris(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("lutris")?;
         Ok(())
     }
 
-    fn install_maven(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_maven(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("maven")?;
         Ok(())
     }
 
-    fn install_makemkv(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_makemkv(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_applications(vec!["makemkv", "ccextractor"])?;
         Ok(())
     }
 
     // TODO: Duplicated in Ubuntu - move to Linux
-    fn install_microcode(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_microcode(&self) -> Result<(), Box<dyn Error>> {
         let file = File::open("/proc/cpuinfo")?;
         let buffer = BufReader::new(file);
         let cpu_name = buffer.lines().find_map(|line| {
@@ -330,39 +331,39 @@ impl System for Arch {
         Ok(())
     }
 
-    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("minikube")?;
         Ok(())
     }
 
-    fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("mkvtoolnix-gui")?;
         Ok(())
     }
 
-    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_networking_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["inetutils", "nmap"])?;
         Ok(())
     }
 
-    fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_nextcloud_client(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("nextcloud-client")?;
         Ok(())
     }
 
-    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("nvm")?;
         linux::setup_nodejs(self)?;
         Ok(())
     }
 
-    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("nordvpn-bin")?;
         self.enable_service("nordvpnd")?;
         Ok(())
     }
 
-    fn install_nvidia_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec![
             "nvidia",
             "nvidia-utils",
@@ -375,61 +376,61 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("nvidia-prime")?;
         Ok(())
     }
 
-    fn install_obs_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_obs_studio(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("obs-studio")?;
         Ok(())
     }
 
-    fn install_onedrive(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_onedrive(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_origin(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_origin(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_powertop(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_powertop(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("powertop")?;
         Ok(())
     }
 
-    fn install_python(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_python(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("python")?;
         Ok(())
     }
 
-    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("rustup")?;
         self.execute("rustup default stable", true)?;
         Ok(())
     }
 
-    fn install_slack(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_slack(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("slack-desktop")?;
         Ok(())
     }
 
-    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_spotify(&self) -> Result<(), Box<dyn Error>> {
         self.aur_install_application("spotify")?;
         Ok(())
     }
 
-    fn install_steam(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_steam(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("steam")?;
         Ok(())
     }
 
-    fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("sweethome3d")?;
         Ok(())
     }
 
-    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["base-devel", "ttf-dejavu"])?;
 
         let original_pacman_file = File::open("/etc/pacman.conf")?;
@@ -489,7 +490,7 @@ impl System for Arch {
         Ok(())
     }
 
-    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_themes(&self) -> Result<(), Box<dyn Error>> {
         fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()))?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
@@ -501,40 +502,40 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_tlp(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_tlp(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("tlp")?;
         self.enable_service("tlp")?;
         Ok(())
     }
 
-    fn install_tmux(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_tmux(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["tmux", "xclip"])?;
         self.aur_install_application("tmux-bash-completion")?;
         linux::setup_tmux(self)?;
         Ok(())
     }
 
-    fn install_vim(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vim(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("vim")?;
         Ok(())
     }
 
-    fn install_vlc(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("vlc")?;
         Ok(())
     }
 
-    fn install_vm_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vm_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("open-vm-tools")?;
         Ok(())
     }
 
-    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vscode(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("code")?;
         Ok(())
     }
 
-    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_wifi(&self) -> Result<(), Box<dyn Error>> {
         fs::copy(
             "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
             "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak",
@@ -545,7 +546,7 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_window_manager(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_window_manager(&self) -> Result<(), Box<dyn Error>> {
         // Gnome
         self.install_applications(vec!["gnome", "libcanberra", "libappindicator-gtk3"])?;
         self.aur_install_applications(vec!["gnome-shell-extension-appindicator", "gnome-shell-extension-hidetopbar-git", "gnome-shell-extension-nordvpn-connect-git"])?;
@@ -574,48 +575,48 @@ impl System for Arch {
         Ok(())
     }
 
-    fn install_wget(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_wget(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("wget")?;
         Ok(())
     }
 
-    fn install_wine(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_wine(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("wine")?;
         Ok(())
     }
 
-    fn install_xcode(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_xcode(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_zsh(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["zsh", "zsh-completions"])?;
         unix::setup_zsh(self, None).await?;
         Ok(())
     }
 
-    fn set_development_shortcuts(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn set_development_shortcuts(&self) -> Result<(), Box<dyn Error>> {
         linux::gnome_development_shortcuts(self)?;
         Ok(())
     }
 
-    fn set_development_environment_settings(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn set_development_environment_settings(&self) -> Result<(), Box<dyn Error>> {
         linux::set_development_environment_settings()?;
         Ok(())
     }
 
-    fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
         linux::setup_power_saving_tweaks()?;
         Ok(())
     }
 
-    fn update_os(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn update_os(&self) -> Result<(), Box<dyn Error>> {
         self.update_os_repo()?;
         self.execute("pacman -Syu --noconfirm", true)?;
         Ok(())
     }
 
-    fn update_os_repo(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn update_os_repo(&self) -> Result<(), Box<dyn Error>> {
         self.execute("pacman -Sy", true)?;
         Ok(())
     }

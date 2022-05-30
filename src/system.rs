@@ -7,9 +7,13 @@ use std::process::Stdio;
 use async_trait::async_trait;
 use mockall::automock;
 
+use crate::config::Config;
+
 #[async_trait]
 #[automock]
 pub(crate) trait System: Send + Sync + 'static {
+    fn new(config: &Config) -> Self;
+
     /// Executes the given command. It will run it as a super user if `super_user` is `true`.
     ///
     /// The returned Result contains the output of the command.
@@ -183,7 +187,10 @@ pub(crate) trait System: Send + Sync + 'static {
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>>;
+    async fn install_system_extras(
+        &self,
+        config: &Config,
+    ) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>>;
 
@@ -442,7 +449,7 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn std
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
     )
-        .await?;
+    .await?;
     Ok(())
 }
 

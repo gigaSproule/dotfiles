@@ -1,9 +1,11 @@
+use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 
 use async_trait::async_trait;
 
+use crate::config::Config;
 use crate::system::{self, System};
 use crate::unix;
 
@@ -37,6 +39,10 @@ impl Mac {
 
 #[async_trait]
 impl System for Mac {
+    fn new(config: &Config) -> Self {
+        Mac {}
+    }
+
     fn execute(
         &self,
         command: &str,
@@ -390,7 +396,10 @@ impl System for Mac {
 
     fn install_python(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("python")?;
-        let content = format!("export PATH=\"$PATH:{}/opt/python/libexec/bin\"", self.brew_prefix()?);
+        let content = format!(
+            "export PATH=\"$PATH:{}/opt/python/libexec/bin\"",
+            self.brew_prefix()?
+        );
         unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content);
         unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content);
         Ok(())
@@ -426,7 +435,10 @@ impl System for Mac {
         Ok(())
     }
 
-    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(
+        &self,
+        config: &Config,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         system::download_file(
             "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
             "brew-install",
