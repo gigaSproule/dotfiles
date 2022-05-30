@@ -6,26 +6,20 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
-use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Arch {}
 
 static JAVA_HOME: &str = "/usr/lib/jvm/default";
 
 impl Arch {
-    fn aur_install_application(
-        &self,
-        application: &str,
-    ) -> Result<String, Box<dyn Error>> {
+    fn aur_install_application(&self, application: &str) -> Result<String, Box<dyn Error>> {
         self.aur_install_applications(vec![application])
     }
 
-    fn aur_install_applications(
-        &self,
-        applications: Vec<&str>,
-    ) -> Result<String, Box<dyn Error>> {
+    fn aur_install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
             &format!("yay -S --noconfirm --needed {}", applications.join(" ")),
             false,
@@ -39,11 +33,11 @@ impl Arch {
 
 #[async_trait]
 impl System for Arch {
-    fn execute(
-        &self,
-        command: &str,
-        super_user: bool,
-    ) -> Result<String, Box<dyn Error>> {
+    fn new(config: &Config) -> Self {
+        Arch {}
+    }
+
+    fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
         unix::execute(command, super_user)
     }
 
@@ -51,10 +45,7 @@ impl System for Arch {
         linux::get_home_dir(self)
     }
 
-    fn install_applications(
-        &self,
-        application: Vec<&str>,
-    ) -> Result<String, Box<dyn Error>> {
+    fn install_applications(&self, application: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
             &format!("pacman -S --noconfirm --needed {}", application.join(" ")),
             true,
@@ -158,7 +149,7 @@ impl System for Arch {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-            .await?;
+        .await?;
 
         let mut file = OpenOptions::new()
             .append(true)
@@ -469,7 +460,7 @@ impl System for Arch {
             "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
             "yay.tar.gz",
         )
-            .await?;
+        .await?;
         linux::untar_rename_root("yay.tar.gz", "yay")?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
@@ -549,7 +540,11 @@ impl System for Arch {
     fn install_window_manager(&self) -> Result<(), Box<dyn Error>> {
         // Gnome
         self.install_applications(vec!["gnome", "libcanberra", "libappindicator-gtk3"])?;
-        self.aur_install_applications(vec!["gnome-shell-extension-appindicator", "gnome-shell-extension-hidetopbar-git", "gnome-shell-extension-nordvpn-connect-git"])?;
+        self.aur_install_applications(vec![
+            "gnome-shell-extension-appindicator",
+            "gnome-shell-extension-hidetopbar-git",
+            "gnome-shell-extension-nordvpn-connect-git",
+        ])?;
         self.enable_service("gdm")?;
         self.enable_service("NetworkManager")?;
         // KDE/Plasma

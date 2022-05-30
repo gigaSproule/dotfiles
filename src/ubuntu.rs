@@ -7,9 +7,9 @@ use std::path::Path;
 use async_trait::async_trait;
 use uuid::Uuid;
 
+use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
-use crate::{linux, system, unix};
 
 pub(crate) struct Ubuntu {}
 
@@ -70,6 +70,10 @@ impl Ubuntu {
 
 #[async_trait]
 impl System for Ubuntu {
+    fn new(config: &Config) -> Self {
+        Ubuntu {}
+    }
+
     fn execute(
         &self,
         command: &str,

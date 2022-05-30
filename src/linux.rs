@@ -1,8 +1,8 @@
-use std::{env, fs};
 use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
@@ -20,32 +20,22 @@ pub(crate) struct Linux {
     distro: Box<dyn System>,
 }
 
-impl Default for Linux {
-    fn default() -> Self {
+#[async_trait]
+impl System for Linux {
+    fn new(config: &Config) -> Self {
         let sudo_user = env::var("SUDO_USER");
         if sudo_user.is_err() {
             panic!("Need to run this with sudo.")
         }
         let distro_str = whoami::distro();
         let distro: Box<dyn System> = match distro_str {
-            distro if distro == "Arch Linux" => Box::new(Arch {}),
-            distro if distro.starts_with("Ubuntu") => Box::new(Ubuntu {}),
+            distro if distro == "Arch Linux" => Box::new(Arch::new(config)),
+            distro if distro.starts_with("Ubuntu") => Box::new(Ubuntu::new(config)),
             _ => panic!("Unable to determine the distro {}.", distro_str),
         };
-        new(distro)
-    }
-
-    fn new(distro: Box<dyn System>) -> Self {
         Linux { distro }
     }
 
-    fn new(config: &Config, distro: Box<dyn System>) -> Self {
-        Linux { distro }
-    }
-}
-
-#[async_trait]
-impl System for Linux {
     fn execute(
         &self,
         command: &str,
@@ -301,7 +291,10 @@ impl System for Linux {
         self.distro.install_sweet_home_3d()
     }
 
-    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(
+        &self,
+        config: &Config,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         self.distro.install_system_extras().await
     }
 

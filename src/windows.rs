@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
@@ -6,50 +7,44 @@ use std::process::{Command, Stdio};
 use async_trait::async_trait;
 
 use crate::config::Config;
-use crate::linux::Linux;
 use crate::system;
 use crate::system::System;
 
-pub(crate) struct Windows {
-    wsl: Linux,
+pub(crate) struct Windows<'a> {
+    config: &'a Config,
 }
 
-impl Default for Windows {
-    fn default() -> Self {
-        if !is_elevated::is_elevated() {
-            panic!("Need to run this with administrator privileges.")
-        }
-        Windows {
-            wsl: Linux::new(Ubuntu {})
-        }
-    }
-}
-
-impl Windows {
-    fn new(config: &Config) -> Self {
-        Windows {
-            wsl: Linux::new(config, Ubuntu {})
-        }
-    }
-
-    fn execute_powershell(&self, command: &str, _super_user: bool) -> Result<(), Box<dyn std::error::Error>> {
-        let mut command = Command::new("powershell")
-            .arg(command);
+impl<'a> Windows<'a> {
+    fn execute_powershell(
+        &self,
+        command: &str,
+        _super_user: bool,
+    ) -> Result<String, Box<dyn Error>> {
+        let mut command = Command::new("powershell").arg(command);
         system::run_command(command)
     }
 
-    fn execute_wsl(&self, command: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let mut command = Command::new("wsl")
-            .arg(format!("~ -e sh -c '{}'", command));
+    fn execute_wsl(&self, command: &str) -> Result<String, Box<dyn Error>> {
+        let mut command = Command::new("wsl").arg(command);
         system::run_command(command)
+    }
+
+    fn install_wsl(&self, application: &str) -> Result<String, Box<dyn Error>> {
+        self.execute_wsl(format!("sudo apt install {}", application).as_str())
     }
 }
 
 #[async_trait]
-impl System for Windows {
-    fn execute(&self, command: &str, _super_user: bool) -> Result<(), Box<dyn std::error::Error>> {
-        let child = Command::new("cmd")
-            .arg(command);
+impl<'a> System<'a> for Windows<'a> {
+    fn new(config: &'a Config) -> Self {
+        if !is_elevated::is_elevated() {
+            panic!("Need to run this with administrator privileges.")
+        }
+        Windows { config }
+    }
+
+    fn execute(&self, command: &str, _super_user: bool) -> Result<String, Box<dyn Error>> {
+        let child = Command::new("cmd").arg(command);
         system::run_command(child)
     }
 
@@ -57,61 +52,61 @@ impl System for Windows {
         system::get_home_dir()
     }
 
-    fn install_applications(&self, applications: Vec<&str>) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
             format!("choco install {}", applications.join(" ")).as_str(),
             true,
         )
     }
 
-    fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("androidstudio")?;
         Ok(())
     }
 
-    fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_blender(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("blender")?;
         Ok(())
     }
 
-    fn install_bluetooth(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_bluetooth(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         system::setup_codecs(self).await
     }
 
-    fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_conemu(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("conemu")?;
         Ok(())
     }
 
-    fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("cryptomator")?;
         Ok(())
     }
 
-    fn install_curl(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_curl(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("curl")?;
         Ok(())
     }
 
-    fn install_davinci_resolve(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
         open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")?;
         Ok(())
     }
 
-    fn install_discord(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_discord(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("discord")?;
         Ok(())
     }
 
-    fn install_docker(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_docker(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("docker-desktop")?;
         self.execute_powershell("Install-Module -Name DockerCompletion -Force", true)?;
         self.execute_powershell("Import-Module DockerCompletion", true)?;
@@ -122,178 +117,181 @@ impl System for Windows {
         Ok(())
     }
 
-    fn install_dropbox(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("dropbox")?;
         Ok(())
     }
 
-    async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("eclipse")?;
         Ok(())
     }
 
-    fn install_epic_games(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("epicgameslauncher")?;
         Ok(())
     }
 
-    fn install_firefox(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_firefox(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("firefox")?;
         Ok(())
     }
 
-    fn install_firmware_updater(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_firmware_updater(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_gog_galaxy(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("goggalaxy")?;
         Ok(())
     }
 
-    async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("googlechrome")?;
         Ok(())
     }
 
-    fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("gcloudsdk")?;
         Ok(())
     }
 
-    fn install_google_drive(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_google_drive(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("google-drive-file-stream")?;
         Ok(())
     }
 
-    fn install_git(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_git(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("git")?;
         system::setup_git_config(self)?;
         self.execute("git config --system core.longpaths true", false)?;
         self.install_application("poshgit")?;
-        wsl.install_git()?;
+        self.install_wsl("git")?;
         Ok(())
     }
 
-    fn install_gimp(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("gimp")?;
         Ok(())
     }
 
-    fn install_gpg(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("gpg4win")?;
         Ok(())
     }
 
-    fn install_gradle(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("gradle")?;
         Ok(())
     }
 
-    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_nvidia_tools()?;
         Ok(())
     }
 
-    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_nvidia_laptop_tools()?;
         Ok(())
     }
 
-    fn install_groovy(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("groovy")?;
         Ok(())
     }
 
-    fn install_handbrake(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_handbrake(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("handbrake")?;
         Ok(())
     }
 
-    fn install_inkscape(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_inkscape(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("inkscape")?;
         Ok(())
     }
 
-    fn install_insync(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_insync(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_intellij(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_intellij(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("intellijidea-ultimate")?;
         Ok(())
     }
 
-    fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("adoptopenjdk")?;
         Ok(())
     }
 
-    fn install_keepassxc(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_keepassxc(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("keepassxc")?;
         Ok(())
     }
 
-    async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_kubectl(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("kubernetes-cli")?;
         Ok(())
     }
 
-    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_helm(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("kubernetes-helm")?;
         Ok(())
     }
 
-    fn install_latex(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_latex(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("texlive")?;
         self.execute(" C:\\texlive\\2021\\bin\\win32\\tlmgr.bat install latexmk enumitem titlesec latexindent", true)?;
         Ok(())
     }
 
-    fn install_lutris(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_lutris(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_maven(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_maven(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("maven")?;
         Ok(())
     }
 
-    fn install_makemkv(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_makemkv(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("makemkv")?;
         Ok(())
     }
 
-    fn install_microcode(&self) -> Result<(), std::io::Error> {
+    fn install_microcode(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_microsoft_edge(&self) -> Result<(), std::io::Error> {
+    fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("minikube")?;
         Ok(())
     }
 
-    fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("mkvtoolnix")?;
         Ok(())
     }
 
-    fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_networking_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("nmap")?;
-        self.execute("dism /online /Enable-Feature /FeatureName:TelnetClient")?;
+        self.execute(
+            "dism /online /Enable-Feature /FeatureName:TelnetClient",
+            true,
+        )?;
         Ok(())
     }
 
-    fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_nextcloud_client(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("nextcloud-client")?;
         Ok(())
     }
 
-    async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("nvm")?;
         let mut file = OpenOptions::new().create(true).append(true).open(format!(
             "{}\\Documents\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1",
@@ -340,17 +338,16 @@ impl System for Windows {
         writeln!(file, "   }}")?;
         writeln!(file, "}}")?;
         writeln!(file, "Set-Alias nvmu -value \"callnvm\"")?;
-        self.execute_powershell("refreshenv", false);
-        self.execute("nvm install latest", false);
-        let stdout = &self.execute("nvm list", false).stdout;
-        let output =
-            std::str::from_utf8(stdout).expect("Could not find any installed npm versions");
+        self.execute_powershell("refreshenv", false)?;
+        self.execute("nvm install latest", false)?;
+        let stdout = &self.execute("nvm list", false);
+        let output = stdout.expect("Could not find any installed npm versions");
         for output_version in output.split("\n") {
             if output_version != "" {
                 self.execute(
                     format!("nvm use {}", output_version.replace(" ", "")).as_str(),
                     false,
-                );
+                )?;
                 break;
             }
         }
@@ -359,69 +356,71 @@ impl System for Windows {
         Ok(())
     }
 
-    async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("nordvpn")?;
         Ok(())
     }
 
-    fn install_nvidia_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("geforce-experience")?;
         Ok(())
     }
 
-    fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_obs_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_obs_studio(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("obs-studio")?;
         Ok(())
     }
 
-    fn install_onedrive(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_onedrive(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_origin(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_origin(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("origin")?;
         Ok(())
     }
 
-    fn install_powertop(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_powertop(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_python(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_python(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("python")?;
         Ok(())
     }
 
-    async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("rustup.install")?;
+        self.install_application("visualstudio2022buildtools")?;
+        self.install_application("windows-sdk-10.1")?;
         Ok(())
     }
 
-    fn install_slack(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_slack(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("slack")?;
         Ok(())
     }
 
-    fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_spotify(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("spotify")?;
         Ok(())
     }
 
-    fn install_steam(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("steam")?;
+    fn install_steam(&self) -> Result<(), Box<dyn Error>> {
+        self.install_application("steam-client")?;
         Ok(())
     }
 
-    fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("sweet-home-3d")?;
         Ok(())
     }
 
-    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn Error>> {
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
         system::download_file("https://chocolatey.org/install.ps1", "install.ps1").await?;
         self.execute_powershell("iex .\\install.ps1", true)?;
@@ -438,85 +437,85 @@ impl System for Windows {
         self.install_application("7zip")?;
         self.install_application("microsoft-windows-terminal")?;
         if config.development {
-            self.execute_powershell("wsl --install")?;
+            self.execute_powershell("wsl --install", true)?;
         }
         Ok(())
     }
 
-    async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_themes(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_tlp(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_tlp(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_tmux(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_tmux(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_vim(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vim(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("vim")?;
         Ok(())
     }
 
-    fn install_vlc(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("vlc")?;
         Ok(())
     }
 
-    fn install_vm_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vm_tools(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_vscode(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("vscode")?;
         Ok(())
     }
 
-    async fn install_wifi(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_wifi(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_window_manager(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_window_manager(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_wget(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_wget(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("wget")?;
         Ok(())
     }
 
-    fn install_wine(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_wine(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn install_xcode(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn install_xcode(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_zsh(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn set_development_shortcuts(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn set_development_shortcuts(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn set_development_environment_settings(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn set_development_environment_settings(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn update_os(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn update_os(&self) -> Result<(), Box<dyn Error>> {
         self.execute("choco upgrade all", true)?;
         Ok(())
     }
 
-    fn update_os_repo(&self) -> Result<(), Box<dyn std::error::Error>> {
+    fn update_os_repo(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 }

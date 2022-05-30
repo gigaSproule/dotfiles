@@ -7,8 +7,8 @@ use mac::Mac as sys;
 #[cfg(target_os = "windows")]
 use windows::Windows as sys;
 
-use crate::{config::parse, install::install};
 use crate::system::System;
+use crate::{config::parse, install::install};
 
 #[cfg(target_os = "linux")]
 mod arch;
