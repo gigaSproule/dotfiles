@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let system = sys::new(&config);
-    install(config, &system).await
+    install(&config, &system).await
 }
 
 fn print_help() {

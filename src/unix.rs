@@ -90,6 +90,7 @@ pub(crate) fn execute_path(
     command: &str,
     super_user: bool,
     path: &str,
+    dry_run: bool
 ) -> Result<String, Box<dyn std::error::Error>> {
     let mut actual_command = if !super_user {
         let split = command.split_whitespace().collect::<Vec<&str>>();
@@ -114,7 +115,7 @@ pub(crate) fn execute_path(
     };
 
     let child = actual_command.current_dir(path);
-    system::run_command(child)
+    system::run_command(child, dry_run)
 }
 
 pub(crate) fn recursively_chmod(

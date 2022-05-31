@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use async_trait::async_trait;
 
@@ -20,13 +20,15 @@ impl<'a> Windows<'a> {
         command: &str,
         _super_user: bool,
     ) -> Result<String, Box<dyn Error>> {
-        let mut command = Command::new("powershell").arg(command);
-        system::run_command(command)
+        let mut powershell = Command::new("powershell");
+        let command = powershell.arg(command);
+        system::run_command(command, self.config.dry_run)
     }
 
     fn execute_wsl(&self, command: &str) -> Result<String, Box<dyn Error>> {
-        let mut command = Command::new("wsl").arg(command);
-        system::run_command(command)
+        let mut wsl = Command::new("wsl");
+        let command = wsl.arg(command);
+        system::run_command(command, self.config.dry_run)
     }
 
     fn install_wsl(&self, application: &str) -> Result<String, Box<dyn Error>> {
@@ -44,8 +46,9 @@ impl<'a> System<'a> for Windows<'a> {
     }
 
     fn execute(&self, command: &str, _super_user: bool) -> Result<String, Box<dyn Error>> {
-        let child = Command::new("cmd").arg(command);
-        system::run_command(child)
+        let mut cmd = Command::new("cmd");
+        let child = cmd.arg(command);
+        system::run_command(child, self.config.dry_run)
     }
 
     fn get_home_dir(&self) -> String {
@@ -341,7 +344,9 @@ impl<'a> System<'a> for Windows<'a> {
         self.execute_powershell("refreshenv", false)?;
         self.execute("nvm install latest", false)?;
         let stdout = &self.execute("nvm list", false);
-        let output = stdout.expect("Could not find any installed npm versions");
+        let output = stdout
+            .as_ref()
+            .expect("Could not find any installed npm versions");
         for output_version in output.split("\n") {
             if output_version != "" {
                 self.execute(

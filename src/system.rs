@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -10,9 +11,9 @@ use mockall::automock;
 use crate::config::Config;
 
 #[async_trait]
-#[automock]
-pub(crate) trait System: Send + Sync + 'static {
-    fn new(config: &Config) -> Self;
+// #[automock]
+pub(crate) trait System<'s>: Send + Sync {
+    fn new(config: &'s Config) -> Self;
 
     /// Executes the given command. It will run it as a super user if `super_user` is `true`.
     ///
@@ -394,10 +395,22 @@ pub(crate) fn get_home_dir() -> String {
 /// use system;
 ///
 /// let mut command = Command::new("ls").args(vec!["-la", "."]);
-/// system::run_command(command);
+/// system::run_command(command, false);
 /// ```
-pub(crate) fn run_command(command: &mut Command) -> Result<String, Box<dyn std::error::Error>> {
-    let mut child = command
+pub(crate) fn run_command(
+    command: &mut Command,
+    dry_run: bool,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let mut dry_run_command = Command::new("echo");
+    let actual_command = if dry_run {
+        let args: Vec<&OsStr> = command.get_args().collect();
+        let program = command.get_program();
+        dry_run_command.arg(format!("{}", program.to_str().unwrap()))
+    } else {
+        command
+    };
+
+    let mut child = actual_command
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -443,7 +456,9 @@ pub(crate) fn run_command(command: &mut Command) -> Result<String, Box<dyn std::
 ///
 /// system::setup_codecs();
 /// ```
-pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn setup_codecs<'s>(
+    system: &impl System<'s>,
+) -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(format!("{}/.config/aacs", system.get_home_dir()).as_str())?;
     download_file(
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
@@ -465,7 +480,9 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn std
 /// let system: system::System = ...
 /// system::setup_git_config(&system);
 /// ```
-pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn setup_git_config<'s>(
+    system: &impl System<'s>,
+) -> Result<(), Box<dyn std::error::Error>> {
     system.execute("git config --global user.name \"Benjamin Sproule\"", false)?;
     system.execute(
         "git config --global user.email benjamin@benjaminsproule.com",
