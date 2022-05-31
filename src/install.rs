@@ -1,11 +1,9 @@
-use std::error::Error;
-
 use crate::config::Config;
 use crate::system::System;
 
 pub(crate) async fn install<'s>(
     config: &'s Config,
-    system: &impl System,
+    system: &dyn System,
 ) -> Result<(), Box<dyn std::error::Error>> {
     system.setup_user_bin()?;
 

@@ -1,13 +1,5 @@
 use std::env;
 
-#[cfg(target_os = "linux")]
-use linux::Linux as sys;
-#[cfg(target_os = "macos")]
-use mac::Mac as sys;
-#[cfg(target_os = "windows")]
-use windows::Windows as sys;
-
-use crate::system::System;
 use crate::{config::parse, install::install};
 
 #[cfg(target_os = "linux")]
@@ -44,31 +36,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // let system = sys::new(&config);
     let system = get_system(&config);
-    install(&config, &system).await
+    install(&config, &*system).await
 }
 
 #[cfg(target_os = "linux")]
-fn get_system<'s>(config: &'s config::Config) -> impl system::System + 's {
+fn get_system<'s>(config: &'s config::Config) -> Box<dyn system::System + 's> {
     let sudo_user = env::var("SUDO_USER");
     if sudo_user.is_err() {
         panic!("Need to run this with sudo.")
     }
     let distro_str = whoami::distro();
     match distro_str {
-        distro if distro == "Arch Linux" => Arch::new(config),
-        distro if distro.starts_with("Ubuntu") => Ubuntu::new(config),
+        distro if distro == "Arch Linux" => Box::new(arch::Arch::new(config)),
+        distro if distro.starts_with("Ubuntu") => Box::new(ubuntu::Ubuntu::new(config)),
         _ => panic!("Unable to determine the distro {}.", distro_str),
     }
 }
 
 #[cfg(target_os = "macos")]
-fn get_system<'s>(config: &'s config::Config) -> impl system::System + 's {
-    mac::Mac::<'s>::new(config)
+fn get_system<'s>(config: &'s config::Config) -> Box<dyn system::System + 's> {
+    Box::new(mac::Mac::<'s>::new(config))
 }
 
 #[cfg(target_os = "windows")]
-fn get_system<'s>(config: &'s config::Config) -> impl system::System + 's {
-    windows::Windows::<'s>::new(config)
+fn get_system<'s>(config: &'s config::Config) -> Box<dyn system::System + 's> {
+    Box::new(windows::Windows::<'s>::new(config))
 }
 
 fn print_help() {
