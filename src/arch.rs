@@ -44,7 +44,7 @@ impl<'s> System for Arch<'s> {
     }
 
     fn get_home_dir(&self) -> String {
-        linux::get_home_dir(self)
+        linux::get_home_dir()
     }
 
     fn install_applications(&self, application: Vec<&str>) -> Result<String, Box<dyn Error>> {
@@ -423,7 +423,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn Error>> {
+    async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         self.install_applications(vec!["base-devel", "ttf-dejavu"])?;
 
         let original_pacman_file = File::open("/etc/pacman.conf")?;

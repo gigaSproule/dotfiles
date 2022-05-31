@@ -7,9 +7,9 @@ use std::path::Path;
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Ubuntu<'s> {
     config: &'s Config,
@@ -85,7 +85,7 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn get_home_dir(&self) -> String {
-        linux::get_home_dir(self)
+        linux::get_home_dir()
     }
 
     fn install_applications(
@@ -186,7 +186,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-            .await?;
+        .await?;
 
         let mut file = OpenOptions::new()
             .append(true)
@@ -219,7 +219,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
             "google-chrome.deb",
         )
-            .await?;
+        .await?;
         self.execute("dpkg -i google-chrome-stable_current_amd64.deb", true)?;
         self.install_application("chrome-gnome-shell")?;
         fs::remove_file("google-chrome.deb")?;
@@ -402,7 +402,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
             "/usr/local/bin/minikube",
         )
-            .await?;
+        .await?;
         unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
         Ok(())
     }
@@ -427,7 +427,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
             "nvm-install.sh",
         )
-            .await?;
+        .await?;
         unix::recursively_chmod("nvm-install.sh", &0o755, &0o755)?;
         self.execute("./nvm-install.sh", false)?;
         fs::remove_file("nvm-install.sh")?;
@@ -440,7 +440,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb",
             "nordvpn.deb",
         )
-            .await?;
+        .await?;
         self.install_application("./nordvpn.deb")?;
         self.update_os_repo()?;
         self.install_application("nordvpn")?;
@@ -530,7 +530,7 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.set_debconf(
             "ttf-mscorefonts-installer",
             "msttcorefonts/accepted-mscorefonts-eula",
@@ -570,7 +570,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://raw.githubusercontent.com/gusbemacbe/suru-plus/master/install.sh",
             "suru-plus-install.sh",
         )
-            .await?;
+        .await?;
         unix::recursively_chmod("suru-plus-install.sh", &0o755, &0o755)?;
         self.execute("./suru-plus-install.sh", true)?;
 

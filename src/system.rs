@@ -8,8 +8,6 @@ use std::process::Stdio;
 use async_trait::async_trait;
 use mockall::automock;
 
-use crate::config::Config;
-
 #[async_trait]
 #[automock]
 pub(crate) trait System: Send + Sync {
@@ -186,10 +184,7 @@ pub(crate) trait System: Send + Sync {
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    async fn install_system_extras(
-        &self,
-        config: &Config,
-    ) -> Result<(), Box<dyn std::error::Error>>;
+    async fn install_system_extras(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     async fn install_themes(&self) -> Result<(), Box<dyn std::error::Error>>;
 

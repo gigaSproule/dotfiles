@@ -425,7 +425,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn Error>> {
+    async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
         system::download_file("https://chocolatey.org/install.ps1", "install.ps1").await?;
         self.execute_powershell("iex .\\install.ps1", true)?;
@@ -441,7 +441,7 @@ impl<'s> System for Windows<'s> {
         self.execute("REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f", true)?;
         self.install_application("7zip")?;
         self.install_application("microsoft-windows-terminal")?;
-        if config.development {
+        if self.config.development {
             self.execute_powershell("wsl --install", true)?;
         }
         Ok(())

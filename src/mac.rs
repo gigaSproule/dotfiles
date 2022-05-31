@@ -425,7 +425,7 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn Error>> {
+    async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         system::download_file(
             "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
             "brew-install",

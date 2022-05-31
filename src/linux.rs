@@ -1,18 +1,13 @@
-use std::error::Error;
+use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
-use std::{env, fs};
 
-use async_trait::async_trait;
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::arch::Arch;
-use crate::config::Config;
 use crate::system::file_contains;
 use crate::system::System;
-use crate::ubuntu::Ubuntu;
 use crate::unix;
 use crate::unix::get_username;
 
@@ -29,9 +24,9 @@ use crate::unix::get_username;
 ///
 /// linux::get_home_dir();
 /// ```
-pub(crate) fn get_home_dir(system: &impl System) -> String {
-    let passwd_entry = unix::execute(&format!("getent passwd {}", get_username()), true, false)
-        .unwrap();
+pub(crate) fn get_home_dir() -> String {
+    let passwd_entry =
+        unix::execute(&format!("getent passwd {}", get_username()), true, false).unwrap();
     passwd_entry.split(":").nth(5).unwrap().to_string()
 }
 
