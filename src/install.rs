@@ -221,6 +221,7 @@ mod tests {
             browsers: true,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -249,7 +250,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -260,6 +261,7 @@ mod tests {
             browsers: false,
             development: true,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -332,7 +334,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -343,6 +345,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: true,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -371,7 +374,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -382,6 +385,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: true,
             gcp: false,
             help: false,
@@ -426,7 +430,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -437,6 +441,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: true,
             help: false,
@@ -457,7 +462,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -468,6 +473,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -492,7 +498,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -503,6 +509,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -551,7 +558,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -562,6 +569,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -582,7 +590,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -593,6 +601,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -649,7 +658,7 @@ mod tests {
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -660,6 +669,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -680,7 +690,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -691,6 +701,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -719,7 +730,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -730,6 +741,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -754,7 +766,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -765,6 +777,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -785,7 +798,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -796,6 +809,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -816,7 +830,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     #[test]
@@ -827,6 +841,7 @@ mod tests {
             browsers: false,
             development: false,
             docker: false,
+            dry_run: false,
             gaming: false,
             gcp: false,
             help: false,
@@ -847,7 +862,7 @@ mod tests {
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
 
-        assert!(rt.block_on(install(config, &mock_system)).is_ok());
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
     fn get_mock_system() -> MockSystem {

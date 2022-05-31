@@ -50,6 +50,7 @@ mod tests {
         assert_eq!(config.browsers, false);
         assert_eq!(config.development, false);
         assert_eq!(config.docker, false);
+        assert_eq!(config.dry_run, false);
         assert_eq!(config.gaming, false);
         assert_eq!(config.gcp, false);
         assert_eq!(config.help, false);
@@ -81,6 +82,12 @@ mod tests {
     fn parse_sets_docker_to_true() {
         let config = parse(vec!["--docker".to_string()]);
         assert_eq!(config.docker, true);
+    }
+
+    #[test]
+    fn parse_sets_dry_run_to_true() {
+        let config = parse(vec!["--dry-run".to_string()]);
+        assert_eq!(config.dry_run, true);
     }
 
     #[test]
@@ -167,6 +174,7 @@ mod tests {
             "--browsers".to_string(),
             "--development".to_string(),
             "--docker".to_string(),
+            "--dry-run".to_string(),
             "--gaming".to_string(),
             "--gcp".to_string(),
             "--help".to_string(),
@@ -184,6 +192,7 @@ mod tests {
         assert_eq!(config.browsers, true);
         assert_eq!(config.development, true);
         assert_eq!(config.docker, true);
+        assert_eq!(config.dry_run, true);
         assert_eq!(config.gaming, true);
         assert_eq!(config.gcp, true);
         assert_eq!(config.help, true);
