@@ -210,8 +210,6 @@ pub(crate) async fn install<'s>(
 #[cfg(test)]
 mod tests {
     use crate::system::MockSystem;
-    use async_trait::async_trait;
-    use mockall::{mock, predicate::eq};
 
     use super::*;
 
@@ -877,7 +875,7 @@ mod tests {
             .expect_install_system_extras()
             // .with(eq(config))
             .times(1)
-            .returning(|_passed_config| Box::pin(async { Ok(()) }));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system.expect_update_os().times(1).returning(|| Ok(()));
         mock_system
             .expect_install_window_manager()

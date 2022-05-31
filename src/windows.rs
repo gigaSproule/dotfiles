@@ -91,6 +91,11 @@ impl<'s> System for Windows<'s> {
 
     fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("cryptomator")?;
+        // Required for reading files on VFS mounts
+        system::download_file("https://github.com/dokan-dev/dokany/releases/download/v1.5.1.1000/DokanSetup.exe", "DokanSetup.exe").await?;
+        self.execute_powershell("Invoke-Expression -Command DokanSetup.exe /passive /norestart")?;
+        fs::remove_file("DokanSetup.exe")?;
+        println!("You will need to restart your machine for the kernel driver changes to take affect.");
         Ok(())
     }
 
