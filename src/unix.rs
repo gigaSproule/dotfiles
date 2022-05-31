@@ -74,6 +74,7 @@ pub(crate) fn add_variable_to_file(file: &str, key: &str, value: &str) -> Result
 pub(crate) fn execute(
     command: &str,
     super_user: bool,
+    dry_run: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     execute_path(
         command,
@@ -83,6 +84,7 @@ pub(crate) fn execute(
             .into_os_string()
             .into_string()
             .expect("Could not convert current directory path to a string"),
+        dry_run,
     )
 }
 
@@ -99,8 +101,6 @@ pub(crate) fn execute_path(
         args.extend(split);
         let mut return_command = Command::new("sudo");
         return_command.args(&args);
-        let joined = args.join(" ");
-        println!("sudo {}", &joined);
         return_command
     } else {
         let mut split = command.split_whitespace();
@@ -110,7 +110,6 @@ pub(crate) fn execute_path(
                 .expect("Could not find the first part of the command"),
         );
         return_command.args(split.collect::<Vec<&str>>());
-        println!("{}", command);
         return_command
     };
 

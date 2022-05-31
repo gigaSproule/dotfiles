@@ -30,8 +30,7 @@ use crate::unix::get_username;
 /// linux::get_home_dir();
 /// ```
 pub(crate) fn get_home_dir(system: &impl System) -> String {
-    let passwd_entry = system
-        .execute(&format!("getent passwd {}", get_username()), true)
+    let passwd_entry = unix::execute(&format!("getent passwd {}", get_username()), true, false)
         .unwrap();
     passwd_entry.split(":").nth(5).unwrap().to_string()
 }

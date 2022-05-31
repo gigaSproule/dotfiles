@@ -16,7 +16,7 @@ pub(crate) struct Ubuntu<'s> {
 }
 
 impl<'s> Ubuntu<'s> {
-    fn new(config: &'s Config) -> Self {
+    pub(crate) fn new(config: &'s Config) -> Self {
         Ubuntu { config }
     }
 
@@ -81,7 +81,7 @@ impl<'s> System for Ubuntu<'s> {
         command: &str,
         super_user: bool,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        unix::execute(command, super_user)
+        unix::execute(command, super_user, self.config.dry_run)
     }
 
     fn get_home_dir(&self) -> String {

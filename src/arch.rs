@@ -40,7 +40,7 @@ impl<'s> Arch<'s> {
 #[async_trait]
 impl<'s> System for Arch<'s> {
     fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
-        unix::execute(command, super_user)
+        unix::execute(command, super_user, self.config.dry_run)
     }
 
     fn get_home_dir(&self) -> String {
@@ -478,6 +478,7 @@ impl<'s> System for Arch<'s> {
                     .into_string()
                     .unwrap()
             ),
+            self.config.dry_run,
         )?;
         linux::setup_nas(self)?;
         Ok(())
