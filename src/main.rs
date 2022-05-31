@@ -42,8 +42,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    let system = sys::new(&config);
+    // let system = sys::new(&config);
+    let system = get_system(&config);
     install(&config, &system).await
+}
+
+#[cfg(target_os = "linux")]
+fn get_system<'s>(config: &'s config::Config) -> impl system::System + 's {
+    let sudo_user = env::var("SUDO_USER");
+    if sudo_user.is_err() {
+        panic!("Need to run this with sudo.")
+    }
+    let distro_str = whoami::distro();
+    match distro_str {
+        distro if distro == "Arch Linux" => Arch::new(config),
+        distro if distro.starts_with("Ubuntu") => Ubuntu::new(config),
+        _ => panic!("Unable to determine the distro {}.", distro_str),
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn get_system<'s>(config: &'s config::Config) -> impl system::System + 's {
+    mac::Mac::<'s>::new(config)
+}
+
+#[cfg(target_os = "windows")]
+fn get_system<'s>(config: &'s config::Config) -> impl system::System + 's {
+    windows::Windows::<'s>::new(config)
 }
 
 fn print_help() {

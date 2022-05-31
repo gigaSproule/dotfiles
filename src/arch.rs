@@ -10,11 +10,17 @@ use crate::config::Config;
 use crate::system::System;
 use crate::{linux, system, unix};
 
-pub(crate) struct Arch {}
+pub(crate) struct Arch<'s> {
+    config: &'s Config,
+}
 
 static JAVA_HOME: &str = "/usr/lib/jvm/default";
 
-impl Arch {
+impl<'s> Arch<'s> {
+    pub(crate) fn new(config: &'s Config) -> Self {
+        Arch { config }
+    }
+
     fn aur_install_application(&self, application: &str) -> Result<String, Box<dyn Error>> {
         self.aur_install_applications(vec![application])
     }
@@ -32,11 +38,7 @@ impl Arch {
 }
 
 #[async_trait]
-impl System for Arch {
-    fn new(config: &Config) -> Self {
-        Arch {}
-    }
-
+impl<'s> System for Arch<'s> {
     fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
         unix::execute(command, super_user)
     }

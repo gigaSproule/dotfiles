@@ -1,9 +1,11 @@
+use std::error::Error;
+
 use crate::config::Config;
 use crate::system::System;
 
 pub(crate) async fn install<'s>(
     config: &'s Config,
-    system: &impl System<'s>,
+    system: &impl System,
 ) -> Result<(), Box<dyn std::error::Error>> {
     system.setup_user_bin()?;
 
@@ -210,8 +212,181 @@ pub(crate) async fn install<'s>(
 #[cfg(test)]
 mod tests {
     use crate::system::MockSystem;
+    use async_trait::async_trait;
+    use mockall::{mock, predicate::eq};
 
     use super::*;
+
+    // mock! {
+    //     MockSystem {}
+
+    //     #[async_trait]
+    //     impl<'s> System<'s> for MockSystem {
+    //         fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>>;
+
+    //         fn get_home_dir(&self) -> String;
+
+    //         fn install_applications<'a>(&self, applications: Vec<&'a str>) -> Result<String, Box<dyn Error>>;
+
+    //         fn install_android_studio(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_bash(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_blender(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_bluetooth(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_codecs(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_conemu(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_cryptomator(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_curl(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_discord(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_docker(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_dropbox(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_eclipse(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_epic_games(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_firefox(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_firmware_updater(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_google_drive(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_git(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_gimp(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_gpg(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_gradle(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_groovy(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_handbrake(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_inkscape(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_insync(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_intellij(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_jdk(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_keepassxc(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_kubectl(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_helm(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_latex(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_lutris(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_maven(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_makemkv(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_microcode(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_minikube(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_networking_tools(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_nextcloud_client(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_nodejs(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_obs_studio(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_onedrive(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_origin(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_powertop(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_python(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_rust(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_slack(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_spotify(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_steam(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_system_extras(&self, config: &Config) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_themes(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_tlp(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_tmux(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_vim(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_vlc(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_vm_tools(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_vscode(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_wifi(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_window_manager(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_wget(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_wine(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn install_xcode(&self) -> Result<(), Box<dyn Error>>;
+
+    //         async fn install_zsh(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn set_development_shortcuts(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn set_development_environment_settings(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn setup_user_bin(&self) -> Result<(), Box<dyn std::error::Error>>;
+
+    //         fn update_os(&self) -> Result<(), Box<dyn Error>>;
+
+    //         fn update_os_repo(&self) -> Result<(), Box<dyn Error>>;
+    //     }
+    // }
 
     #[test]
     fn test_install_browsers() {
@@ -236,7 +411,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_firefox()
             .times(1)
@@ -276,7 +451,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_gradle()
             .times(1)
@@ -360,7 +535,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_docker()
             .times(1)
@@ -400,7 +575,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_discord()
             .times(1)
@@ -456,7 +631,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_google_cloud_sdk()
             .times(1)
@@ -488,7 +663,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_gimp()
             .times(1)
@@ -524,7 +699,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_bluetooth()
             .times(1)
@@ -584,7 +759,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_blender()
             .times(1)
@@ -616,7 +791,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_dropbox()
             .times(1)
@@ -684,7 +859,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_obs_studio()
             .times(1)
@@ -716,7 +891,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_handbrake()
             .times(1)
@@ -756,7 +931,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_codecs()
             .times(1)
@@ -792,7 +967,7 @@ mod tests {
             vm: false,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_davinci_resolve()
             .times(1)
@@ -824,7 +999,7 @@ mod tests {
             vm: true,
             vpn: false,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_vm_tools()
             .times(1)
@@ -856,7 +1031,7 @@ mod tests {
             vm: false,
             vpn: true,
         };
-        let mut mock_system = get_mock_system();
+        let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_nordvpn()
             .times(1)
@@ -865,7 +1040,7 @@ mod tests {
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
-    fn get_mock_system() -> MockSystem {
+    fn get_mock_system<'s>(_config: &'s Config) -> MockSystem {
         let mut mock_system = MockSystem::new();
         mock_system
             .expect_setup_user_bin()
@@ -873,8 +1048,9 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_system_extras()
+            // .with(eq(config))
             .times(1)
-            .returning(|| Box::pin(async { Ok(()) }));
+            .returning(|_passed_config| Box::pin(async { Ok(()) }));
         mock_system.expect_update_os().times(1).returning(|| Ok(()));
         mock_system
             .expect_install_window_manager()

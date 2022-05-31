@@ -9,9 +9,19 @@ use crate::config::Config;
 use crate::system::{self, System};
 use crate::unix;
 
-pub(crate) struct Mac {}
+pub(crate) struct Mac<'s> {
+    config: &'s Config
+}
 
-impl Mac {
+impl<'s> Mac<'s> {
+    pub(crate) fn new(config: &'s Config) -> Self {
+        let sudo_user = env::var("SUDO_USER");
+        if sudo_user.is_err() {
+            panic!("Need to run this with sudo.")
+        }
+        Mac {}
+    }
+
     fn app_store_install_application(
         &self,
         application_id: &str,
@@ -29,15 +39,7 @@ impl Mac {
 }
 
 #[async_trait]
-impl System for Mac {
-    fn new(config: &Config) -> Self {
-        let sudo_user = env::var("SUDO_USER");
-        if sudo_user.is_err() {
-            panic!("Need to run this with sudo.")
-        }
-        Mac {}
-    }
-
+impl<'s> System for Mac<'s> {
     fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
         unix::execute(command, super_user)
     }

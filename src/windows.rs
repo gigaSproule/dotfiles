@@ -10,11 +10,18 @@ use crate::config::Config;
 use crate::system;
 use crate::system::System;
 
-pub(crate) struct Windows<'a> {
-    config: &'a Config,
+pub(crate) struct Windows<'s> {
+    config: &'s Config,
 }
 
-impl<'a> Windows<'a> {
+impl<'s> Windows<'s> {
+    pub(crate) fn new(config: &'s Config) -> Self {
+        if !is_elevated::is_elevated() {
+            panic!("Need to run this with administrator privileges.")
+        }
+        Windows { config }
+    }
+
     fn execute_powershell(
         &self,
         command: &str,
@@ -37,14 +44,7 @@ impl<'a> Windows<'a> {
 }
 
 #[async_trait]
-impl<'a> System<'a> for Windows<'a> {
-    fn new(config: &'a Config) -> Self {
-        if !is_elevated::is_elevated() {
-            panic!("Need to run this with administrator privileges.")
-        }
-        Windows { config }
-    }
-
+impl<'s> System for Windows<'s> {
     fn execute(&self, command: &str, _super_user: bool) -> Result<String, Box<dyn Error>> {
         let mut cmd = Command::new("cmd");
         let child = cmd.arg(command);

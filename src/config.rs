@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq)]
 pub(crate) struct Config {
     pub browsers: bool,
     pub development: bool,

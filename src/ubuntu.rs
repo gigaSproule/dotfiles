@@ -11,9 +11,15 @@ use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
 
-pub(crate) struct Ubuntu {}
+pub(crate) struct Ubuntu<'s> {
+    config: &'s Config,
+}
 
-impl Ubuntu {
+impl<'s> Ubuntu<'s> {
+    fn new(config: &'s Config) -> Self {
+        Ubuntu { config }
+    }
+
     fn add_apt_key(&self, url: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.execute(&format!("apt-key adv --fetch-keys {}", url), true)?;
         Ok(())
@@ -69,11 +75,7 @@ impl Ubuntu {
 }
 
 #[async_trait]
-impl System for Ubuntu {
-    fn new(config: &Config) -> Self {
-        Ubuntu {}
-    }
-
+impl<'s> System for Ubuntu<'s> {
     fn execute(
         &self,
         command: &str,
