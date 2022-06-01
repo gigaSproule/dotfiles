@@ -378,7 +378,7 @@ pub(crate) fn get_home_dir() -> String {
         .expect("Could not convert home directory to a &str")
 }
 
-/// Runs to given Command, printing out the std out and std error, returning a Result with a String of the joined std out and std error.
+/// Optionally runs to given Command (based on dry_run), optionally printing out the std out and std error (based on print_output), returning a Result with a String of the joined std out and std error.
 ///
 /// # Examples
 ///
@@ -388,10 +388,11 @@ pub(crate) fn get_home_dir() -> String {
 /// use system;
 ///
 /// let mut command = Command::new("ls").args(vec!["-la", "."]);
-/// system::run_command(command, false);
+/// system::run_command(command, true, false);
 /// ```
 pub(crate) fn run_command(
     command: &mut Command,
+    print_output: bool,
     dry_run: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let mut dry_run_command = Command::new("echo");
@@ -414,7 +415,7 @@ pub(crate) fn run_command(
         .spawn()
         .expect("Failed to execute process");
 
-    let mut output = Vec::new();
+    let mut output: Vec<String> = Vec::new();
 
     {
         let stdout = child.stdout.as_mut().expect("Wasn't stdout");
@@ -426,14 +427,18 @@ pub(crate) fn run_command(
         let stdout_lines = stdout_reader.lines();
         for line in stdout_lines {
             let string_line = line.unwrap();
-            println!("{}", &string_line);
+            if (print_output) {
+                println!("{}", &string_line);
+            }
             output.push(string_line);
         }
 
         let stderr_lines = stderr_reader.lines();
         for line in stderr_lines {
             let string_line = line.unwrap();
-            println!("{}", &string_line);
+            if (print_output) {
+                println!("{}", &string_line);
+            }
             output.push(string_line);
         }
     }

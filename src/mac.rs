@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::path::Path;
 use std::{env, fs};
 
 use async_trait::async_trait;
@@ -36,12 +37,42 @@ impl<'s> Mac<'s> {
     fn get_brew_prefix(&self) -> Result<String, Box<dyn Error>> {
         self.execute("brew --prefix", false)
     }
+
+    fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
+        let mut command = std::process::Command::new("osascript");
+        let arged = command.args(vec!["-e", &format!("id of application \"{}\"", app)]);
+        let osascript_output = crate::system::run_command(arged, false, false)?;
+        if !osascript_output.contains("execution error") {
+            return Ok(true);
+        }
+        let which_output = unix::execute(&format!("which {}", app), false, false, false)?;
+        if !which_output.is_empty() {
+            return Ok(true);
+        }
+        let mas_output = unix::execute(&format!("mas info {}", app), false, false, false)?;
+        if !mas_output.starts_with("No results found") {
+            return Ok(true);
+        }
+        for entry in fs::read_dir("/Applications") {
+            if entry.into_iter().any(|f| {
+                f.unwrap()
+                    .file_name()
+                    .to_str()
+                    .unwrap()
+                    .to_lowercase()
+                    .starts_with(&app.to_lowercase())
+            }) {
+                return Ok(true);
+            }
+        }
+        return Ok(false);
+    }
 }
 
 #[async_trait]
 impl<'s> System for Mac<'s> {
     fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
-        unix::execute(command, super_user, self.config.dry_run)
+        unix::execute(command, super_user, true, self.config.dry_run)
     }
 
     fn get_home_dir(&self) -> String {
@@ -53,7 +84,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("android-studio")?;
+        if !self.is_installed("android-studio")? {
+            self.cask_install_application("android-studio")?;
+        }
         Ok(())
     }
 
@@ -66,7 +99,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_blender(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("blender")?;
+        if !self.is_installed("blender")? {
+            self.cask_install_application("blender")?;
+        }
         Ok(())
     }
 
@@ -91,7 +126,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("cryptomator")?;
+        if !self.is_installed("cryptomator")? {
+            self.cask_install_application("cryptomator")?;
+        }
         Ok(())
     }
 
@@ -100,27 +137,37 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
-        open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")?;
+        if !self.is_installed("DaVinci Resolve")? {
+            open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")?;
+        }
         Ok(())
     }
 
     fn install_discord(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("discord")?;
+        if !self.is_installed("discord")? {
+            self.cask_install_application("discord")?;
+        }
         Ok(())
     }
 
     fn install_docker(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("docker")?;
+        if !self.is_installed("docker")? {
+            self.cask_install_application("docker")?;
+        }
         Ok(())
     }
 
     fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("dropbox")?;
+        if !self.is_installed("dropbox")? {
+            self.cask_install_application("dropbox")?;
+        }
         Ok(())
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("eclipse-java")?;
+        if !self.is_installed("eclipse")? {
+            self.cask_install_application("eclipse-java")?;
+        }
         Ok(())
     }
 
@@ -129,7 +176,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_firefox(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("firefox")?;
+        if !self.is_installed("firefox")? {
+            self.cask_install_application("firefox")?;
+        }
         Ok(())
     }
 
@@ -142,7 +191,9 @@ impl<'s> System for Mac<'s> {
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("google-chrome")?;
+        if !self.is_installed("Google Chrome")? {
+            self.cask_install_application("google-chrome")?;
+        }
         Ok(())
     }
 
@@ -151,28 +202,38 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_google_drive(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("google-drive")?;
+        if !self.is_installed("Google Drive")? {
+            self.cask_install_application("google-drive")?;
+        }
         Ok(())
     }
 
     fn install_git(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("git")?;
+        if !self.is_installed("git")? {
+            self.install_application("git")?;
+        }
         system::setup_git_config(self)?;
         Ok(())
     }
 
     fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("gimp")?;
+        if !self.is_installed("gimp")? {
+            self.cask_install_application("gimp")?;
+        }
         Ok(())
     }
 
     fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("gpg-suite")?;
+        if !self.is_installed("GPG Keychain")? {
+            self.cask_install_application("gpg-suite")?;
+        }
         Ok(())
     }
 
     fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["gradle", "gradle-completion"])?;
+        if !self.is_installed("gradle")? {
+            self.install_applications(vec!["gradle", "gradle-completion"])?;
+        }
         Ok(())
     }
 
@@ -185,17 +246,23 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("groovy")?;
+        if !self.is_installed("groovy")? {
+            self.install_application("groovy")?;
+        }
         Ok(())
     }
 
     fn install_handbrake(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("handbrake")?;
+        if !self.is_installed("handbrake")? {
+            self.cask_install_application("handbrake")?;
+        }
         Ok(())
     }
 
     fn install_inkscape(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("inkscape")?;
+        if !self.is_installed("inkscape")? {
+            self.cask_install_application("inkscape")?;
+        }
         Ok(())
     }
 
@@ -204,20 +271,29 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_intellij(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("intellij-idea")?;
+        if !self.is_installed("IntelliJ IDEA")? {
+            self.cask_install_application("intellij-idea")?;
+        }
         Ok(())
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("openjdk")?;
-        unix::symlink(
-            self,
-            &format!(
-                "{}/opt/openjdk/libexec/openjdk.jdk",
-                self.get_brew_prefix()?
-            ),
-            "/Library/Java/JavaVirtualMachines/openjdk.jdk",
-        )?;
+        if !Path::new(&format!(
+            "{}/opt/openjdk/libexec/openjdk.jdk",
+            self.get_brew_prefix()?
+        ))
+        .exists()
+        {
+            self.install_application("openjdk")?;
+            unix::symlink(
+                self,
+                &format!(
+                    "{}/opt/openjdk/libexec/openjdk.jdk",
+                    self.get_brew_prefix()?
+                ),
+                "/Library/Java/JavaVirtualMachines/openjdk.jdk",
+            )?;
+        }
         unix::set_java_home(self, ".zshrc", "$(/usr/libexec/java_home)")?;
         unix::set_java_home(self, ".bashrc", "$(/usr/libexec/java_home)")?;
         unix::add_to_path(self, ".zshrc", "$JAVA_HOME/bin")?;
@@ -226,7 +302,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_keepassxc(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("keepassxc")?;
+        if !self.is_installed("keepassxc")? {
+            self.cask_install_application("keepassxc")?;
+        }
         Ok(())
     }
 
@@ -247,7 +325,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_maven(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("maven")?;
+        if !self.is_installed("mvn")? {
+            self.install_application("maven")?;
+        }
         Ok(())
     }
 
@@ -260,7 +340,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("microsoft-edge")?;
+        if !self.is_installed("Microsoft Edge")? {
+            self.cask_install_application("microsoft-edge")?;
+        }
         Ok(())
     }
 
@@ -273,17 +355,26 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_networking_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["inetutils", "nmap"])?;
+        if !self.is_installed("telnet")? {
+            self.install_application("inetutils")?;
+        }
+        if !self.is_installed("nmap")? {
+            self.install_application("nmap")?;
+        }
         Ok(())
     }
 
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("nextcloud")?;
+        if !self.is_installed("nextcloud")? {
+            self.cask_install_application("nextcloud")?;
+        }
         Ok(())
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("nvm")?;
+        if !self.is_installed("nvm")? {
+            self.install_application("nvm")?;
+        }
         let brew_prefix = self.get_brew_prefix()?;
         let content = format!("export NVM_DIR=\"$HOME/.nvm\"\n\
         [ -s \"{}/opt/nvm/nvm.sh\" ] && . \"{}/opt/nvm/nvm.sh\"  # This loads nvm\n\
@@ -354,7 +445,9 @@ impl<'s> System for Mac<'s> {
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>> {
-        self.app_store_install_application("905953485")?;
+        if !self.is_installed("905953485")? {
+            self.app_store_install_application("905953485")?;
+        }
         Ok(())
     }
 
@@ -385,7 +478,14 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("python")?;
+        if !Path::new(&format!(
+            "{}/opt/python/libexec/bin",
+            self.get_brew_prefix()?
+        ))
+        .exists()
+        {
+            self.install_application("python")?;
+        }
         let content = format!(
             "export PATH=\"$PATH:{}/opt/python/libexec/bin\"",
             self.get_brew_prefix()?
@@ -396,8 +496,10 @@ impl<'s> System for Mac<'s> {
     }
 
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("rustup")?;
-        self.execute("rustup-init -y", true)?;
+        if !self.is_installed("rustup")? {
+            self.install_application("rustup")?;
+            self.execute("rustup-init -y", true)?;
+        }
         let content = "source $HOME/.cargo/env";
         unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), content)?;
         unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), content)?;
@@ -406,45 +508,57 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_slack(&self) -> Result<(), Box<dyn Error>> {
-        self.app_store_install_application("803453959")?;
+        if !self.is_installed("803453959")? {
+            self.app_store_install_application("803453959")?;
+        }
         Ok(())
     }
 
     fn install_spotify(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("spotify")?;
+        if !self.is_installed("spotify")? {
+            self.cask_install_application("spotify")?;
+        }
         Ok(())
     }
 
     fn install_steam(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("steam")?;
+        if !self.is_installed("steam")? {
+            self.cask_install_application("steam")?;
+        }
         Ok(())
     }
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("sweet-home3d")?;
+        if !self.is_installed("Sweet Home 3D")? {
+            self.cask_install_application("sweet-home3d")?;
+        }
         Ok(())
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
-        system::download_file(
-            "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
-            "brew-install",
-        )
-        .await?;
-        unix::recursively_chmod("brew-install", &0o755, &0o755)?;
-        self.execute("NONINTERACTIVE=1 ./brew-install", false)?;
-        fs::remove_file("brew-install")?;
+        if !self.is_installed("bew")? {
+            system::download_file(
+                "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
+                "brew-install",
+            )
+            .await?;
+            unix::recursively_chmod("brew-install", &0o755, &0o755)?;
+            self.execute("NONINTERACTIVE=1 ./brew-install", false)?;
+            fs::remove_file("brew-install")?;
+        }
 
         let zshrc = format!("{}/.zshrc", self.get_home_dir());
-        let mut zshrc_file = OpenOptions::new().append(true).open(&zshrc)?;
-        writeln!(zshrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        unix::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
 
         let bashrc = format!("{}/.bashrc", self.get_home_dir());
-        let mut bashrc_file = OpenOptions::new().append(true).open(&bashrc)?;
-        writeln!(bashrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        unix::add_to_file(&bashrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
 
-        self.install_application("mas")?;
-        self.cask_install_application("scroll-reverser")?;
+        if !self.is_installed("mas")? {
+            self.install_application("mas")?;
+        }
+        if !self.is_installed("Scroll Reverser")? {
+            self.cask_install_application("scroll-reverser")?;
+        }
         if cfg!(target_arch = "aarch64") {
             self.execute("softwareupdate --install-rosetta --agree-to-license", true)?;
         }
@@ -460,12 +574,14 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_tmux(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["tmux", "reattach-to-user-namespace"])?;
+        if !self.is_installed("tmux")? {
+            self.install_application("tmux")?;
+        }
+        if !self.is_installed("reattach-to-user-namespace")? {
+            self.install_application("reattach-to-user-namespace")?;
+        }
         unix::setup_tmux(self)?;
-        let mut file = OpenOptions::new()
-            .append(true)
-            .open(format!("{}/.tmux.conf", self.get_home_dir()))?;
-        writeln!(file, "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'")?;
+        unix::add_to_file(&format!("{}/.tmux.conf", self.get_home_dir()), "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'")?;
         Ok(())
     }
 
@@ -474,7 +590,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("vlc")?;
+        if !self.is_installed("vlc")? {
+            self.cask_install_application("vlc")?;
+        }
         Ok(())
     }
 
@@ -483,7 +601,9 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_vscode(&self) -> Result<(), Box<dyn Error>> {
-        self.cask_install_application("visual-studio-code")?;
+        if !self.is_installed("Visual Studio Code")? {
+            self.cask_install_application("visual-studio-code")?;
+        }
         Ok(())
     }
 
@@ -504,17 +624,20 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_xcode(&self) -> Result<(), Box<dyn Error>> {
-        self.app_store_install_application("497799835")?;
+        if !self.is_installed("497799835")? {
+            self.app_store_install_application("497799835")?;
+        }
         Ok(())
     }
 
     async fn install_zsh(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["zsh", "zsh-autosuggestions"])?;
+        if !Path::new(&format!("{}/bin/zsh", self.get_brew_prefix()?)).exists() {
+            self.install_applications(vec!["zsh", "zsh-autosuggestions"])?;
+        }
         unix::setup_zsh(self, Some(&format!("{}/bin/zsh", self.get_brew_prefix()?))).await?;
 
         let zshrc = format!("{}/.zshrc", self.get_home_dir());
-        let mut zshrc_file = OpenOptions::new().append(true).open(&zshrc)?;
-        writeln!(zshrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        unix::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
 
         Ok(())
     }

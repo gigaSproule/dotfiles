@@ -3,6 +3,7 @@ use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 use std::process::Command;
 
 use nix::unistd::{chown, Gid, Uid};
@@ -23,6 +24,16 @@ pub(crate) fn get_username() -> String {
     env::var("SUDO_USER").unwrap()
 }
 
+/// Adds the content to the file, only if it doesn't already exist within the file.
+///
+/// # Example
+///
+/// ```no_run
+/// use unix;
+///
+/// unix::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will add to the file
+/// unix::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will not do anything
+/// ```
 pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Error> {
     if !system::file_contains(file, content) {
         let mut actual_file = OpenOptions::new().append(true).open(&file)?;
@@ -31,7 +42,24 @@ pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Erro
     Ok(())
 }
 
-pub(crate) fn add_to_path(system: &impl System, file: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+/// Adds the path to the PATH environment variable in the file, only if it doesn't already exist within the file.
+///
+/// # Example
+///
+/// ```no_run
+/// use system;
+/// use unix;
+///
+/// let system = ...
+///
+/// unix::add_to_path(&system, ".zshrc", "/path/to/application"); // Will add to the file
+/// unix::add_to_path(&system, ".zshrc", "/path/to/application"); // Will not do anything
+/// ```
+pub(crate) fn add_to_path(
+    system: &impl System,
+    file: &str,
+    path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     if system::file_contains(file, "export PATH") {
         let original_file = File::open(file)?;
         let original_lines = BufReader::new(original_file).lines();
@@ -52,18 +80,31 @@ pub(crate) fn add_to_path(system: &impl System, file: &str, path: &str) -> Resul
         let mut new_file = OpenOptions::new().write(true).open(file)?;
         new_file.write_all(new_lines.join("\n").as_bytes())?;
     } else {
-        let mut append_file = OpenOptions::new().append(true).open(format!(
-            "{}/{}",
-            system.get_home_dir(),
-            file
-        ))?;
+        let mut append_file =
+            OpenOptions::new()
+                .append(true)
+                .open(format!("{}/{}", system.get_home_dir(), file))?;
         writeln!(append_file, "export PATH=$PATH:{}\n", path)?;
     }
     std::env::set_var("PATH", format!("{}:{}", std::env::var("PATH")?, path));
     Ok(())
 }
 
-pub(crate) fn add_variable_to_file(file: &str, key: &str, value: &str) -> Result<(), std::io::Error> {
+/// Adds the key and value as an exported variable in the file, only if it doesn't already exist within the file.
+///
+/// # Example
+///
+/// ```no_run
+/// use unix;
+///
+/// unix::add_variable_to_file(".zshrc", "MY_VAR", "my value"); // Will add to the file
+/// unix::add_variable_to_file(".zshrc", "MY_VAR", "my value"); // Will not do anything
+/// ```
+pub(crate) fn add_variable_to_file(
+    file: &str,
+    key: &str,
+    value: &str,
+) -> Result<(), std::io::Error> {
     if !system::file_contains(&file, key) {
         let mut actual_file = OpenOptions::new().append(true).open(&file)?;
         writeln!(actual_file, "export {}={}", key, value)?;
@@ -74,6 +115,7 @@ pub(crate) fn add_variable_to_file(file: &str, key: &str, value: &str) -> Result
 pub(crate) fn execute(
     command: &str,
     super_user: bool,
+    print_output: bool,
     dry_run: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     execute_path(
@@ -84,6 +126,7 @@ pub(crate) fn execute(
             .into_os_string()
             .into_string()
             .expect("Could not convert current directory path to a string"),
+        print_output,
         dry_run,
     )
 }
@@ -92,7 +135,8 @@ pub(crate) fn execute_path(
     command: &str,
     super_user: bool,
     path: &str,
-    dry_run: bool
+    print_output: bool,
+    dry_run: bool,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let mut actual_command = if !super_user {
         let split = command.split_whitespace().collect::<Vec<&str>>();
@@ -114,7 +158,7 @@ pub(crate) fn execute_path(
     };
 
     let child = actual_command.current_dir(path);
-    system::run_command(child, dry_run)
+    system::run_command(child, print_output, dry_run)
 }
 
 pub(crate) fn recursively_chmod(
@@ -126,7 +170,11 @@ pub(crate) fn recursively_chmod(
         let entr = entry?;
         let child_path = entr.path();
         if entr.file_type().is_dir() {
-            fs::set_permissions(child_path, fs::Permissions::from_mode(*directory_permission)).unwrap();
+            fs::set_permissions(
+                child_path,
+                fs::Permissions::from_mode(*directory_permission),
+            )
+            .unwrap();
         } else {
             fs::set_permissions(child_path, fs::Permissions::from_mode(*file_permission)).unwrap();
         }
@@ -152,7 +200,24 @@ pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(
     Ok(())
 }
 
-pub(crate) fn set_java_home(system: &impl System, file: &str, jdk_path: &str) -> Result<(), std::io::Error> {
+/// Sets JAVA_HOME to the jdk_path in the file, only if it doesn't already exist within the file.
+///
+/// # Example
+///
+/// ```no_run
+/// use system;
+/// use unix;
+///
+/// let system = ...
+///
+/// unix::set_java_home(&system, ".zshrc", "/path/to/jdk"); // Will add to the file
+/// unix::set_java_home(&system, ".zshrc", "/path/to/jdk"); // Will not do anything
+/// ```
+pub(crate) fn set_java_home(
+    system: &impl System,
+    file: &str,
+    jdk_path: &str,
+) -> Result<(), std::io::Error> {
     let path = format!("{}/{}", system.get_home_dir(), file);
     println!("Appending JAVA_HOME as {} to {}", jdk_path, &path);
     add_variable_to_file(&path, "JAVA_HOME", jdk_path)?;
@@ -160,29 +225,35 @@ pub(crate) fn set_java_home(system: &impl System, file: &str, jdk_path: &str) ->
     Ok(())
 }
 
-pub(crate) fn setup_bash(
-    system: &impl System,
-) -> Result<(), Box<dyn std::error::Error>> {
+/// Creates the .bashrc file, or overwrites it if it already exists, and creates a .bashrc.custom file if it does not exist, to put in custom setup.
+///
+/// # Example
+///
+/// ```no_run
+/// use system;
+/// use unix;
+///
+/// let system = ...
+///
+/// unix::setup_bash(&system); // Will add to the file
+/// ```
+pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
     let home_dir = system.get_home_dir();
     let bashrc = format!("{}/.bashrc", home_dir);
     println!("Creating bashrc at {}", &bashrc);
-    let mut bashrc_file = OpenOptions::new()
-        .create(true)
-        .write(true)
-        .open(&bashrc)?;
-    writeln!(bashrc_file, "export PATH=$PATH:${{HOME}}/bin:${{HOME}}/.local/bin")?;
+    let mut bashrc_file = OpenOptions::new().create(true).write(true).open(&bashrc)?;
+    writeln!(
+        bashrc_file,
+        "export PATH=$PATH:${{HOME}}/bin:${{HOME}}/.local/bin"
+    )?;
     writeln!(bashrc_file, "")?;
 
     let user_id = get_user_id();
     let group_id = get_group_id();
-    recursively_chown(
-        &bashrc,
-        &user_id,
-        &group_id,
-    )?;
+    recursively_chown(&bashrc, &user_id, &group_id)?;
 
     let bashrc_custom = format!("{}/.bashrc.custom", home_dir);
-    let bashrc_custom_path = std::path::Path::new(&bashrc_custom);
+    let bashrc_custom_path = Path::new(&bashrc_custom);
     if !bashrc_custom_path.exists() {
         println!("Creating bashrc custom at {}", bashrc_custom);
         let mut bashrc_custom_file = OpenOptions::new()
@@ -197,15 +268,23 @@ pub(crate) fn setup_bash(
 
         let user_id = get_user_id();
         let group_id = get_group_id();
-        recursively_chown(
-            &bashrc_custom,
-            &user_id,
-            &group_id,
-        )?;
+        recursively_chown(&bashrc_custom, &user_id, &group_id)?;
     }
     Ok(())
 }
 
+/// Creates the .tmux.conf file, or overwrites it if it already exists, and creates a .tmux.custom.conf file if it does not exist, to put in custom setup.
+///
+/// # Example
+///
+/// ```no_run
+/// use system;
+/// use unix;
+///
+/// let system = ...
+///
+/// unix::setup_tmux(&system); // Will add to the file
+/// ```
 pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     let tmux_conf = format!("{}/.tmux.conf", system.get_home_dir());
     println!("Creating tmux conf at {}", tmux_conf);
@@ -312,14 +391,10 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
 
     let user_id = get_user_id();
     let group_id = get_group_id();
-    recursively_chown(
-        &tmux_conf,
-        &user_id,
-        &group_id,
-    )?;
+    recursively_chown(&tmux_conf, &user_id, &group_id)?;
 
     let tmux_conf_custom = format!("{}/.tmux.custom.conf", system.get_home_dir());
-    let tmux_conf_custom_path = std::path::Path::new(&tmux_conf_custom);
+    let tmux_conf_custom_path = Path::new(&tmux_conf_custom);
     if !tmux_conf_custom_path.exists() {
         println!("Creating tmux custom conf at {}", tmux_conf_custom);
         let mut tmux_conf_custom_file = OpenOptions::new()
@@ -334,16 +409,24 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
 
         let user_id = get_user_id();
         let group_id = get_group_id();
-        recursively_chown(
-            &tmux_conf_custom,
-            &user_id,
-            &group_id,
-        )?;
+        recursively_chown(&tmux_conf_custom, &user_id, &group_id)?;
     }
 
     Ok(())
 }
 
+/// Creates the .zshrc file, or overwrites it if it already exists, and creates a .zshrc.custom file if it does not exist, to put in custom setup.
+///
+/// # Example
+///
+/// ```no_run
+/// use system;
+/// use unix;
+///
+/// let system = ...
+///
+/// unix::setup_zsh(&system); // Will add to the file
+/// ```
 pub(crate) async fn setup_zsh(
     system: &impl System,
     zsh_bin: Option<&str>,
@@ -352,7 +435,8 @@ pub(crate) async fn setup_zsh(
     system::download_file(
         "https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh",
         "oh-my-zsh.sh",
-    ).await?;
+    )
+    .await?;
     recursively_chmod("./oh-my-zsh.sh", &0o755, &0o755)?;
     system.execute("./oh-my-zsh.sh", false)?;
     system.execute(&format!("chsh -s {}", zsh), true)?;
@@ -415,7 +499,10 @@ pub(crate) async fn setup_zsh(
     writeln!(zshrc_file, "")?;
     writeln!(zshrc_file, "function migrateGitRepo() {{")?;
     writeln!(zshrc_file, "    if [ -z $1 ]; then")?;
-    writeln!(zshrc_file, "        echo \"Please provide the new git repo URL\"")?;
+    writeln!(
+        zshrc_file,
+        "        echo \"Please provide the new git repo URL\""
+    )?;
     writeln!(zshrc_file, "        return")?;
     writeln!(zshrc_file, "    fi")?;
     writeln!(zshrc_file, "")?;
@@ -439,14 +526,10 @@ pub(crate) async fn setup_zsh(
 
     let user_id = get_user_id();
     let group_id = get_group_id();
-    recursively_chown(
-        &zshrc,
-        &user_id,
-        &group_id,
-    )?;
+    recursively_chown(&zshrc, &user_id, &group_id)?;
 
     let zshrc_custom = format!("{}/.zshrc.custom", system.get_home_dir());
-    let zshrc_custom_path = std::path::Path::new(&zshrc_custom);
+    let zshrc_custom_path = Path::new(&zshrc_custom);
     if !zshrc_custom_path.exists() {
         println!("Creating zshrc custom at {}", zshrc_custom);
         let mut zshrc_custom_file = OpenOptions::new()
@@ -461,15 +544,15 @@ pub(crate) async fn setup_zsh(
 
         let user_id = get_user_id();
         let group_id = get_group_id();
-        recursively_chown(
-            &zshrc_custom,
-            &user_id,
-            &group_id,
-        )?;
+        recursively_chown(&zshrc_custom, &user_id, &group_id)?;
     }
     Ok(())
 }
 
-pub(crate) fn symlink(system: &impl System, source: &str, destination: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub(crate) fn symlink(
+    system: &impl System,
+    source: &str,
+    destination: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
     system.execute(&format!("ln -sfn {} {}", source, destination), true)
 }
