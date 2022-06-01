@@ -1,7 +1,7 @@
 use std::error::Error;
-use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
+use std::{env, fs};
 
 use async_trait::async_trait;
 
@@ -10,7 +10,7 @@ use crate::system::{self, System};
 use crate::unix;
 
 pub(crate) struct Mac<'s> {
-    config: &'s Config
+    config: &'s Config,
 }
 
 impl<'s> Mac<'s> {
@@ -19,7 +19,7 @@ impl<'s> Mac<'s> {
         if sudo_user.is_err() {
             panic!("Need to run this with sudo.")
         }
-        Mac {}
+        Mac { config }
     }
 
     fn app_store_install_application(
@@ -41,7 +41,7 @@ impl<'s> Mac<'s> {
 #[async_trait]
 impl<'s> System for Mac<'s> {
     fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
-        unix::execute(command, super_user)
+        unix::execute(command, super_user, self.config.dry_run)
     }
 
     fn get_home_dir(&self) -> String {
@@ -388,10 +388,10 @@ impl<'s> System for Mac<'s> {
         self.install_application("python")?;
         let content = format!(
             "export PATH=\"$PATH:{}/opt/python/libexec/bin\"",
-            self.brew_prefix()?
+            self.get_brew_prefix()?
         );
-        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content);
-        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content);
+        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content)?;
+        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content)?;
         Ok(())
     }
 
