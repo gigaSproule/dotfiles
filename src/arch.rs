@@ -35,12 +35,20 @@ impl<'s> Arch<'s> {
     fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
         self.execute(&format!("systemctl enable service {}", service), true)
     }
+
+    fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
+        let output = unix::execute(&format!("pacman -Qi {}", app), false, false, false);
+        if !output?.ends_with("was not found") {
+            return Ok(true);
+        }
+        Ok(false)
+    }
 }
 
 #[async_trait]
 impl<'s> System for Arch<'s> {
     fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
-        unix::execute(command, super_user, self.config.dry_run)
+        unix::execute(command, super_user, true, self.config.dry_run)
     }
 
     fn get_home_dir(&self) -> String {
@@ -55,7 +63,9 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("android-studio")?;
+        if !self.is_installed("android-studio")? {
+            self.aur_install_application("android-studio")?;
+        }
         Ok(())
     }
 
@@ -65,33 +75,43 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_blender(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("blender")?;
+        if !self.is_installed("blender")? {
+            self.install_application("blender")?;
+        }
         Ok(())
     }
 
     fn install_bluetooth(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["bluez", "bluez-utils"])?;
+        if !self.is_installed("bluez")? {
+            self.install_application("bluez")?;
+        }
+        if !self.is_installed("bluez-utils")? {
+            self.install_application("bluez-utils")?;
+        }
         self.enable_service("bluetooth")?;
         Ok(())
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec![
-            "libdvdread",
-            "libdvdcss",
-            "libdvdnav",
-            "libbluray",
-            "libaacs",
-            "x264",
-            "x265",
-            "xvidcore",
-            "libmpeg2",
-            "svt-av1",
-            "libvpx",
-            "libtheora",
-            "gst-plugins-ugly",
-            "gst-libav",
-        ])?;
+        // TOOD: Break this down
+        if !self.is_installed("bluez")? {
+            self.install_applications(vec![
+                "libdvdread",
+                "libdvdcss",
+                "libdvdnav",
+                "libbluray",
+                "libaacs",
+                "x264",
+                "x265",
+                "xvidcore",
+                "libmpeg2",
+                "svt-av1",
+                "libvpx",
+                "libtheora",
+                "gst-plugins-ugly",
+                "gst-libav",
+            ])?;
+        }
         system::setup_codecs(self).await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
@@ -110,39 +130,56 @@ impl<'s> System for Arch<'s> {
     fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         // Required as a dependency for cryptomator
         self.install_jdk()?;
-        self.aur_install_application("cryptomator")?;
+        if !self.is_installed("cryptomator")? {
+            self.aur_install_application("cryptomator")?;
+        }
         Ok(())
     }
 
     fn install_curl(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("curl")?;
+        if !self.is_installed("curl")? {
+            self.install_application("curl")?;
+        }
         Ok(())
     }
 
     fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("davinci-resolve-studio")?;
+        if !self.is_installed("davinci-resolve-studio")? {
+            self.aur_install_application("davinci-resolve-studio")?;
+        }
         linux::setup_davinci_resolve(self)?;
         Ok(())
     }
 
     fn install_discord(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("discord")?;
+        if !self.is_installed("discord")? {
+            self.install_application("discord")?;
+        }
         Ok(())
     }
 
     fn install_docker(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("docker")?;
+        if !self.is_installed("docker")? {
+            self.install_application("docker")?;
+        }
         linux::setup_docker(self)?;
         Ok(())
     }
 
     fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["dropbox", "nautilus-dropbox"])?;
+        if !self.is_installed("dropbox")? {
+            self.install_application("dropbox")?;
+        }
+        if !self.is_installed("nautilus-dropbox")? {
+            self.install_application("nautilus-dropbox")?;
+        }
         Ok(())
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("eclipse-jee")?;
+        if !self.is_installed("eclipse-jee")? {
+            self.aur_install_application("eclipse-jee")?;
+        }
         if Path::new("/opt/eclipse").exists() {
             fs::create_dir_all("/opt/eclipse")?;
         }
@@ -153,11 +190,10 @@ impl<'s> System for Arch<'s> {
         )
         .await?;
 
-        let mut file = OpenOptions::new()
-            .append(true)
-            .open("/opt/eclipse/eclipse.ini")?;
-
-        writeln!(file, "-javaagent:/opt/eclipse/lombok.jar")?;
+        unix::add_to_file(
+            "/opt/eclipse/eclipse.ini",
+            "-javaagent:/opt/eclipse/lombok.jar",
+        )?;
         Ok(())
     }
 
@@ -166,12 +202,16 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_firefox(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("firefox")?;
+        if !self.is_installed("firefox")? {
+            self.install_application("firefox")?;
+        }
         Ok(())
     }
 
     fn install_firmware_updater(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("fwupd")?;
+        if !self.is_installed("fwupd")? {
+            self.install_application("fwupd")?;
+        }
         self.enable_service("fwupd")?;
         Ok(())
     }
@@ -181,12 +221,16 @@ impl<'s> System for Arch<'s> {
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("google-chrome")?;
+        if !self.is_installed("google-chrome")? {
+            self.aur_install_application("google-chrome")?;
+        }
         Ok(())
     }
 
     fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("google-cloud-sdk")?;
+        if !self.is_installed("google-cloud-sdk")? {
+            self.aur_install_application("google-cloud-sdk")?;
+        }
         Ok(())
     }
 
@@ -195,23 +239,34 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_git(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("git")?;
+        if !self.is_installed("git")? {
+            self.install_application("git")?;
+        }
         system::setup_git_config(self)?;
         Ok(())
     }
 
     fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("gimp")?;
+        if !self.is_installed("gimp")? {
+            self.install_application("gimp")?;
+        }
         Ok(())
     }
 
     fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["seahorse", "seahorse-nautilus"])?;
+        if !self.is_installed("seahorse")? {
+            self.install_application("seahorse")?;
+        }
+        if !self.is_installed("seahorse-nautilus")? {
+            self.install_application("seahorse-nautilus")?;
+        }
         Ok(())
     }
 
     fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("gradle")?;
+        if !self.is_installed("gradle")? {
+            self.install_application("gradle")?;
+        }
         Ok(())
     }
 
@@ -223,38 +278,52 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("xf86-video-intel")?;
+        if !self.is_installed("xf86-video-intel")? {
+            self.install_application("xf86-video-intel")?;
+        }
         self.install_nvidia_laptop_tools()?;
         Ok(())
     }
 
     fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("groovy")?;
+        if !self.is_installed("groovy")? {
+            self.install_application("groovy")?;
+        }
         Ok(())
     }
 
     fn install_handbrake(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("handbrake")?;
+        if !self.is_installed("handbrake")? {
+            self.install_application("handbrake")?;
+        }
         Ok(())
     }
 
     fn install_inkscape(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("inkscape")?;
+        if !self.is_installed("inkscape")? {
+            self.install_application("inkscape")?;
+        }
         Ok(())
     }
 
     fn install_insync(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("insync")?;
+        if !self.is_installed("insync")? {
+            self.aur_install_application("insync")?;
+        }
         Ok(())
     }
 
     fn install_intellij(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("intellij-idea-ultimate-edition")?;
+        if !self.is_installed("intellij-idea-ultimate-edition")? {
+            self.aur_install_application("intellij-idea-ultimate-edition")?;
+        }
         Ok(())
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("jdk-openjdk")?;
+        if !self.is_installed("jdk-openjdk")? {
+            self.install_application("jdk-openjdk")?;
+        }
         unix::set_java_home(self, ".zshrc", JAVA_HOME)?;
         unix::set_java_home(self, ".bashrc", JAVA_HOME)?;
         unix::add_to_path(self, ".zshrc", "$JAVA_HOME/bin")?;
@@ -263,119 +332,166 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_keepassxc(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("keepassxc")?;
+        if !self.is_installed("keepassxc")? {
+            self.install_application("keepassxc")?;
+        }
         Ok(())
     }
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("kubectl")?;
+        if !self.is_installed("kubectl")? {
+            self.install_application("kubectl")?;
+        }
         Ok(())
     }
 
     fn install_helm(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("helm")?;
+        if !self.is_installed("helm")? {
+            self.install_application("helm")?;
+        }
         Ok(())
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("texlive-most")?;
+        if !self.is_installed("texlive-most")? {
+            self.install_application("texlive-most")?;
+        }
         Ok(())
     }
 
     fn install_lutris(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("lutris")?;
+        if !self.is_installed("lutris")? {
+            self.install_application("lutris")?;
+        }
         Ok(())
     }
 
     fn install_maven(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("maven")?;
+        if !self.is_installed("maven")? {
+            self.install_application("maven")?;
+        }
         Ok(())
     }
 
     fn install_makemkv(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_applications(vec!["makemkv", "ccextractor"])?;
+        if !self.is_installed("makemkv")? {
+            self.aur_install_application("makemkv")?;
+        }
+        if !self.is_installed("ccextractor")? {
+            self.aur_install_application("ccextractor")?;
+        }
         Ok(())
     }
 
-    // TODO: Duplicated in Ubuntu - move to Linux
     fn install_microcode(&self) -> Result<(), Box<dyn Error>> {
-        let file = File::open("/proc/cpuinfo")?;
-        let buffer = BufReader::new(file);
-        let cpu_name = buffer.lines().find_map(|line| {
-            if line.is_ok() && line.as_ref().unwrap().starts_with("vendor_id") {
-                let unwrapped_line = line.unwrap();
-                return Some(unwrapped_line.split(":").next()?.to_string());
+        let cpu_name = linux::get_cpu_name();
+
+        match cpu_name.as_deref() {
+            Some("GeniuneIntel") => {
+                if !self.is_installed("intel-ucode")? {
+                    self.install_application("intel-ucode")?;
+                }
             }
-            None
-        });
-        if cpu_name.is_none() {
-            return Ok(());
-        }
-        if cpu_name.unwrap() == "GenuineIntel" {
-            self.install_application("intel-ucode")?;
-        } else {
-            self.install_application("amd-ucode")?;
+            Some("AuthenticAMD") => {
+                if !self.is_installed("amd-ucode")? {
+                    self.install_application("amd-ucode")?;
+                }
+            }
+            _ => {}
         }
         Ok(())
     }
 
     fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("microsoft-edge-stable-bin")?;
+        if !self.is_installed("microsoft-edge-stable-bin")? {
+            self.aur_install_application("microsoft-edge-stable-bin")?;
+        }
         Ok(())
     }
 
     async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("minikube")?;
+        if !self.is_installed("minikube")? {
+            self.install_application("minikube")?;
+        }
         Ok(())
     }
 
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("mkvtoolnix-gui")?;
+        if !self.is_installed("mkvtoolnix-gui")? {
+            self.install_application("mkvtoolnix-gui")?;
+        }
         Ok(())
     }
 
     fn install_networking_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["inetutils", "nmap"])?;
+        if !self.is_installed("telnet")? {
+            self.install_application("inetutils")?;
+        }
+        if !self.is_installed("nmap")? {
+            self.install_application("nmap")?;
+        }
         Ok(())
     }
 
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("nextcloud-client")?;
+        if !self.is_installed("nextcloud-client")? {
+            self.install_application("nextcloud-client")?;
+        }
         Ok(())
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("nvm")?;
+        if !self.is_installed("nvm")? {
+            self.aur_install_application("nvm")?;
+        }
         linux::setup_nodejs(self)?;
         Ok(())
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("nordvpn-bin")?;
+        if !self.is_installed("nordvpn-bin")? {
+            self.aur_install_application("nordvpn-bin")?;
+        }
         self.enable_service("nordvpnd")?;
         Ok(())
     }
 
     fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec![
-            "nvidia",
-            "nvidia-utils",
-            "lib32-nvidia-utils",
-            "nvidia-settings",
-            "vulkan-icd-loader",
-            "lib32-vulkan-icd-loader",
-            "opencl-nvidia",
-        ])?;
+        if !self.is_installed("nvidia")? {
+            self.install_application("nvidia")?;
+        }
+        if !self.is_installed("nvidia-utils")? {
+            self.install_application("nvidia-utils")?;
+        }
+        if !self.is_installed("lib32-nvidia-utils")? {
+            self.install_application("lib32-nvidia-utils")?;
+        }
+        if !self.is_installed("nvidia-settings")? {
+            self.install_application("nvidia-settings")?;
+        }
+        if !self.is_installed("vulkan-icd-loader")? {
+            self.install_application("vulkan-icd-loader")?;
+        }
+        if !self.is_installed("lib32-vulkan-icd-loader")? {
+            self.install_application("lib32-vulkan-icd-loader")?;
+        }
+        if !self.is_installed("opencl-nvidia")? {
+            self.install_application("opencl-nvidia")?;
+        }
         Ok(())
     }
 
     fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("nvidia-prime")?;
+        if !self.is_installed("nvidia-prime")? {
+            self.install_application("nvidia-prime")?;
+        }
         Ok(())
     }
 
     fn install_obs_studio(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("obs-studio")?;
+        if !self.is_installed("obs-studio")? {
+            self.install_application("obs-studio")?;
+        }
         Ok(())
     }
 
@@ -388,43 +504,62 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_powertop(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("powertop")?;
+        if !self.is_installed("powertop")? {
+            self.install_application("powertop")?;
+        }
         Ok(())
     }
 
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("python")?;
+        if !self.is_installed("python")? {
+            self.install_application("python")?;
+        }
         Ok(())
     }
 
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("rustup")?;
-        self.execute("rustup default stable", true)?;
+        if !self.is_installed("rustup")? {
+            self.install_application("rustup")?;
+            self.execute("rustup default stable", true)?;
+        }
         Ok(())
     }
 
     fn install_slack(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("slack-desktop")?;
+        if !self.is_installed("slack-desktop")? {
+            self.aur_install_application("slack-desktop")?;
+        }
         Ok(())
     }
 
     fn install_spotify(&self) -> Result<(), Box<dyn Error>> {
-        self.aur_install_application("spotify")?;
+        if !self.is_installed("spotify")? {
+            self.aur_install_application("spotify")?;
+        }
         Ok(())
     }
 
     fn install_steam(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("steam")?;
+        if !self.is_installed("steam")? {
+            self.install_application("steam")?;
+        }
         Ok(())
     }
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("sweethome3d")?;
+        if !self.is_installed("sweethome3d")? {
+            self.install_application("sweethome3d")?;
+        }
         Ok(())
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["base-devel", "ttf-dejavu"])?;
+        if !self.is_installed("base-devl")? {
+            self.install_application("base-devel")?;
+        }
+        if !self.is_installed("ttf-dejavu")? {
+            self.install_application("ttf-dejavu")?;
+        }
 
         let original_pacman_file = File::open("/etc/pacman.conf")?;
         let original_lines = BufReader::new(original_pacman_file).lines();
@@ -456,30 +591,35 @@ impl<'s> System for Arch<'s> {
         new_pacman_file.write_all(new_lines.join("\n").as_bytes())?;
 
         self.update_os_repo()?;
-        self.install_applications(vec!["wget"])?;
+        if !self.is_installed("wget")? {
+            self.install_application("wget")?;
+        }
 
-        system::download_file(
-            "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
-            "yay.tar.gz",
-        )
-        .await?;
-        linux::untar_rename_root("yay.tar.gz", "yay")?;
-        let user_id = unix::get_user_id();
-        let group_id = unix::get_group_id();
-        unix::recursively_chown("yay", &user_id, &group_id)?;
-        unix::execute_path(
-            "makepkg -si --noconfirm",
-            false,
-            &format!(
-                "{}/yay",
-                std::env::current_dir()
-                    .unwrap()
-                    .into_os_string()
-                    .into_string()
-                    .unwrap()
-            ),
-            self.config.dry_run,
-        )?;
+        if !self.is_installed("yay")? {
+            system::download_file(
+                "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
+                "yay.tar.gz",
+            )
+            .await?;
+            linux::untar_rename_root("yay.tar.gz", "yay")?;
+            let user_id = unix::get_user_id();
+            let group_id = unix::get_group_id();
+            unix::recursively_chown("yay", &user_id, &group_id)?;
+            unix::execute_path(
+                "makepkg -si --noconfirm",
+                false,
+                &format!(
+                    "{}/yay",
+                    std::env::current_dir()
+                        .unwrap()
+                        .into_os_string()
+                        .into_string()
+                        .unwrap()
+                ),
+                true,
+                self.config.dry_run,
+            )?;
+        }
         linux::setup_nas(self)?;
         Ok(())
     }
@@ -497,35 +637,52 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_tlp(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("tlp")?;
+        if !self.is_installed("tlp")? {
+            self.install_application("tlp")?;
+        }
         self.enable_service("tlp")?;
         Ok(())
     }
 
     fn install_tmux(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["tmux", "xclip"])?;
-        self.aur_install_application("tmux-bash-completion")?;
+        if !self.is_installed("tmux")? {
+            self.install_application("tmux")?;
+        }
+        if !self.is_installed("xclip")? {
+            self.install_application("xclip")?;
+        }
+        if !self.is_installed("tmux-bash-completion")? {
+            self.aur_install_application("tmux-bash-completion")?;
+        }
         linux::setup_tmux(self)?;
         Ok(())
     }
 
     fn install_vim(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("vim")?;
+        if !self.is_installed("vim")? {
+            self.install_application("vim")?;
+        }
         Ok(())
     }
 
     fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("vlc")?;
+        if !self.is_installed("vlc")? {
+            self.install_application("vlc")?;
+        }
         Ok(())
     }
 
     fn install_vm_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("open-vm-tools")?;
+        if !self.is_installed("open-vm-tools")? {
+            self.install_application("open-vm-tools")?;
+        }
         Ok(())
     }
 
     fn install_vscode(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("code")?;
+        if !self.is_installed("code")? {
+            self.install_application("code")?;
+        }
         Ok(())
     }
 
@@ -536,50 +693,99 @@ impl<'s> System for Arch<'s> {
         )?;
         system::download_file(
             "https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035",
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin").await?;
+            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin"
+        ).await?;
         Ok(())
     }
 
     fn install_window_manager(&self) -> Result<(), Box<dyn Error>> {
-        // Gnome
-        self.install_applications(vec!["gnome", "libcanberra", "libappindicator-gtk3"])?;
-        self.aur_install_applications(vec![
-            "gnome-shell-extension-appindicator",
-            "gnome-shell-extension-hidetopbar-git",
-            "gnome-shell-extension-nordvpn-connect-git",
-        ])?;
-        self.enable_service("gdm")?;
+        if self.config.gnome {
+            if !self.is_installed("gnome")? {
+                self.install_application("gnome")?;
+            }
+            if !self.is_installed("libcanbera")? {
+                self.install_application("libcanberra")?;
+            }
+            if !self.is_installed("libappindicator-gtk3")? {
+                self.install_application("libappindicator-gtk3")?;
+            }
+            if !self.is_installed("gnome-shell-extension-appindicator")? {
+                self.aur_install_application("gnome-shell-extension-appindicator")?;
+            }
+            if !self.is_installed("gnome-shell-extension-hidetopbar-git")? {
+                self.aur_install_application("gnome-shell-extension-hidetopbar-git")?;
+            }
+            if !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
+                self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
+            }
+            self.enable_service("gdm")?;
+        }
+        if self.config.kde {
+            if !self.is_installed("ark")? {
+                self.install_application("ark")?;
+            }
+            if !self.is_installed("baloo")? {
+                self.install_application("baloo")?;
+            }
+            if !self.is_installed("dolphin")? {
+                self.install_application("dolphin")?;
+            }
+            if !self.is_installed("dolphin-plugins")? {
+                self.install_application("dolphin-plugins")?;
+            }
+            if !self.is_installed("ffmpegthumbnailer")? {
+                self.install_application("ffmpegthumbnailer")?;
+            }
+            if !self.is_installed("ffmpegthumbs")? {
+                self.install_application("ffmpegthumbs")?;
+            }
+            if !self.is_installed("gwenview")? {
+                self.install_application("gwenview")?;
+            }
+            if !self.is_installed("konsole")? {
+                self.install_application("konsole")?;
+            }
+            if !self.is_installed("ktorrent")? {
+                self.install_application("ktorrent")?;
+            }
+            if !self.is_installed("latte-dock")? {
+                self.install_application("latte-dock")?;
+            }
+            if !self.is_installed("okular")? {
+                self.install_application("okular")?;
+            }
+            if !self.is_installed("plasma")? {
+                self.install_application("plasma")?;
+            }
+            if !self.is_installed("plasma-wayland-session")? {
+                self.install_application("plasma-wayland-session")?;
+            }
+            if !self.is_installed("sddm")? {
+                self.install_application("sddm")?;
+            }
+            if !self.is_installed("sddm-kcm")? {
+                self.install_application("sddm-kcm")?;
+            }
+            if !self.is_installed("plasma5-runners-nordvpn")? {
+                self.aur_install_application("plasma5-runners-nordvpn")?;
+            }
+            self.enable_service("sddm")?;
+        }
         self.enable_service("NetworkManager")?;
-        // KDE/Plasma
-        self.install_applications(vec![
-            "ark",
-            "baloo",
-            "dolphin",
-            "dolphin-plugins",
-            "ffmpegthumbnailer",
-            "ffmpegthumbs",
-            "gwenview",
-            "konsole",
-            "ktorrent",
-            "latte-dock",
-            "okular",
-            "plasma",
-            "plasma-wayland-session",
-            "sddm",
-            "sddm-kcm",
-        ])?;
-        self.aur_install_applications(vec!["plasma5-runners-nordvpn"])?;
-        self.enable_service("sddm")?;
         Ok(())
     }
 
     fn install_wget(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("wget")?;
+        if !self.is_installed("wget")? {
+            self.install_application("wget")?;
+        }
         Ok(())
     }
 
     fn install_wine(&self) -> Result<(), Box<dyn Error>> {
-        self.install_application("wine")?;
+        if !self.is_installed("wine")? {
+            self.install_application("wine")?;
+        }
         Ok(())
     }
 
@@ -588,7 +794,12 @@ impl<'s> System for Arch<'s> {
     }
 
     async fn install_zsh(&self) -> Result<(), Box<dyn Error>> {
-        self.install_applications(vec!["zsh", "zsh-completions"])?;
+        if !self.is_installed("zsh")? {
+            self.install_application("zsh")?;
+        }
+        if !self.is_installed("zsh-completion")? {
+            self.install_application("zsh-completions")?;
+        }
         unix::setup_zsh(self, None).await?;
         Ok(())
     }

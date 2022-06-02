@@ -427,7 +427,7 @@ pub(crate) fn run_command(
         let stdout_lines = stdout_reader.lines();
         for line in stdout_lines {
             let string_line = line.unwrap();
-            if (print_output) {
+            if print_output {
                 println!("{}", &string_line);
             }
             output.push(string_line);
@@ -436,7 +436,7 @@ pub(crate) fn run_command(
         let stderr_lines = stderr_reader.lines();
         for line in stderr_lines {
             let string_line = line.unwrap();
-            if (print_output) {
+            if print_output {
                 println!("{}", &string_line);
             }
             output.push(string_line);

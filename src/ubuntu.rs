@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fs;
-use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, Write};
+use std::fs::OpenOptions;
+use std::io::Write;
 use std::path::Path;
 
 use async_trait::async_trait;
@@ -40,6 +40,15 @@ impl<'s> Ubuntu<'s> {
     fn add_ppa(&self, ppa: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.execute(&format!("add-apt-repository -y ppa:{}", ppa), true)?;
         Ok(())
+    }
+
+    // TODO: Implement for non-debian packages and add everywhere
+    fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
+        let output = unix::execute(&format!("dpkg -l {}", app), true, false, false)?;
+        if !output.starts_with("dpkg-query: no packages found matching") {
+            return Ok(true);
+        }
+        Ok(false)
     }
 
     fn snap_install_application(
@@ -81,7 +90,7 @@ impl<'s> System for Ubuntu<'s> {
         command: &str,
         super_user: bool,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        unix::execute(command, super_user, self.config.dry_run)
+        unix::execute(command, super_user, true, self.config.dry_run)
     }
 
     fn get_home_dir(&self) -> String {
@@ -364,24 +373,21 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    // TODO: Duplicated in Arch - move to Linux
-    fn install_microcode(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let file = File::open("/proc/cpuinfo")?;
-        let buffer = BufReader::new(file);
-        let cpu_name = buffer.lines().find_map(|line| {
-            if line.is_ok() && line.as_ref().unwrap().starts_with("vendor_id") {
-                let unwrapped_line = line.unwrap();
-                return Some(unwrapped_line.split(":").next()?.to_string());
+    fn install_microcode(&self) -> Result<(), Box<dyn Error>> {
+        let cpu_name = linux::get_cpu_name();
+
+        match cpu_name.as_deref() {
+            Some("GeniuneIntel") => {
+                if !self.is_installed("intel-ucode")? {
+                    self.install_application("intel-microcode")?;
+                }
             }
-            None
-        });
-        if cpu_name.is_none() {
-            return Ok(());
-        }
-        if cpu_name.unwrap() == "GenuineIntel" {
-            self.install_application("intel-microcode")?;
-        } else {
-            self.install_application("amd-microcode")?;
+            Some("AuthenticAMD") => {
+                if !self.is_installed("amd-ucode")? {
+                    self.install_application("amd-microcode")?;
+                }
+            }
+            _ => {}
         }
         Ok(())
     }

@@ -6,7 +6,9 @@ pub(crate) struct Config {
     pub dry_run: bool,
     pub gaming: bool,
     pub gcp: bool,
+    pub gnome: bool,
     pub images: bool,
+    pub kde: bool,
     pub help: bool,
     pub laptop: bool,
     pub modelling: bool,
@@ -27,8 +29,10 @@ pub(crate) fn parse(args: Vec<String>) -> Config {
         dry_run: args.contains(&"--dry-run".to_string()),
         gaming: args.contains(&"--gaming".to_string()),
         gcp: args.contains(&"--gcp".to_string()),
+        gnome: args.contains(&"--gnome".to_string()),
         help: args.contains(&"--help".to_string()),
         images: args.contains(&"--images".to_string()),
+        kde: args.contains(&"--kde".to_string()),
         laptop: args.contains(&"--laptop".to_string()),
         modelling: args.contains(&"--modelling".to_string()),
         personal: args.contains(&"--personal".to_string()),
@@ -54,8 +58,10 @@ mod tests {
         assert_eq!(config.dry_run, false);
         assert_eq!(config.gaming, false);
         assert_eq!(config.gcp, false);
+        assert_eq!(config.gnome, false);
         assert_eq!(config.help, false);
         assert_eq!(config.images, false);
+        assert_eq!(config.kde, false);
         assert_eq!(config.laptop, false);
         assert_eq!(config.modelling, false);
         assert_eq!(config.personal, false);
@@ -104,6 +110,12 @@ mod tests {
     }
 
     #[test]
+    fn parse_sets_gnome_to_true() {
+        let config = parse(vec!["--gnome".to_string()]);
+        assert_eq!(config.gnome, true);
+    }
+
+    #[test]
     fn parse_sets_help_to_true() {
         let config = parse(vec!["--help".to_string()]);
         assert_eq!(config.help, true);
@@ -113,6 +125,12 @@ mod tests {
     fn parse_sets_images_to_true() {
         let config = parse(vec!["--images".to_string()]);
         assert_eq!(config.images, true);
+    }
+
+    #[test]
+    fn parse_sets_kde_to_true() {
+        let config = parse(vec!["--kde".to_string()]);
+        assert_eq!(config.kde, true);
     }
 
     #[test]

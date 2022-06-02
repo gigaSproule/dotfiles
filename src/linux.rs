@@ -11,6 +11,35 @@ use crate::system::System;
 use crate::unix;
 use crate::unix::get_username;
 
+/// Returns the vendor ID of the CPU for the machine.
+///
+/// The possible values are `GenuineIntel` for Intel CPUs and `AuthenticAMD` for AMD CPUs.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use linux;
+///
+/// let cpu_name = linux::get_cpu_name();
+/// ```
+pub(crate) fn get_cpu_name() -> Option<String> {
+    let file = File::open("/proc/cpuinfo");
+    if file.is_ok() {
+        let buffer = BufReader::new(file.unwrap());
+        let cpu_name = buffer.lines().find_map(|line| {
+            if line.is_ok() && line.as_ref().unwrap().starts_with("vendor_id") {
+                let unwrapped_line = line.unwrap();
+                return Some(unwrapped_line.split(":").next()?.to_string());
+            }
+            return None;
+        });
+        return cpu_name;
+    }
+    None
+}
+
 /// Returns the users home directory _without_ the trailing slash.
 /// When using $HOME or other methods, on Linux, it returns `/root` rather than the actual user's
 /// home directory, so have to utilise this approach
@@ -22,11 +51,16 @@ use crate::unix::get_username;
 /// ```no_run
 /// use linux;
 ///
-/// linux::get_home_dir();
+/// let home_dir = linux::get_home_dir();
 /// ```
 pub(crate) fn get_home_dir() -> String {
-    let passwd_entry =
-        unix::execute(&format!("getent passwd {}", get_username()), true, false).unwrap();
+    let passwd_entry = unix::execute(
+        &format!("getent passwd {}", get_username()),
+        true,
+        false,
+        false,
+    )
+    .unwrap();
     passwd_entry.split(":").nth(5).unwrap().to_string()
 }
 
@@ -59,11 +93,7 @@ pub(crate) fn gnome_development_shortcuts(
 
 pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Error> {
     println!("Setting mmapfs limit for Elasticsearch");
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("/etc/sysctl.conf")?;
-    writeln!(file, "vm.max_map_count=262144")?;
+    unix::add_to_file("/etc/sysctl.conf", "vm.max_map_count=262144")?;
     Ok(())
 }
 
@@ -234,23 +264,10 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
 }
 
 pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
-    let mut zshrc = OpenOptions::new()
-        .append(true)
-        .open(format!("{}/.zshrc", system.get_home_dir()))?;
-    writeln!(zshrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
-    writeln!(
-        zshrc,
-        "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
-    )?;
-
-    let mut bashrc = OpenOptions::new()
-        .append(true)
-        .open(format!("{}/.bashrc", system.get_home_dir()))?;
-    writeln!(bashrc, "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"")?;
-    writeln!(
-        bashrc,
-        "[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm"
-    )?;
+    let nvm_content = "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"\n\
+    [ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm";
+    unix::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), nvm_content)?;
+    unix::add_to_file(&format!("{}/.bashrc", system.get_home_dir()), nvm_content)?;
 
     let zsh_nvm_dir = "autoload -U add-zsh-hook\n\
         load-nvmrc() {\n\
@@ -271,6 +288,7 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
         add-zsh-hook chpwd load-nvmrc\n\
         load-nvmrc";
     unix::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), zsh_nvm_dir)?;
+
     let bash_nvm_dir = "cdnvm() {\n\
             command cd \"$@\";\n\
             nvm_path=$(nvm_find_up .nvmrc | tr -d '\n')\n\
@@ -359,12 +377,9 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
 
 pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     unix::setup_tmux(system)?;
-    let mut file = OpenOptions::new()
-        .append(true)
-        .open(format!("{}/.tmux.conf", system.get_home_dir()))?;
-    writeln!(
-        file,
-        "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'"
+    unix::add_to_file(
+        &format!("{}/.tmux.conf", system.get_home_dir()),
+        "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'",
     )?;
     Ok(())
 }
