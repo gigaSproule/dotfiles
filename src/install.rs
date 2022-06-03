@@ -87,7 +87,7 @@ pub(crate) async fn install<'s>(
         println!("Installing Kubectl");
         system.install_kubectl().await?;
         println!("Installing Helm");
-        system.install_helm()?;
+        system.install_helm().await?;
         println!("Installing Minikube");
         // system.install_minikube();
     }
@@ -378,7 +378,7 @@ mod tests {
         mock_system
             .expect_install_helm()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }

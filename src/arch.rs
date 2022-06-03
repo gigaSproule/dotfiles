@@ -172,6 +172,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("docker")? {
             self.install_application("docker")?;
         }
+        if !self.is_installed("docker-compose")? {
+            self.install_application("docker-compose")?;
+        }
         linux::setup_docker(self)?;
         Ok(())
     }
@@ -355,7 +358,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_helm(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_helm(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("helm")? {
             self.install_application("helm")?;
         }
@@ -455,7 +458,7 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_networking_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("telnet")? {
+        if !self.is_installed("inetutils")? {
             self.install_application("inetutils")?;
         }
         if !self.is_installed("nmap")? {

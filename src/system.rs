@@ -134,7 +134,7 @@ pub(crate) trait System: Send + Sync {
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>>;
+    async fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_latex(&self) -> Result<(), Box<dyn std::error::Error>>;
 

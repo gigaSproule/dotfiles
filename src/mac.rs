@@ -45,6 +45,10 @@ impl<'s> Mac<'s> {
         if !osascript_output.contains("execution error") {
             return Ok(true);
         }
+        let brew_output = unix::execute(&format!("brew list {}", app), false, false, false)?;
+        if !brew_output.is_empty() { // TODO: Check if this is correct
+            return Ok(true);
+        }
         let which_output = unix::execute(&format!("which {}", app), false, false, false)?;
         if !which_output.is_empty() {
             return Ok(true);
@@ -312,7 +316,7 @@ impl<'s> System for Mac<'s> {
         todo!()
     }
 
-    fn install_helm(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_helm(&self) -> Result<(), Box<dyn Error>> {
         todo!()
     }
 
@@ -355,7 +359,7 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_networking_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("telnet")? {
+        if !self.is_installed("inetutils")? {
             self.install_application("inetutils")?;
         }
         if !self.is_installed("nmap")? {

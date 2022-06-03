@@ -52,10 +52,17 @@ impl<'s> Ubuntu<'s> {
         Ok(())
     }
 
-    // TODO: Implement for non-debian packages and add everywhere
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
-        let output = unix::execute(&format!("dpkg -l {}", app), true, false, false)?;
-        if !output.starts_with("dpkg-query: no packages found matching") {
+        let dpkg_output = unix::execute(&format!("dpkg -l {}", app), true, false, false)?;
+        if !dpkg_output.starts_with("dpkg-query: no packages found matching") {
+            return Ok(true);
+        }
+        let which_output = unix::execute(&format!("which {}", app), true, false, false)?;
+        if !which_output.ends_with("not found") {
+            return Ok(true);
+        }
+        let snap_output = unix::execute(&format!("snap list | grep {}", app), false, false, false)?;
+        if !snap_output.is_empty() {
             return Ok(true);
         }
         Ok(false)
@@ -118,9 +125,11 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_ppa("maarten-fonville/android-studio")?;
-        self.update_os_repo()?;
-        self.install_application("android-studio")?;
+        if !self.is_installed("android-studi")? {
+            self.add_ppa("maarten-fonville/android-studio")?;
+            self.update_os_repo()?;
+            self.install_application("android-studio")?;
+        }
         Ok(())
     }
 
@@ -130,22 +139,35 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("blender")?;
+        if !self.is_installed("blender")? {
+            self.install_application("blender")?;
+        }
         Ok(())
     }
 
     fn install_bluetooth(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec!["bluez", "bluez-utils"])?;
+        if !self.is_installed("bluez")? {
+            self.install_application("bluez")?;
+        }
+        if !self.is_installed("bluez-utils")? {
+            self.install_application("bluez-utils")?;
+        }
         Ok(())
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec![
-            "libdvd-pkg",
-            "libaacs0",
-            "libbluray-bdj",
-            "libbluray1",
-        ])?;
+        if !self.is_installed("libdvd-pkg")? {
+            self.install_application("libdvd-pkg")?;
+        }
+        if !self.is_installed("libaacs0")? {
+            self.install_application("libaacs0")?;
+        }
+        if !self.is_installed("libbluray-bdj")? {
+            self.install_application("libbluray-bdj")?;
+        }
+        if !self.is_installed("libbluray1")? {
+            self.install_application("libbluray1")?;
+        }
         system::setup_codecs(self).await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
@@ -162,41 +184,55 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_ppa("sebastian-stenzel/cryptomator")?;
-        self.update_os_repo()?;
-        self.install_application("cryptomator")?;
+        if !self.is_installed("cryptomator")? {
+            self.add_ppa("sebastian-stenzel/cryptomator")?;
+            self.update_os_repo()?;
+            self.install_application("cryptomator")?;
+        }
         Ok(())
     }
 
     fn install_curl(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("curl")?;
+        if !self.is_installed("curl")? {
+            self.install_application("curl")?;
+        }
         Ok(())
     }
 
     fn install_davinci_resolve(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("davinci-resolve-studio")?;
-        linux::setup_davinci_resolve(self)?;
+        if !self.is_installed("davinci-resolve-studio")? {
+            self.install_application("davinci-resolve-studio")?;
+            linux::setup_davinci_resolve(self)?;
+        }
         Ok(())
     }
 
     fn install_discord(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.snap_install_application("discord", false)?;
+        if !self.is_installed("discord")? {
+            self.snap_install_application("discord", false)?;
+        }
         Ok(())
     }
 
     fn install_docker(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("docker")?;
+        if !self.is_installed("docker")? {
+            self.install_application("docker")?;
+        }
         linux::setup_docker(self)?;
         Ok(())
     }
 
     fn install_dropbox(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("nautilus-dropbox")?;
+        if !self.is_installed("nautilus-dropbox")? {
+            self.install_application("nautilus-dropbox")?;
+        }
         Ok(())
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.snap_install_application("eclipse", true)?;
+        if !self.is_installed("eclipse")? {
+            self.snap_install_application("eclipse", true)?;
+        }
         if Path::new("/opt/eclipse").exists() {
             fs::create_dir_all("/opt/eclipse")?;
         }
@@ -207,11 +243,10 @@ impl<'s> System for Ubuntu<'s> {
         )
         .await?;
 
-        let mut file = OpenOptions::new()
-            .append(true)
-            .open("/opt/eclipse/eclipse.ini")?;
-
-        writeln!(file, "-javaagent:/opt/eclipse/lombok.jar")?;
+        unix::add_to_file(
+            "/opt/eclipse/eclipse.ini",
+            "-javaagent:/opt/eclipse/lombok.jar",
+        )?;
         Ok(())
     }
 
@@ -220,12 +255,16 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_firefox(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("firefox")?;
+        if !self.is_installed("firefox")? {
+            self.install_application("firefox")?;
+        }
         Ok(())
     }
 
     fn install_firmware_updater(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("fwupd")?;
+        if !self.is_installed("fwupd")? {
+            self.install_application("fwupd")?;
+        }
         Ok(())
     }
 
@@ -234,24 +273,30 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn std::error::Error>> {
-        system::download_file(
-            "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
-            "google-chrome.deb",
-        )
-        .await?;
-        self.execute("dpkg -i google-chrome-stable_current_amd64.deb", true)?;
-        self.install_application("chrome-gnome-shell")?;
-        fs::remove_file("google-chrome.deb")?;
+        if !self.is_installed("google-chrome-stable")? {
+            system::download_file(
+                "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
+                "google-chrome.deb",
+            )
+            .await?;
+            self.execute("dpkg -i google-chrome.deb", true)?;
+            fs::remove_file("google-chrome.deb")?;
+        }
+        if !self.is_installed("chrome-gnome-shell")? {
+            self.install_application("chrome-gnome-shell")?;
+        }
         Ok(())
     }
 
     fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_apt_key("https://packages.cloud.google.com/apt/doc/apt-key.gpg")?;
-        self.add_apt_repo(
-            "google-cloud-sdk",
-            vec!["deb https://packages.cloud.google.com/apt cloud-sdk main"],
-        )?;
-        self.install_application("google-cloud-sdk")?;
+        if !self.is_installed("google-cloud-sdk")? {
+            self.add_apt_key("https://packages.cloud.google.com/apt/doc/apt-key.gpg")?;
+            self.add_apt_repo(
+                "google-cloud-sdk",
+                vec!["deb https://packages.cloud.google.com/apt cloud-sdk main"],
+            )?;
+            self.install_application("google-cloud-sdk")?;
+        }
         Ok(())
     }
 
@@ -260,23 +305,31 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_git(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("git")?;
+        if !self.is_installed("git")? {
+            self.install_application("git")?;
+        }
         system::setup_git_config(self)?;
         Ok(())
     }
 
     fn install_gimp(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("gimp")?;
+        if !self.is_installed("gimp")? {
+            self.install_application("gimp")?;
+        }
         Ok(())
     }
 
     fn install_gpg(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("seahorse-nautilus")?;
+        if !self.is_installed("seahorse-nautilus")? {
+            self.install_application("seahorse-nautilus")?;
+        }
         Ok(())
     }
 
     fn install_gradle(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("gradle")?;
+        if !self.is_installed("gradle")? {
+            self.install_application("gradle")?;
+        }
         Ok(())
     }
 
@@ -288,38 +341,52 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("xf86-video-intel")?;
+        if !self.is_installed("xf86-video-intel")? {
+            self.install_application("xf86-video-intel")?;
+        }
         self.install_nvidia_laptop_tools()?;
         Ok(())
     }
 
     fn install_groovy(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("groovy")?;
+        if !self.is_installed("groovy")? {
+            self.install_application("groovy")?;
+        }
         Ok(())
     }
 
     fn install_handbrake(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("handbrake")?;
+        if !self.is_installed("handbrake")? {
+            self.install_application("handbrake")?;
+        }
         Ok(())
     }
 
     fn install_inkscape(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("inkscape")?;
+        if !self.is_installed("inkscape")? {
+            self.install_application("inkscape")?;
+        }
         Ok(())
     }
 
     fn install_insync(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("insync-nautilus")?;
+        if !self.is_installed("insync-nautilus")? {
+            self.install_application("insync-nautilus")?;
+        }
         Ok(())
     }
 
     fn install_intellij(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.snap_install_application("intellij-idea-ultimate", true)?;
+        if !self.is_installed("intellij-idea-ultimate")? {
+            self.snap_install_application("intellij-idea-ultimate", true)?;
+        }
         Ok(())
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec!["openjdk-16-jdk"])?;
+        if !self.is_installed("openjdk-16-jdk")? {
+            self.install_applications(vec!["openjdk-16-jdk"])?;
+        }
         unix::set_java_home(
             self,
             ".zshrc",
@@ -334,32 +401,43 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_keepassxc(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_ppa("phoerious/keepassxc")?;
-        self.update_os_repo()?;
-        self.install_application("keepassxc")?;
+        if !self.is_installed("keepassxc")? {
+            self.add_ppa("phoerious/keepassxc")?;
+            self.update_os_repo()?;
+            self.install_application("keepassxc")?;
+        }
         Ok(())
     }
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let kubectl_version =
-            reqwest::get("https://storage.googleapis.com/kubernetes-release/release/stable.txt")
-                .await?
-                .text()
-                .await?
-                .replace("\n", "");
-        system::download_file(
+        if !self.is_installed("kubectl")? {
+            let kubectl_version = reqwest::get(
+                "https://storage.googleapis.com/kubernetes-release/release/stable.txt",
+            )
+            .await?
+            .text()
+            .await?
+            .replace("\n", "");
+            system::download_file(
             &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl").await?;
-        unix::recursively_chmod("/usr/local/bin/kubectl", &0o755, &0o755)?;
+            unix::recursively_chmod("/usr/local/bin/kubectl", &0o755, &0o755)?;
+        }
         Ok(())
     }
 
-    fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.execute("curl -L https://git.io/get_helm.sh | bash", true)?;
+    async fn install_helm(&self) -> Result<(), Box<dyn std::error::Error>> {
+        if !self.is_installed("helm")? {
+            system::download_file("https://git.io/get_helm.sh", "get_helm.sh").await?;
+            unix::recursively_chmod("get_helm.sh", &0o755, &0o755)?;
+            self.execute("./get_helm.sh", true)?;
+        }
         Ok(())
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("texlive-extra-utils")?;
+        if !self.is_installed("texlive-extra-utils")? {
+            self.install_application("texlive-extra-utils")?;
+        }
         self.install_hunspell()?;
         Ok(())
     }
@@ -376,22 +454,33 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_lutris(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_ppa("lutris-team/lutris")?;
-        self.update_os_repo()?;
-        self.install_application("lutris")?;
+        if !self.is_installed("lutris")? {
+            self.add_ppa("lutris-team/lutris")?;
+            self.update_os_repo()?;
+            self.install_application("lutris")?;
+        }
         Ok(())
     }
 
     fn install_maven(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("maven")?;
+        if !self.is_installed("maven")? {
+            self.install_application("maven")?;
+        }
         Ok(())
     }
 
     fn install_makemkv(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_ppa("heyarje/makemkv-beta")?;
-        self.update_os_repo()?;
-        self.install_applications(vec!["makemkv-bin", "makemkv-oss"])?;
-        self.install_application("ccextractor")?;
+        if !self.is_installed("makemkv-bin")? {
+            self.add_ppa("heyarje/makemkv-beta")?;
+            self.update_os_repo()?;
+            self.install_application("makemkv-bin")?;
+        }
+        if !self.is_installed("makemkv-oss")? {
+            self.install_application("makemkv-oss")?;
+        }
+        if !self.is_installed("ccextractor")? {
+            self.install_application("ccextractor")?;
+        }
         Ok(())
     }
 
@@ -400,12 +489,12 @@ impl<'s> System for Ubuntu<'s> {
 
         match cpu_name.as_deref() {
             Some("GeniuneIntel") => {
-                if !self.is_installed("intel-ucode")? {
+                if !self.is_installed("intel-microcode")? {
                     self.install_application("intel-microcode")?;
                 }
             }
             Some("AuthenticAMD") => {
-                if !self.is_installed("amd-ucode")? {
+                if !self.is_installed("amd-microcode")? {
                     self.install_application("amd-microcode")?;
                 }
             }
@@ -415,83 +504,106 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>> {
-        self.add_apt_key("https://packages.microsoft.com/keys/microsoft.asc")?;
-        self.add_apt_repo(
-            "microsoft-edge",
-            vec!["deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main"],
-        )?;
-        self.update_os_repo()?;
-        self.install_application("microsoft-edge-stable")?;
+        if !self.is_installed("microsoft-edge-stable")? {
+            self.add_apt_key("https://packages.microsoft.com/keys/microsoft.asc")?;
+            self.add_apt_repo(
+                "microsoft-edge",
+                vec!["deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main"],
+            )?;
+            self.update_os_repo()?;
+            self.install_application("microsoft-edge-stable")?;
+        }
         Ok(())
     }
 
     async fn install_minikube(&self) -> Result<(), Box<dyn std::error::Error>> {
-        system::download_file(
-            "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
-            "/usr/local/bin/minikube",
-        )
-        .await?;
-        unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
+        if !self.is_installed("minikube")? {
+            system::download_file(
+                "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
+                "/usr/local/bin/minikube",
+            )
+            .await?;
+            unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
+        }
         Ok(())
     }
 
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("mkvtoolnix-gui")?;
+        if !self.is_installed("mkvtoolnix-gui")? {
+            self.install_application("mkvtoolnix-gui")?;
+        }
         Ok(())
     }
 
     fn install_networking_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec!["inetutils", "nmap"])?;
+        if !self.is_installed("inetutils")? {
+            self.install_application("inetutils")?;
+        }
+        if !self.is_installed("nmap")? {
+            self.install_application("nmap")?;
+        }
         Ok(())
     }
 
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("nextcloud-desktop")?;
+        if !self.is_installed("nextcloud-desktop")? {
+            self.install_application("nextcloud-desktop")?;
+        }
         Ok(())
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn std::error::Error>> {
-        system::download_file(
-            "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
-            "nvm-install.sh",
-        )
-        .await?;
-        unix::recursively_chmod("nvm-install.sh", &0o755, &0o755)?;
-        self.execute("./nvm-install.sh", false)?;
-        fs::remove_file("nvm-install.sh")?;
+        if !self.is_installed("nvm")? {
+            system::download_file(
+                "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
+                "nvm-install.sh",
+            )
+            .await?;
+            unix::recursively_chmod("nvm-install.sh", &0o755, &0o755)?;
+            self.execute("./nvm-install.sh", false)?;
+            fs::remove_file("nvm-install.sh")?;
+        }
         linux::setup_nodejs(self)?;
         Ok(())
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn std::error::Error>> {
-        system::download_file(
+        if !self.is_installed("nordvpn")? {
+            system::download_file(
             "https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb",
             "nordvpn.deb",
         )
         .await?;
-        self.install_application("./nordvpn.deb")?;
-        self.update_os_repo()?;
-        self.install_application("nordvpn")?;
+            self.install_application("./nordvpn.deb")?;
+            self.update_os_repo()?;
+            self.install_application("nordvpn")?;
+        }
         Ok(())
     }
 
     fn install_nvidia_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_ppa("graphics-drivers/ppa")?;
-        self.update_os_repo()?;
-        self.install_application("ubuntu-drivers-common")?;
-        self.execute("ubuntu-drivers autoinstall", true)?;
+        if !self.is_installed("ubuntu-drivers-common")? {
+            self.add_ppa("graphics-drivers/ppa")?;
+            self.update_os_repo()?;
+            self.install_application("ubuntu-drivers-common")?;
+            self.execute("ubuntu-drivers autoinstall", true)?;
+        }
         Ok(())
     }
 
     fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("nvidia-prime")?;
+        if !self.is_installed("nvidia-prime")? {
+            self.install_application("nvidia-prime")?;
+        }
         Ok(())
     }
 
     fn install_obs_studio(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_ppa("obsproject/obs-studio")?;
-        self.update_os_repo()?;
-        self.install_application("obs-studio")?;
+        if !self.is_installed("obs-studio")? {
+            self.add_ppa("obsproject/obs-studio")?;
+            self.update_os_repo()?;
+            self.install_application("obs-studio")?;
+        }
         Ok(())
     }
 
@@ -504,20 +616,26 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_powertop(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("powertop")?;
+        if !self.is_installed("powertop")? {
+            self.install_application("powertop")?;
+        }
         Ok(())
     }
 
     fn install_python(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("python3")?;
+        if !self.is_installed("python3")? {
+            self.install_application("python3")?;
+        }
         Ok(())
     }
 
     async fn install_rust(&self) -> Result<(), Box<dyn std::error::Error>> {
-        system::download_file("https://sh.rustup.rs", "rustup-install").await?;
-        unix::recursively_chmod("rustup-install", &0o755, &0o755)?;
-        self.execute("./rustup-install -y", false)?;
-        fs::remove_file("rustup-install")?;
+        if !self.is_installed("rustup")? {
+            system::download_file("https://sh.rustup.rs", "rustup-install").await?;
+            unix::recursively_chmod("rustup-install", &0o755, &0o755)?;
+            self.execute("./rustup-install -y", false)?;
+            fs::remove_file("rustup-install")?;
+        }
         unix::add_to_path(
             self,
             ".zshrc",
@@ -533,28 +651,36 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_slack(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.snap_install_application("slack", true)?;
+        if !self.is_installed("slack")? {
+            self.snap_install_application("slack", true)?;
+        }
         Ok(())
     }
 
     fn install_spotify(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_apt_key("https://download.spotify.com/debian/pubkey.gpg")?;
-        self.add_apt_repo(
-            "spotify",
-            vec!["deb http://repository.spotify.com stable non-free"],
-        )?;
-        self.update_os_repo()?;
-        self.install_application("spotify_client")?;
+        if !self.is_installed("spotify_client")? {
+            self.add_apt_key("https://download.spotify.com/debian/pubkey.gpg")?;
+            self.add_apt_repo(
+                "spotify",
+                vec!["deb http://repository.spotify.com stable non-free"],
+            )?;
+            self.update_os_repo()?;
+            self.install_application("spotify_client")?;
+        }
         Ok(())
     }
 
     fn install_steam(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("steam-installer")?;
+        if !self.is_installed("steam-installer")? {
+            self.install_application("steam-installer")?;
+        }
         Ok(())
     }
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("sweethome3d")?;
+        if !self.is_installed("sweethome3d")? {
+            self.install_application("sweethome3d")?;
+        }
         Ok(())
     }
 
@@ -564,12 +690,18 @@ impl<'s> System for Ubuntu<'s> {
             "msttcorefonts/accepted-mscorefonts-eula",
             "true",
         )?;
-        self.install_applications(vec![
-            "ubuntu-restricted-extras",
-            "gnome-tweaks",
-            "snapd",
-            "software-properties-common",
-        ])?;
+        if !self.is_installed("ubuntu-restricted-extras")? {
+            self.install_application("ubuntu-restricted-extras")?;
+        }
+        if !self.is_installed("gnome-tweaks")? {
+            self.install_application("gnome-tweaks")?;
+        }
+        if !self.is_installed("snapd")? {
+            self.install_application("snapd")?;
+        }
+        if !self.is_installed("software-properties-common")? {
+            self.install_application("software-properties-common")?;
+        }
         linux::setup_nas(self)?;
         Ok(())
     }
@@ -613,39 +745,57 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_tlp(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("tlp")?;
+        if !self.is_installed("tlp")? {
+            self.install_application("tlp")?;
+        }
         Ok(())
     }
 
     fn install_tmux(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec!["tmux", "xclip"])?;
+        if !self.is_installed("tmux")? {
+            self.install_application("tmux")?;
+        }
+        if !self.is_installed("xclip")? {
+            self.install_application("xclip")?;
+        }
         linux::setup_tmux(self)?;
         Ok(())
     }
 
     fn install_vim(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("vim")?;
+        if !self.is_installed("vim")? {
+            self.install_application("vim")?;
+        }
         Ok(())
     }
 
     fn install_vlc(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("vlc")?;
+        if !self.is_installed("vlc")? {
+            self.install_application("vlc")?;
+        }
         Ok(())
     }
 
     fn install_vm_tools(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_applications(vec!["open-vm-tools", "open-vm-tools-desktop"])?;
+        if !self.is_installed("open-vm-tools")? {
+            self.install_application("open-vm-tools")?;
+        }
+        if !self.is_installed("open-vm-tools-desktop")? {
+            self.install_application("open-vm-tools-desktop")?;
+        }
         Ok(())
     }
 
     fn install_vscode(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.add_apt_key("https://packages.microsoft.com/keys/microsoft.asc")?;
-        self.add_apt_repo(
-            "vscode",
-            vec!["deb [arch=amd64] https://packages.microsoft.com/repos/code stable main"],
-        )?;
-        self.update_os_repo()?;
-        self.install_application("code")?;
+        if !self.is_installed("code")? {
+            self.add_apt_key("https://packages.microsoft.com/keys/microsoft.asc")?;
+            self.add_apt_repo(
+                "vscode",
+                vec!["deb [arch=amd64] https://packages.microsoft.com/repos/code stable main"],
+            )?;
+            self.update_os_repo()?;
+            self.install_application("code")?;
+        }
         self.install_hunspell()?;
         Ok(())
     }
@@ -659,12 +809,16 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_wget(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("wget")?;
+        if !self.is_installed("wget")? {
+            self.install_application("wget")?;
+        }
         Ok(())
     }
 
     fn install_wine(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("wine")?;
+        if !self.is_installed("wine")? {
+            self.install_application("wine")?;
+        }
         Ok(())
     }
 
@@ -673,13 +827,17 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     async fn install_zsh(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.install_application("zsh")?;
+        if !self.is_installed("zsh")? {
+            self.install_application("zsh")?;
+        }
         unix::setup_zsh(self, None).await?;
         Ok(())
     }
 
     fn set_development_shortcuts(&self) -> Result<(), Box<dyn std::error::Error>> {
-        linux::gnome_development_shortcuts(self)?;
+        if self.config.gnome {
+            linux::gnome_development_shortcuts(self)?;
+        }
         Ok(())
     }
 

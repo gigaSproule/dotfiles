@@ -242,7 +242,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_helm(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_helm(&self) -> Result<(), Box<dyn Error>> {
         self.install_application("kubernetes-helm")?;
         Ok(())
     }
