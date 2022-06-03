@@ -41,7 +41,7 @@ impl<'s> Mac<'s> {
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
         let mut command = std::process::Command::new("osascript");
         let arged = command.args(vec!["-e", &format!("id of application \"{}\"", app)]);
-        let osascript_output = crate::system::run_command(arged, false, false)?;
+        let osascript_output = system::run_command(arged, false, false)?;
         if !osascript_output.contains("execution error") {
             return Ok(true);
         }
