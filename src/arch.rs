@@ -356,6 +356,18 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("texlive-most")? {
             self.install_application("texlive-most")?;
         }
+        if !self.is_installed("perl-yaml-tiny")? {
+            self.install_application("perl-yaml-tiny")?;
+        }
+        if !self.is_installed("perl-file-homedir")? {
+            self.install_application("perl-file-homedir")?;
+        }
+        if !self.is_installed("hunspell")? {
+            self.install_application("hunspell")?;
+        }
+        if !self.is_installed("hunspell-en_gb")? {
+            self.install_application("hunspell-en_gb")?;
+        }
         Ok(())
     }
 
@@ -683,6 +695,18 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("code")? {
             self.install_application("code")?;
         }
+        if !self.is_installed("hunspell")? {
+            self.install_application("hunspell")?;
+        }
+        if !self.is_installed("hunspell-en_gb")? {
+            self.install_application("hunspell-en_gb")?;
+        }
+        let dictionary_config = &format!("{}/Code/Dictionaries", self.get_home_dir());
+        let dictionaries_path = Path::new(dictionary_config);
+        if !dictionaries_path.exists() {
+            fs::create_dir_all(dictionaries_path)?;
+        }
+        unix::symlink(self, "/usr/share/hunspell/*", dictionary_config)?;
         Ok(())
     }
 
