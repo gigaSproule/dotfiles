@@ -42,6 +42,16 @@ impl<'s> Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("hunspell")? {
+            self.install_application("hunspell")?;
+        }
+        if !self.is_installed("hunspell-en-gb")? {
+            self.install_application("hunspell-en-gb")?;
+        }
+        Ok(())
+    }
+
     // TODO: Implement for non-debian packages and add everywhere
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
         let output = unix::execute(&format!("dpkg -l {}", app), true, false, false)?;
@@ -350,6 +360,18 @@ impl<'s> System for Ubuntu<'s> {
 
     fn install_latex(&self) -> Result<(), Box<dyn std::error::Error>> {
         self.install_application("texlive-extra-utils")?;
+        self.install_hunspell()?;
+        Ok(())
+    }
+
+    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("libreoffice")? {
+            self.install_application("libreoffice")?;
+        }
+        if !self.is_installed("hyphen-en-gb")? {
+            self.install_application("hyphen-en-gb")?;
+        }
+        self.install_hunspell()?;
         Ok(())
     }
 
@@ -624,6 +646,7 @@ impl<'s> System for Ubuntu<'s> {
         )?;
         self.update_os_repo()?;
         self.install_application("code")?;
+        self.install_hunspell()?;
         Ok(())
     }
 

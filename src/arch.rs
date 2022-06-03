@@ -36,6 +36,16 @@ impl<'s> Arch<'s> {
         self.execute(&format!("systemctl enable service {}", service), true)
     }
 
+    fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("hunspell")? {
+            self.install_application("hunspell")?;
+        }
+        if !self.is_installed("hunspell-en_gb")? {
+            self.install_application("hunspell-en_gb")?;
+        }
+        Ok(())
+    }
+
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
         let output = unix::execute(&format!("pacman -Qi {}", app), false, false, false);
         if !output?.ends_with("was not found") {
@@ -362,12 +372,21 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("perl-file-homedir")? {
             self.install_application("perl-file-homedir")?;
         }
-        if !self.is_installed("hunspell")? {
-            self.install_application("hunspell")?;
+        self.install_hunspell()?;
+        Ok(())
+    }
+
+    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("libreoffice-fresh")? {
+            self.install_application("libreoffice-fresh")?;
         }
-        if !self.is_installed("hunspell-en_gb")? {
-            self.install_application("hunspell-en_gb")?;
+        if !self.is_installed("hyphen")? {
+            self.install_application("hyphen")?;
         }
+        if !self.is_installed("hyphen-en")? {
+            self.install_application("hyphen-en")?;
+        }
+        self.install_hunspell()?;
         Ok(())
     }
 
@@ -695,12 +714,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("code")? {
             self.install_application("code")?;
         }
-        if !self.is_installed("hunspell")? {
-            self.install_application("hunspell")?;
-        }
-        if !self.is_installed("hunspell-en_gb")? {
-            self.install_application("hunspell-en_gb")?;
-        }
+        self.install_hunspell()?;
         let dictionary_config = &format!("{}/Code/Dictionaries", self.get_home_dir());
         let dictionaries_path = Path::new(dictionary_config);
         if !dictionaries_path.exists() {
