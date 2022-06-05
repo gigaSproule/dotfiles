@@ -46,7 +46,7 @@ impl<'s> Mac<'s> {
             return Ok(true);
         }
         let brew_output = unix::execute(&format!("brew list {}", app), false, false, false)?;
-        if !brew_output.is_empty() { // TODO: Check if this is correct
+        if !brew_output.is_empty() && !brew_output.starts_with("Error: No ") {
             return Ok(true);
         }
         let which_output = unix::execute(&format!("which {}", app), false, false, false)?;
@@ -322,6 +322,13 @@ impl<'s> System for Mac<'s> {
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
         todo!()
+    }
+
+    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("libreoffice")? {
+            self.cask_install_application("libreoffice")?;
+        }
+        Ok(())
     }
 
     fn install_lutris(&self) -> Result<(), Box<dyn Error>> {
