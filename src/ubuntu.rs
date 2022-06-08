@@ -183,7 +183,7 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>> {
+    async fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>> {
         if !self.is_installed("cryptomator")? {
             self.add_ppa("sebastian-stenzel/cryptomator")?;
             self.update_os_repo()?;
@@ -243,7 +243,7 @@ impl<'s> System for Ubuntu<'s> {
         )
         .await?;
 
-        unix::add_to_file(
+        system::add_to_file(
             "/opt/eclipse/eclipse.ini",
             "-javaagent:/opt/eclipse/lombok.jar",
         )?;

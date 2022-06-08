@@ -137,7 +137,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         // Required as a dependency for cryptomator
         self.install_jdk()?;
         if !self.is_installed("cryptomator")? {
@@ -203,7 +203,7 @@ impl<'s> System for Arch<'s> {
         )
         .await?;
 
-        unix::add_to_file(
+        system::add_to_file(
             "/opt/eclipse/eclipse.ini",
             "-javaagent:/opt/eclipse/lombok.jar",
         )?;

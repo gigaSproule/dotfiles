@@ -26,3 +26,4 @@ open = "2.1.2"
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
+registry = "1.2.2"

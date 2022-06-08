@@ -93,7 +93,7 @@ pub(crate) fn gnome_development_shortcuts(
 
 pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Error> {
     println!("Setting mmapfs limit for Elasticsearch");
-    unix::add_to_file("/etc/sysctl.conf", "vm.max_map_count=262144")?;
+    system::add_to_file("/etc/sysctl.conf", "vm.max_map_count=262144")?;
     Ok(())
 }
 
@@ -266,8 +266,8 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
 pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
     let nvm_content = "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"\n\
     [ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm";
-    unix::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), nvm_content)?;
-    unix::add_to_file(&format!("{}/.bashrc", system.get_home_dir()), nvm_content)?;
+    system::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), nvm_content)?;
+    system::add_to_file(&format!("{}/.bashrc", system.get_home_dir()), nvm_content)?;
 
     let zsh_nvm_dir = "autoload -U add-zsh-hook\n\
         load-nvmrc() {\n\
@@ -287,7 +287,7 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
         }\n\
         add-zsh-hook chpwd load-nvmrc\n\
         load-nvmrc";
-    unix::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), zsh_nvm_dir)?;
+    system::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), zsh_nvm_dir)?;
 
     let bash_nvm_dir = "cdnvm() {\n\
             command cd \"$@\";\n\
@@ -326,7 +326,7 @@ pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error
         }\n\
         alias cd='cdnvm'\n\
         cd \"$PWD\"";
-    unix::add_to_file(&format!("{}/.bashrc", system.get_home_dir()), bash_nvm_dir)?;
+    system::add_to_file(&format!("{}/.bashrc", system.get_home_dir()), bash_nvm_dir)?;
 
     system.execute("nvm install node --latest-npm", false)?;
     system.execute("npm install --global yarn", false)?;
@@ -377,7 +377,7 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
 
 pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     unix::setup_tmux(system)?;
-    unix::add_to_file(
+    system::add_to_file(
         &format!("{}/.tmux.conf", system.get_home_dir()),
         "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'",
     )?;

@@ -19,7 +19,7 @@ pub(crate) async fn install<'s>(
     println!("Installing Bash");
     system.install_bash()?;
     println!("Installing Cryptomator");
-    system.install_cryptomator()?;
+    system.install_cryptomator().await?;
     println!("Installing ConEmu");
     system.install_conemu()?;
     println!("Installing Curl");
@@ -922,7 +922,7 @@ mod tests {
         mock_system
             .expect_install_cryptomator()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_conemu()
             .times(1)

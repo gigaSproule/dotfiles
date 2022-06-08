@@ -78,7 +78,7 @@ pub(crate) trait System: Send + Sync {
 
     fn install_conemu(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>>;
+    async fn install_cryptomator(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_curl(&self) -> Result<(), Box<dyn std::error::Error>>;
 
@@ -305,6 +305,24 @@ pub(crate) trait System: Send + Sync {
     /// system.update_os_repo();
     /// ```
     fn update_os_repo(&self) -> Result<(), Box<dyn std::error::Error>>;
+}
+
+/// Adds the content to the file, only if it doesn't already exist within the file.
+///
+/// # Example
+///
+/// ```no_run
+/// use system;
+///
+/// system::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will add to the file
+/// system::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will not do anything
+/// ```
+pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Error> {
+    if !file_contains(file, content) {
+        let mut actual_file = OpenOptions::new().append(true).open(&file)?;
+        writeln!(actual_file, "{}", content)?;
+    }
+    Ok(())
 }
 
 /// Downloads the file found at the given URL and saves it to the specified location.

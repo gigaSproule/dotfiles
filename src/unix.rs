@@ -24,24 +24,6 @@ pub(crate) fn get_username() -> String {
     env::var("SUDO_USER").unwrap()
 }
 
-/// Adds the content to the file, only if it doesn't already exist within the file.
-///
-/// # Example
-///
-/// ```no_run
-/// use unix;
-///
-/// unix::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will add to the file
-/// unix::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will not do anything
-/// ```
-pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Error> {
-    if !system::file_contains(file, content) {
-        let mut actual_file = OpenOptions::new().append(true).open(&file)?;
-        writeln!(actual_file, "{}", content)?;
-    }
-    Ok(())
-}
-
 /// Adds the path to the PATH environment variable in the file, only if it doesn't already exist within the file.
 ///
 /// # Example

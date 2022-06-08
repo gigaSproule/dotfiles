@@ -129,7 +129,7 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("cryptomator")? {
             self.cask_install_application("cryptomator")?;
         }
@@ -390,8 +390,8 @@ impl<'s> System for Mac<'s> {
         let content = format!("export NVM_DIR=\"$HOME/.nvm\"\n\
         [ -s \"{}/opt/nvm/nvm.sh\" ] && . \"{}/opt/nvm/nvm.sh\"  # This loads nvm\n\
         [ -s \"{}/opt/nvm/etc/bash_completion.d/nvm\" ] && . \"{}/opt/nvm/etc/bash_completion.d/nvm\"  # This loads nvm bash_completion", &brew_prefix, &brew_prefix, &brew_prefix, &brew_prefix);
-        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content)?;
-        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content)?;
+        system::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content)?;
+        system::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content)?;
         let zsh_nvm_dir = "autoload -U add-zsh-hook\n\
         load-nvmrc() {\n\
             local node_version=\"$(nvm version)\"\n\
@@ -410,7 +410,7 @@ impl<'s> System for Mac<'s> {
         }\n\
         add-zsh-hook chpwd load-nvmrc\n\
         load-nvmrc";
-        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), zsh_nvm_dir)?;
+        system::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), zsh_nvm_dir)?;
         let bash_nvm_dir = "cdnvm() {\n\
             command cd \"$@\";\n\
             nvm_path=$(nvm_find_up .nvmrc | tr -d '\n')\n\
@@ -448,7 +448,7 @@ impl<'s> System for Mac<'s> {
         }\n\
         alias cd='cdnvm'\n\
         cd \"$PWD\"";
-        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), bash_nvm_dir)?;
+        system::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), bash_nvm_dir)?;
 
         self.execute("nvm install node --latest-npm", false)?;
         self.execute("npm install --global yarn", false)?;
@@ -501,8 +501,8 @@ impl<'s> System for Mac<'s> {
             "export PATH=\"$PATH:{}/opt/python/libexec/bin\"",
             self.get_brew_prefix()?
         );
-        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content)?;
-        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content)?;
+        system::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), &content)?;
+        system::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), &content)?;
         Ok(())
     }
 
@@ -512,8 +512,8 @@ impl<'s> System for Mac<'s> {
             self.execute("rustup-init -y", true)?;
         }
         let content = "source $HOME/.cargo/env";
-        unix::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), content)?;
-        unix::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), content)?;
+        system::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), content)?;
+        system::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), content)?;
 
         Ok(())
     }
@@ -559,10 +559,10 @@ impl<'s> System for Mac<'s> {
         }
 
         let zshrc = format!("{}/.zshrc", self.get_home_dir());
-        unix::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        system::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
 
         let bashrc = format!("{}/.bashrc", self.get_home_dir());
-        unix::add_to_file(&bashrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        system::add_to_file(&bashrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
 
         if !self.is_installed("mas")? {
             self.install_application("mas")?;
@@ -592,7 +592,7 @@ impl<'s> System for Mac<'s> {
             self.install_application("reattach-to-user-namespace")?;
         }
         unix::setup_tmux(self)?;
-        unix::add_to_file(&format!("{}/.tmux.conf", self.get_home_dir()), "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'")?;
+        system::add_to_file(&format!("{}/.tmux.conf", self.get_home_dir()), "bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'reattach-to-user-namespace pbcopy'")?;
         Ok(())
     }
 
@@ -648,7 +648,7 @@ impl<'s> System for Mac<'s> {
         unix::setup_zsh(self, Some(&format!("{}/bin/zsh", self.get_brew_prefix()?))).await?;
 
         let zshrc = format!("{}/.zshrc", self.get_home_dir());
-        unix::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        system::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
 
         Ok(())
     }
