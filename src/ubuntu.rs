@@ -258,6 +258,15 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("firefox")? {
             self.install_application("firefox")?;
         }
+        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
+            self.install_application("xdg-desktop-portal-gnome")?;
+        }
+        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
+            self.install_application("xdg-desktop-portal-kde")?;
+        }
+        if !self.is_installed("xdg-desktop-portal")? {
+            self.install_application("xdg-desktop-portal")?;
+        }
         Ok(())
     }
 
@@ -281,9 +290,19 @@ impl<'s> System for Ubuntu<'s> {
             .await?;
             self.execute("dpkg -i google-chrome.deb", true)?;
             fs::remove_file("google-chrome.deb")?;
+            println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
         }
         if !self.is_installed("chrome-gnome-shell")? {
             self.install_application("chrome-gnome-shell")?;
+        }
+        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
+            self.install_application("xdg-desktop-portal-gnome")?;
+        }
+        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
+            self.install_application("xdg-desktop-portal-kde")?;
+        }
+        if !self.is_installed("xdg-desktop-portal")? {
+            self.install_application("xdg-desktop-portal")?;
         }
         Ok(())
     }

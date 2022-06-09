@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::system::file_contains;
 use crate::system::System;
+use crate::system::{self, file_contains};
 use crate::unix;
 use crate::unix::get_username;
 

@@ -218,6 +218,15 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("firefox")? {
             self.install_application("firefox")?;
         }
+        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
+            self.install_application("xdg-desktop-portal-gnome")?;
+        }
+        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
+            self.install_application("xdg-desktop-portal-kde")?;
+        }
+        if !self.is_installed("xdg-desktop-portal")? {
+            self.install_application("xdg-desktop-portal")?;
+        }
         Ok(())
     }
 
@@ -236,6 +245,16 @@ impl<'s> System for Arch<'s> {
     async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("google-chrome")? {
             self.aur_install_application("google-chrome")?;
+            println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
+        }
+        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
+            self.install_application("xdg-desktop-portal-gnome")?;
+        }
+        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
+            self.install_application("xdg-desktop-portal-kde")?;
+        }
+        if !self.is_installed("xdg-desktop-portal")? {
+            self.install_application("xdg-desktop-portal")?;
         }
         Ok(())
     }
