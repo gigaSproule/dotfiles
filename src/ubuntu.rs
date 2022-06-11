@@ -910,6 +910,15 @@ impl<'s> System for Ubuntu<'s> {
             // TODO: Implement install steps
             open::that("https://github.com/alex1701c/NordVPNKrunner")?;
             self.execute("dpkg-reconfigure sddm", true)?;
+            let mut file = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(format!(
+                    "{}/.config/plasma-workspace/env/gtk.sh",
+                    self.get_home_dir()
+                ))?;
+            writeln!(file, "export GTK_USE_PORTAL=1")?;
         }
         self.enable_service("NetworkManager")?;
         Ok(())
