@@ -42,6 +42,10 @@ impl<'s> Ubuntu<'s> {
         Ok(())
     }
 
+    fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
+        self.execute(&format!("systemctl enable service {}", service), true)
+    }
+
     fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("hunspell")? {
             self.install_application("hunspell")?;
@@ -258,15 +262,6 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("firefox")? {
             self.install_application("firefox")?;
         }
-        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
-            self.install_application("xdg-desktop-portal-gnome")?;
-        }
-        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
-            self.install_application("xdg-desktop-portal-kde")?;
-        }
-        if !self.is_installed("xdg-desktop-portal")? {
-            self.install_application("xdg-desktop-portal")?;
-        }
         Ok(())
     }
 
@@ -291,18 +286,6 @@ impl<'s> System for Ubuntu<'s> {
             self.execute("dpkg -i google-chrome.deb", true)?;
             fs::remove_file("google-chrome.deb")?;
             println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
-        }
-        if !self.is_installed("chrome-gnome-shell")? {
-            self.install_application("chrome-gnome-shell")?;
-        }
-        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
-            self.install_application("xdg-desktop-portal-gnome")?;
-        }
-        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
-            self.install_application("xdg-desktop-portal-kde")?;
-        }
-        if !self.is_installed("xdg-desktop-portal")? {
-            self.install_application("xdg-desktop-portal")?;
         }
         Ok(())
     }
@@ -700,6 +683,30 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("sweethome3d")? {
             self.install_application("sweethome3d")?;
         }
+
+        let sweet_home_3d_desktop = format!(
+            "{}/.local/share/applictaions/sweethome3d.desktop",
+            self.get_home_dir()
+        );
+        let mut sweet_home_3d_desktop_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&sweet_home_3d_desktop)?;
+
+        let content = "[Desktop Entry]\n\
+            Version=1.0\n\
+            Type=Application\n\
+            Name=Sweet Home 3D\n\
+            Comment=An interior design application\n\
+            TryExec=sweethome3d\n\
+            Exec=JAVA_HOME=/usr/lib/jvm/java-11-openjdk sweethome3d %f\n\
+            Icon=sweethome3d\n\
+            Categories=Office;Java;\n\
+            StartupWMClass=com-eteks-sweethome3d-SweetHome3D\n\
+            MimeType=application/x-sweethome3d\n";
+        write!(sweet_home_3d_desktop_file, "{}", content)?;
+
         Ok(())
     }
 
@@ -709,11 +716,11 @@ impl<'s> System for Ubuntu<'s> {
             "msttcorefonts/accepted-mscorefonts-eula",
             "true",
         )?;
+        if !self.is_installed("network-manager")? {
+            self.install_application("network-manager")?;
+        }
         if !self.is_installed("ubuntu-restricted-extras")? {
             self.install_application("ubuntu-restricted-extras")?;
-        }
-        if !self.is_installed("gnome-tweaks")? {
-            self.install_application("gnome-tweaks")?;
         }
         if !self.is_installed("snapd")? {
             self.install_application("snapd")?;
@@ -824,6 +831,87 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_window_manager(&self) -> Result<(), Box<dyn std::error::Error>> {
+        if self.config.gnome {
+            if !self.is_installed("ubuntu-desktop-minimal")? {
+                self.install_application("ubuntu-desktop-minimal")?;
+            }
+            if !self.is_installed("network-manager-gnome")? {
+                self.install_application("network-manager-gnome")?;
+            }
+            if !self.is_installed("gnome-tweaks")? {
+                self.install_application("gnome-tweaks")?;
+            }
+            if !self.is_installed("xdg-desktop-portal-gnome")? {
+                self.install_application("xdg-desktop-portal-gnome ")?;
+            }
+            if !self.is_installed("libcanberra0")? {
+                self.install_application("libcanberra0")?;
+            }
+            if !self.is_installed("libappindicator")? {
+                self.install_application("libappindicator")?;
+            }
+            if !self.is_installed("gnome-shell-extension-appindicator")? {
+                self.install_application("gnome-shell-extension-appindicator")?;
+            }
+            if !self.is_installed("chrome-gnome-shell")? {
+                self.install_application("chrome-gnome-shell")?;
+            }
+            open::that("https://extensions.gnome.org/extension/545/hide-top-bar/")?;
+            open::that("https://extensions.gnome.org/extension/1595/nordvpn-connect/")?;
+            open::that("https://extensions.gnome.org/extension/3960/transparent-top-bar-adjustable-transparency/")?;
+            self.execute("dpkg-reconfigure gdm3", true)?;
+        }
+        if self.config.kde {
+            if !self.is_installed("kde-plasma-desktop")? {
+                self.install_application("kde-plasma-desktop")?;
+            }
+            if !self.is_installed("ark")? {
+                self.install_application("ark")?;
+            }
+            if !self.is_installed("baloo")? {
+                self.install_application("baloo")?;
+            }
+            if !self.is_installed("dolphin")? {
+                self.install_application("dolphin")?;
+            }
+            if !self.is_installed("dolphin-plugins")? {
+                self.install_application("dolphin-plugins")?;
+            }
+            if !self.is_installed("ffmpegthumbnailer")? {
+                self.install_application("ffmpegthumbnailer")?;
+            }
+            if !self.is_installed("ffmpegthumbs")? {
+                self.install_application("ffmpegthumbs")?;
+            }
+            if !self.is_installed("gwenview")? {
+                self.install_application("gwenview")?;
+            }
+            if !self.is_installed("konsole")? {
+                self.install_application("konsole")?;
+            }
+            if !self.is_installed("ktorrent")? {
+                self.install_application("ktorrent")?;
+            }
+            if !self.is_installed("latte-dock")? {
+                self.install_application("latte-dock")?;
+            }
+            if !self.is_installed("okular")? {
+                self.install_application("okular")?;
+            }
+            if !self.is_installed("sddm")? {
+                self.install_application("sddm")?;
+            }
+            if !self.is_installed("kde-config-sddm")? {
+                self.install_application("kde-config-sddm")?;
+            }
+            if !self.is_installed("xdg-desktop-portal-kde")? {
+                self.install_application("xdg-desktop-portal-kde")?;
+            }
+            // TODO: Implement install steps
+            open::that("https://github.com/alex1701c/NordVPNKrunner")?;
+            self.execute("dpkg-reconfigure sddm", true)?;
+        }
+        self.enable_service("NetworkManager")?;
         Ok(())
     }
 

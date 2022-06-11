@@ -218,15 +218,6 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("firefox")? {
             self.install_application("firefox")?;
         }
-        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
-            self.install_application("xdg-desktop-portal-gnome")?;
-        }
-        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
-            self.install_application("xdg-desktop-portal-kde")?;
-        }
-        if !self.is_installed("xdg-desktop-portal")? {
-            self.install_application("xdg-desktop-portal")?;
-        }
         Ok(())
     }
 
@@ -246,15 +237,6 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("google-chrome")? {
             self.aur_install_application("google-chrome")?;
             println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
-        }
-        if self.config.gnome && !self.is_installed("xdg-desktop-portal-gnome")? {
-            self.install_application("xdg-desktop-portal-gnome")?;
-        }
-        if self.config.kde && !self.is_installed("xdg-desktop-portal-kde")? {
-            self.install_application("xdg-desktop-portal-kde")?;
-        }
-        if !self.is_installed("xdg-desktop-portal")? {
-            self.install_application("xdg-desktop-portal")?;
         }
         Ok(())
     }
@@ -603,10 +585,37 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("sweethome3d")? {
             self.install_application("sweethome3d")?;
         }
+
+        let sweet_home_3d_desktop = format!(
+            "{}/.local/share/applictaions/sweethome3d.desktop",
+            self.get_home_dir()
+        );
+        let mut sweet_home_3d_desktop_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&sweet_home_3d_desktop)?;
+
+        let content = "[Desktop Entry]\n\
+            Version=1.0\n\
+            Type=Application\n\
+            Name=Sweet Home 3D\n\
+            Comment=An interior design application\n\
+            TryExec=sweethome3d\n\
+            Exec=JAVA_HOME=/usr/lib/jvm/java-11-openjdk sweethome3d %f\n\
+            Icon=sweethome3d\n\
+            Categories=Office;Java;\n\
+            StartupWMClass=com-eteks-sweethome3d-SweetHome3D\n\
+            MimeType=application/x-sweethome3d\n";
+        write!(sweet_home_3d_desktop_file, "{}", content)?;
+
         Ok(())
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("networkmanager")? {
+            self.install_application("networkmanager")?;
+        }
         if !self.is_installed("base-devl")? {
             self.install_application("base-devel")?;
         }
@@ -763,11 +772,20 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("gnome")? {
                 self.install_application("gnome")?;
             }
+            if !self.is_installed("gnome-tweaks")? {
+                self.install_application("gnome-tweaks")?;
+            }
+            if !self.is_installed("xdg-desktop-portal-gnome")? {
+                self.install_application("xdg-desktop-portal-gnome ")?;
+            }
             if !self.is_installed("libcanbera")? {
                 self.install_application("libcanberra")?;
             }
             if !self.is_installed("libappindicator-gtk3")? {
                 self.install_application("libappindicator-gtk3")?;
+            }
+            if !self.is_installed("chrome-gnome-shell")? {
+                self.aur_install_application("chrome-gnome-shell")?;
             }
             if !self.is_installed("gnome-shell-extension-appindicator")? {
                 self.aur_install_application("gnome-shell-extension-appindicator")?;
@@ -778,9 +796,16 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
                 self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
             }
+            open::that("https://extensions.gnome.org/extension/3960/transparent-top-bar-adjustable-transparency/")?;
             self.enable_service("gdm")?;
         }
         if self.config.kde {
+            if !self.is_installed("plasma")? {
+                self.install_application("plasma")?;
+            }
+            if !self.is_installed("plasma-wayland-session")? {
+                self.install_application("plasma-wayland-session")?;
+            }
             if !self.is_installed("ark")? {
                 self.install_application("ark")?;
             }
@@ -814,17 +839,14 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("okular")? {
                 self.install_application("okular")?;
             }
-            if !self.is_installed("plasma")? {
-                self.install_application("plasma")?;
-            }
-            if !self.is_installed("plasma-wayland-session")? {
-                self.install_application("plasma-wayland-session")?;
-            }
             if !self.is_installed("sddm")? {
                 self.install_application("sddm")?;
             }
             if !self.is_installed("sddm-kcm")? {
                 self.install_application("sddm-kcm")?;
+            }
+            if !self.is_installed("xdg-desktop-portal-kde")? {
+                self.install_application("xdg-desktop-portal-kde")?;
             }
             if !self.is_installed("plasma5-runners-nordvpn")? {
                 self.aur_install_application("plasma5-runners-nordvpn")?;
