@@ -703,7 +703,7 @@ impl<'s> System for Ubuntu<'s> {
             Name=Sweet Home 3D\n\
             Comment=An interior design application\n\
             TryExec=sweethome3d\n\
-            Exec=JAVA_HOME=/usr/lib/jvm/java-11-openjdk sweethome3d %f\n\
+            Exec=JAVA_HOME=/usr/lib/jvm/java-11-openjdk sweethome3d\n\
             Icon=sweethome3d\n\
             Categories=Office;Java;\n\
             StartupWMClass=com-eteks-sweethome3d-SweetHome3D\n\
