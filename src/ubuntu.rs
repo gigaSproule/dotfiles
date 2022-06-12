@@ -156,6 +156,9 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("bluez-utils")? {
             self.install_application("bluez-utils")?;
         }
+        if !self.is_installed("pulseaudio-module-bluetooth")? {
+            self.install_application("pulseaudio-module-bluetooth")?;
+        }
         Ok(())
     }
 
@@ -727,6 +730,12 @@ impl<'s> System for Ubuntu<'s> {
         }
         if !self.is_installed("software-properties-common")? {
             self.install_application("software-properties-common")?;
+        }
+        if !self.is_installed("alsa-base")? {
+            self.install_application("alsa-base")?;
+        }
+        if !self.is_installed("pulseaudio")? {
+            self.install_application("pulseaudio")?;
         }
         linux::setup_nas(self)?;
         Ok(())

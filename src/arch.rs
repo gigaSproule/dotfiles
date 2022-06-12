@@ -98,6 +98,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("bluez-utils")? {
             self.install_application("bluez-utils")?;
         }
+        if !self.is_installed("pulseaudio-bluetooth")? {
+            self.install_application("pulseaudio-bluetooth")?;
+        }
         self.enable_service("bluetooth")?;
         Ok(())
     }
@@ -619,9 +622,6 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("base-devl")? {
             self.install_application("base-devel")?;
         }
-        if !self.is_installed("ttf-dejavu")? {
-            self.install_application("ttf-dejavu")?;
-        }
 
         let original_pacman_file = File::open("/etc/pacman.conf")?;
         let original_lines = BufReader::new(original_pacman_file).lines();
@@ -653,9 +653,6 @@ impl<'s> System for Arch<'s> {
         new_pacman_file.write_all(new_lines.join("\n").as_bytes())?;
 
         self.update_os_repo()?;
-        if !self.is_installed("wget")? {
-            self.install_application("wget")?;
-        }
 
         if !self.is_installed("yay")? {
             system::download_file(
@@ -681,6 +678,21 @@ impl<'s> System for Arch<'s> {
                 true,
                 self.config.dry_run,
             )?;
+        }
+        if !self.is_installed("wget")? {
+            self.install_application("wget")?;
+        }
+        if !self.is_installed("ttf-dejavu")? {
+            self.install_application("ttf-dejavu")?;
+        }
+        if !self.is_installed("alsa-utils")? {
+            self.install_application("alsa-utils")?;
+        }
+        if !self.is_installed("pulseaudio")? {
+            self.install_application("pulseaudio")?;
+        }
+        if !self.is_installed("pulseaudio-also")? {
+            self.install_application("pulseaudio-also")?;
         }
         linux::setup_nas(self)?;
         Ok(())
@@ -792,6 +804,9 @@ impl<'s> System for Arch<'s> {
             }
             if !self.is_installed("gnome-shell-extension-hidetopbar-git")? {
                 self.aur_install_application("gnome-shell-extension-hidetopbar-git")?;
+            }
+            if !self.is_installed("gnome-shell-extension-sound-output-device-chooser")? {
+                self.aur_install_application("gnome-shell-extension-sound-output-device-chooser")?;
             }
             if !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
                 self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
