@@ -688,11 +688,20 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("alsa-utils")? {
             self.install_application("alsa-utils")?;
         }
-        if !self.is_installed("pulseaudio")? {
-            self.install_application("pulseaudio")?;
+        if !self.is_installed("pipewire")? {
+            self.install_application("pipewire")?;
         }
-        if !self.is_installed("pulseaudio-also")? {
-            self.install_application("pulseaudio-also")?;
+        if !self.is_installed("lib32-pipewire")? {
+            self.install_application("lib32-pipewire")?;
+        }
+        if !self.is_installed("pipewire-alsa")? {
+            self.install_application("pipewire-alsa")?;
+        }
+        if !self.is_installed("pipewire-pulse")? {
+            self.install_application("pipewire-pulse")?;
+        }
+        if !self.is_installed("wireplumber")? {
+            self.install_application("wireplumber")?;
         }
         linux::setup_nas(self)?;
         Ok(())

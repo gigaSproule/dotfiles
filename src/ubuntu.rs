@@ -734,8 +734,14 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("alsa-base")? {
             self.install_application("alsa-base")?;
         }
-        if !self.is_installed("pulseaudio")? {
-            self.install_application("pulseaudio")?;
+        if !self.is_installed("pipewire")? {
+            self.install_application("pipewire")?;
+        }
+        if !self.is_installed("pipewire-pulse")? {
+            self.install_application("pipewire-pulse")?;
+        }
+        if !self.is_installed("wireplumber")? {
+            self.install_application("wireplumber")?;
         }
         linux::setup_nas(self)?;
         Ok(())
