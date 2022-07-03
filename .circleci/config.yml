@@ -17,8 +17,10 @@ jobs:
         resource_class: small
         steps:
             - checkout
-            - run: cargo build --release
-            - run: mv target/release/dotfiles target/release/dotfiles-linux
+            - run:
+                  command: |
+                      cargo build --release
+                      mv target/release/dotfiles target/release/dotfiles-linux
             - persist_to_workspace:
                   root: target/release/
                   paths:
@@ -29,8 +31,10 @@ jobs:
         resource_class: small
         steps:
             - checkout
-            - run: cargo build --release --target x86_64-apple-darwin
-            - run: mv target/x86_64-apple-darwin/release/dotfiles target/release/dotfiles-mac
+            - run:
+                  command: |
+                      cargo build --release --target x86_64-apple-darwin
+                      mv target/x86_64-apple-darwin/release/dotfiles target/release/dotfiles-mac
             - persist_to_workspace:
                   root: target/release/
                   paths:
@@ -41,10 +45,12 @@ jobs:
         resource_class: small
         steps:
             - checkout
-            - run: rustup target add x86_64-pc-windows-gnu
-            - run: rustup toolchain install stable-x86_64-pc-windows-gnu
-            - run: cargo build --target x86_64-pc-windows-gnu
-            - run: mv target/x86_64-pc-windows-gnu/release/dotfiles target/release/dotfiles-windows
+            - run:
+                  command: |
+                      rustup target add x86_64-pc-windows-gnu
+                      rustup toolchain install stable-x86_64-pc-windows-gnu
+                      cargo build --target x86_64-pc-windows-gnu
+                      mv target/x86_64-pc-windows-gnu/release/dotfiles target/release/dotfiles-windows
             - persist_to_workspace:
                   root: target/release/
                   paths:
@@ -85,9 +91,10 @@ workflows:
                           ignore: /.*/
                       tags:
                           only: /.*/
-                  files: traget/release/anonaddy-hibp
+                  files: target/release/dotfiles
                   requires:
                       - build_linux
                       - build_macosx
+                      - build_windows
                   tag: $CIRCLE_TAG
                   title: $CIRCLE_TAG
