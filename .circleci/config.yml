@@ -1,0 +1,93 @@
+version: 2.1
+
+orbs:
+    gh: circleci/github-cli@2.0.0
+
+jobs:
+    test:
+        docker:
+            - image: rust:latest
+        resource_class: small
+        steps:
+            - checkout
+            - run: cargo test
+    build_linux:
+        docker:
+            - image: rust:latest
+        resource_class: small
+        steps:
+            - checkout
+            - run: cargo build --release
+            - run: mv target/release/dotfiles target/release/dotfiles-linux
+            - persist_to_workspace:
+                  root: target/release/
+                  paths:
+                      - dotfiles-linux
+    build_macosx:
+        docker:
+            - image: joseluisq/rust-linux-darwin-builder:latest
+        resource_class: small
+        steps:
+            - checkout
+            - run: cargo build --release --target x86_64-apple-darwin
+            - run: mv target/x86_64-apple-darwin/release/dotfiles target/release/dotfiles-mac
+            - persist_to_workspace:
+                  root: target/release/
+                  paths:
+                      - dotfiles-mac
+    build_windows:
+        docker:
+            - image: rust:latest
+        resource_class: small
+        steps:
+            - checkout
+            - run: rustup target add x86_64-pc-windows-gnu
+            - run: rustup toolchain install stable-x86_64-pc-windows-gnu
+            - run: cargo build --target x86_64-pc-windows-gnu
+            - run: mv target/x86_64-pc-windows-gnu/release/dotfiles target/release/dotfiles-windows
+            - persist_to_workspace:
+                  root: target/release/
+                  paths:
+                      - dotfiles-windows
+
+    upload_artifacts:
+        docker:
+            - image: circleci/base:stable
+        resource_class: small
+        steps:
+            - attach_workspace:
+                  at: /tmp/workspace
+            - gh/install
+            - gh/setup
+            - run:
+                  command: |
+                      gh release upload $CIRCLE_TAG /tmp/workspace/dotfiles-linux /tmp/workspace/dotfiles-mac /tmp/workspace/dotfiles-windows
+
+workflows:
+    version: 2
+    test_and_build:
+        jobs:
+            - test
+            - build_linux:
+                  requires:
+                      - test
+            - build_macosx:
+                  requires:
+                      - test
+            - build_windows:
+                  requires:
+                      - test
+            - gh/release:
+                  context:
+                      - GITHUB_CREDS
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /.*/
+                  files: traget/release/anonaddy-hibp
+                  requires:
+                      - build_linux
+                      - build_macosx
+                  tag: $CIRCLE_TAG
+                  title: $CIRCLE_TAG
