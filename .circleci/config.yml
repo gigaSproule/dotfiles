@@ -78,12 +78,27 @@ workflows:
             - build_linux:
                   requires:
                       - test
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /.*/
             - build_macosx:
                   requires:
                       - test
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /.*/
             - build_windows:
                   requires:
                       - test
+                  filters:
+                      branches:
+                          ignore: /.*/
+                      tags:
+                          only: /.*/
             - gh/release:
                   context:
                       - GITHUB_CREDS
