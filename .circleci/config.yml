@@ -47,6 +47,7 @@ jobs:
             - checkout
             - run:
                   command: |
+                      apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
                       rustup target add x86_64-pc-windows-gnu
                       rustup toolchain install stable-x86_64-pc-windows-gnu
                       cargo build --target x86_64-pc-windows-gnu
