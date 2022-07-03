@@ -55,7 +55,7 @@ jobs:
             - persist_to_workspace:
                   root: target/release/
                   paths:
-                      - dotfiles-windows
+                      - dotfiles-windows.exe
 
     upload_artifacts:
         docker:
