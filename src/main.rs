@@ -8,9 +8,9 @@ use whoami;
 #[cfg(all(test, target_os = "linux"))]
 use mockedwhoami as whoami;
 
-#[cfg(test)]
+#[cfg(all(not(test), target_os = "linux"))]
 use mockall::automock;
-#[cfg(test)]
+#[cfg(all(not(test), target_os = "linux"))]
 #[automock()]
 pub mod mockedwhoami {
     pub fn distro() -> String {
@@ -95,6 +95,7 @@ fn print_help() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const CONFIG: config::Config = config::Config {
         browsers: false,
@@ -119,6 +120,7 @@ mod tests {
     };
 
     #[test]
+    #[serial]
     #[should_panic(expected = "Need to run this with sudo.")]
     #[cfg(target_os = "linux")]
     fn test_get_system_throws_error_if_sudo_user_not_set() {
@@ -127,6 +129,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     #[cfg(target_os = "linux")]
     fn test_get_system_returns_arch() {
         env::set_var("SUDO_USER", "username");
@@ -136,6 +139,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     #[cfg(target_os = "linux")]
     fn test_get_system_returns_ubuntu() {
         env::set_var("SUDO_USER", "username");
@@ -145,6 +149,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     #[should_panic(expected = "Need to run this with sudo.")]
     #[cfg(target_os = "macos")]
     fn test_get_system_throws_error_if_sudo_user_not_set() {
@@ -153,6 +158,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     #[cfg(target_os = "macos")]
     fn test_get_system_returns_mac() {
         env::set_var("SUDO_USER", "username");
