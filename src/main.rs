@@ -5,9 +5,9 @@ use crate::{config::parse, install::install};
 #[cfg(all(not(test), target_os = "linux"))]
 use whoami;
 
-#[cfg(all(not(test), target_os = "linux"))]
+#[cfg(all(test, target_os = "linux"))]
 use mockall::automock;
-#[cfg(all(not(test), target_os = "linux"))]
+#[cfg(all(test, target_os = "linux"))]
 #[automock()]
 pub mod whoami {
     pub fn distro() -> String {
