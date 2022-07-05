@@ -5,14 +5,11 @@ use crate::{config::parse, install::install};
 #[cfg(all(not(test), target_os = "linux"))]
 use whoami;
 
-#[cfg(all(test, target_os = "linux"))]
-use mockedwhoami as whoami;
-
 #[cfg(all(not(test), target_os = "linux"))]
 use mockall::automock;
 #[cfg(all(not(test), target_os = "linux"))]
 #[automock()]
-pub mod mockedwhoami {
+pub mod whoami {
     pub fn distro() -> String {
         "Ubuntu".to_string()
     }
@@ -133,7 +130,7 @@ mod tests {
     #[cfg(target_os = "linux")]
     fn test_get_system_returns_arch() {
         env::set_var("SUDO_USER", "username");
-        let ctx = mock_mockedwhoami::distro_context();
+        let ctx = mock_whoami::distro_context();
         ctx.expect().returning(|| "Arch Linux".to_string());
         get_system(&CONFIG);
     }
@@ -143,7 +140,7 @@ mod tests {
     #[cfg(target_os = "linux")]
     fn test_get_system_returns_ubuntu() {
         env::set_var("SUDO_USER", "username");
-        let ctx = mock_mockedwhoami::distro_context();
+        let ctx = mock_whoami::distro_context();
         ctx.expect().returning(|| "Ubuntu 22.04 LTS".to_string());
         get_system(&CONFIG);
     }
