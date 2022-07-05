@@ -15,9 +15,6 @@ pub(crate) struct Windows<'s> {
 
 impl<'s> Windows<'s> {
     pub(crate) fn new(config: &'s Config) -> Self {
-        if !is_elevated::is_elevated() {
-            panic!("Need to run this with administrator privileges.")
-        }
         Windows { config }
     }
 

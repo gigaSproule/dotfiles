@@ -1,8 +1,8 @@
 use std::error::Error;
+use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
-use std::{env, fs};
 
 use async_trait::async_trait;
 
@@ -16,10 +16,6 @@ pub(crate) struct Mac<'s> {
 
 impl<'s> Mac<'s> {
     pub(crate) fn new(config: &'s Config) -> Self {
-        let sudo_user = env::var("SUDO_USER");
-        if sudo_user.is_err() {
-            panic!("Need to run this with sudo.")
-        }
         Mac { config }
     }
 

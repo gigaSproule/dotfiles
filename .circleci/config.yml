@@ -4,7 +4,7 @@ orbs:
     gh: circleci/github-cli@2.0.0
 
 jobs:
-    test:
+    test_linux:
         docker:
             - image: rust:latest
         resource_class: small
@@ -25,6 +25,13 @@ jobs:
                   root: target/release/
                   paths:
                       - dotfiles-linux
+    test_macosx:
+        docker:
+            - image: joseluisq/rust-linux-darwin-builder:latest
+        resource_class: small
+        steps:
+            - checkout
+            - run: cargo test --target x86_64-apple-darwin
     build_macosx:
         docker:
             - image: joseluisq/rust-linux-darwin-builder:latest
@@ -39,6 +46,17 @@ jobs:
                   root: target/release/
                   paths:
                       - dotfiles-mac
+    test_windows:
+        docker:
+            - image: joseluisq/rust-linux-darwin-builder:latest
+        resource_class: small
+        steps:
+            - checkout
+            - run: |
+                  apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
+                  rustup target add x86_64-pc-windows-gnu
+                  rustup toolchain install stable-x86_64-pc-windows-gnu
+                  cargo test --target x86_64-pc-windows-gnu
     build_windows:
         docker:
             - image: rust:latest
@@ -74,10 +92,12 @@ workflows:
     version: 2
     test_and_build:
         jobs:
-            - test
+            - test_linux
+            - test_macosx
+            - test_windows
             - build_linux:
                   requires:
-                      - test
+                      - test_linux
                   filters:
                       branches:
                           ignore: /.*/
@@ -85,7 +105,7 @@ workflows:
                           only: /.*/
             - build_macosx:
                   requires:
-                      - test
+                      - test_macosx
                   filters:
                       branches:
                           ignore: /.*/
@@ -93,7 +113,7 @@ workflows:
                           only: /.*/
             - build_windows:
                   requires:
-                      - test
+                      - test_windows
                   filters:
                       branches:
                           ignore: /.*/

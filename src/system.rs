@@ -6,10 +6,11 @@ use std::process::Command;
 use std::process::Stdio;
 
 use async_trait::async_trait;
+#[cfg(test)]
 use mockall::automock;
 
 #[async_trait]
-#[automock]
+#[cfg_attr(test, automock)]
 pub(crate) trait System: Send + Sync {
     /// Executes the given command. It will run it as a super user if `super_user` is `true`.
     ///
