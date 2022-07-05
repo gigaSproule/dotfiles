@@ -68,6 +68,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_android_studio(&self) -> Result<(), Box<dyn std::error::Error>>;
 
+    fn install_archiver(&self) -> Result<(), Box<dyn std::error::Error>>;
+
     fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>>;
 
     fn install_blender(&self) -> Result<(), Box<dyn std::error::Error>>;

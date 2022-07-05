@@ -137,6 +137,20 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
+        if self.config.gnome {
+            if !self.is_installed("file-roller")? {
+                self.install_application("file-roller")?;
+            }
+        }
+        if self.config.kde {
+            if !self.is_installed("ark")? {
+                self.install_application("ark")?;
+            }
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn std::error::Error>> {
         unix::setup_bash(self)?;
         Ok(())
@@ -879,9 +893,6 @@ impl<'s> System for Ubuntu<'s> {
         if self.config.kde {
             if !self.is_installed("kde-plasma-desktop")? {
                 self.install_application("kde-plasma-desktop")?;
-            }
-            if !self.is_installed("ark")? {
-                self.install_application("ark")?;
             }
             if !self.is_installed("baloo")? {
                 self.install_application("baloo")?;

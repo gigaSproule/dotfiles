@@ -16,6 +16,8 @@ pub(crate) async fn install<'s>(
     println!("Installing Graphic Card Tools");
     system.install_graphic_card_tools()?;
 
+    println!("Installing archiver");
+    system.install_archiver()?;
     println!("Installing Bash");
     system.install_bash()?;
     println!("Installing Cryptomator");
@@ -913,6 +915,10 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_graphic_card_tools()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_archiver()
             .times(1)
             .returning(|| Ok(()));
         mock_system

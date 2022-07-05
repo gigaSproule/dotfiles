@@ -94,6 +94,13 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("the-unarchiver")? {
+            self.cask_install_application("the-unarchiver")?;
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         let bashrc = format!("{}/.bashrc", self.get_home_dir());

@@ -79,6 +79,20 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
+        if self.config.gnome {
+            if !self.is_installed("file-roller")? {
+                self.install_application("file-roller")?;
+            }
+        }
+        if self.config.kde {
+            if !self.is_installed("ark")? {
+                self.install_application("ark")?;
+            }
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         Ok(())
@@ -829,9 +843,6 @@ impl<'s> System for Arch<'s> {
             }
             if !self.is_installed("plasma-wayland-session")? {
                 self.install_application("plasma-wayland-session")?;
-            }
-            if !self.is_installed("ark")? {
-                self.install_application("ark")?;
             }
             if !self.is_installed("baloo")? {
                 self.install_application("baloo")?;

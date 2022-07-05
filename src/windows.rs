@@ -124,6 +124,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("7zip")? {
+            self.install_application("7zip")?;
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -605,9 +612,6 @@ impl<'s> System for Windows<'s> {
         )?;
         self.execute_powershell("refreshenv", true)?;
         self.execute("REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f", true)?;
-        if !self.is_installed("7zip")? {
-            self.install_application("7zip")?;
-        }
         if !self.is_installed("microsoft-windows-terminal")? {
             self.install_application("microsoft-windows-terminal")?;
         }
