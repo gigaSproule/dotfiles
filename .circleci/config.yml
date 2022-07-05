@@ -48,7 +48,7 @@ jobs:
                       - dotfiles-mac
     test_windows:
         docker:
-            - image: joseluisq/rust-linux-darwin-builder:latest
+            - image: rust:latest
         resource_class: small
         steps:
             - checkout
