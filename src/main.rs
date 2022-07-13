@@ -7,6 +7,7 @@ use whoami;
 
 #[cfg(all(test, target_os = "linux"))]
 use mockall::automock;
+
 #[cfg(all(test, target_os = "linux"))]
 #[automock()]
 pub mod whoami {
@@ -48,7 +49,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    // let system = sys::new(&config);
     let system = get_system(&config);
     install(&config, &*system).await
 }

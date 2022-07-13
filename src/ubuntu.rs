@@ -701,10 +701,7 @@ impl<'s> System for Ubuntu<'s> {
             self.install_application("sweethome3d")?;
         }
 
-        let sweet_home_3d_desktop = format!(
-            "{}/.local/share/applictaions/sweethome3d.desktop",
-            self.get_home_dir()
-        );
+        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop",);
         let mut sweet_home_3d_desktop_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -717,7 +714,7 @@ impl<'s> System for Ubuntu<'s> {
             Name=Sweet Home 3D\n\
             Comment=An interior design application\n\
             TryExec=sweethome3d\n\
-            Exec=JAVA_HOME=/usr/lib/jvm/java-11-openjdk sweethome3d\n\
+            Exec=env JAVA_HOME=/usr/lib/jvm/java-11-openjdk sweethome3d\n\
             Icon=sweethome3d\n\
             Categories=Office;Java;\n\
             StartupWMClass=com-eteks-sweethome3d-SweetHome3D\n\
@@ -911,6 +908,9 @@ impl<'s> System for Ubuntu<'s> {
             }
             if !self.is_installed("gwenview")? {
                 self.install_application("gwenview")?;
+            }
+            if !self.is_installed("kdegraphics-thumbnailers")? {
+                self.install_application("kdegraphics-thumbnailers")?;
             }
             if !self.is_installed("konsole")? {
                 self.install_application("konsole")?;
