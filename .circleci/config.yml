@@ -26,6 +26,15 @@ jobs:
                   paths:
                       - dotfiles-linux
     test_macosx:
+        macos:
+            xcode: 12.5.1
+        resource_class: small
+        steps:
+            - checkout
+            - run: brew install rustup
+            - run: rustup-init -y
+            - run: cargo test
+    test_macosx_docker:
         docker:
             - image: joseluisq/rust-linux-darwin-builder:latest
         resource_class: small
