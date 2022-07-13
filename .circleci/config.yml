@@ -28,7 +28,7 @@ jobs:
     test_macosx:
         macos:
             xcode: 12.5.1
-        resource_class: small
+        resource_class: medium
         steps:
             - checkout
             - run: brew install rustup
