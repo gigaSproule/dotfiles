@@ -745,6 +745,9 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("alsa-base")? {
             self.install_application("alsa-base")?;
         }
+        if !self.is_installed("man-db")? {
+            self.install_application("man-db")?;
+        }
         if !self.is_installed("pipewire")? {
             self.install_application("pipewire")?;
         }

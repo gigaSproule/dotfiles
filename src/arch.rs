@@ -705,6 +705,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("lib32-pipewire")? {
             self.install_application("lib32-pipewire")?;
         }
+        if !self.is_installed("man-db")? {
+            self.install_application("man-db")?;
+        }
         if !self.is_installed("pipewire-alsa")? {
             self.install_application("pipewire-alsa")?;
         }
