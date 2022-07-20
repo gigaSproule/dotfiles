@@ -324,7 +324,10 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
-        todo!()
+        if !self.is_installed("texlive")? {
+            self.install_application("texlive")?;
+        }
+        Ok(())
     }
 
     fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
