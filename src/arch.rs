@@ -6,9 +6,9 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
+use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
-use crate::{linux, system, unix};
 
 pub(crate) struct Arch<'s> {
     config: &'s Config,
@@ -218,7 +218,7 @@ impl<'s> System for Arch<'s> {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-        .await?;
+            .await?;
 
         system::add_to_file(
             "/opt/eclipse/eclipse.ini",
@@ -569,6 +569,40 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("retroarch")? {
+            self.install_application("retroarch")?;
+        }
+        if !self.is_installed("libretro-gambatte")? {
+            self.install_application("libretro-gambatte")?;
+        }
+        if !self.is_installed("libretro-mgba")? {
+            self.install_application("libretro-mgba")?;
+        }
+        if !self.is_installed("libretro-beetle-psx-hw")? {
+            self.install_application("libretro-beetle-psx-hw")?;
+        }
+        if !self.is_installed("libretro-desmume")? {
+            self.install_application("libretro-desmume")?;
+        }
+        if !self.is_installed("libretro-yabause")? {
+            self.install_application("libretro-yabause")?;
+        }
+        if !self.is_installed("libretro-mupen64plus-next")? {
+            self.install_application("libretro-mupen64plus-next")?;
+        }
+        if !self.is_installed("libretro-snes9x")? {
+            self.install_application("libretro-snes9x")?;
+        }
+        if !self.is_installed("libretro-ppsspp")? {
+            self.install_application("libretro-ppsspp")?;
+        }
+        if !self.is_installed("libretro-genesis-plus-gx")? {
+            self.install_application("libretro-genesis-plus-gx")?;
+        }
+        Ok(())
+    }
+
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("rustup")? {
             self.install_application("rustup")?;
@@ -603,7 +637,7 @@ impl<'s> System for Arch<'s> {
             self.install_application("sweethome3d")?;
         }
 
-        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop",);
+        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop", );
         let mut sweet_home_3d_desktop_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -670,7 +704,7 @@ impl<'s> System for Arch<'s> {
                 "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
                 "yay.tar.gz",
             )
-            .await?;
+                .await?;
             linux::untar_rename_root("yay.tar.gz", "yay")?;
             let user_id = unix::get_user_id();
             let group_id = unix::get_group_id();
@@ -797,7 +831,7 @@ impl<'s> System for Arch<'s> {
         )?;
         system::download_file(
             "https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035",
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin"
+            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
         ).await?;
         Ok(())
     }
@@ -819,8 +853,8 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("libappindicator-gtk3")? {
                 self.install_application("libappindicator-gtk3")?;
             }
-            if !self.is_installed("chrome-gnome-shell")? {
-                self.aur_install_application("chrome-gnome-shell")?;
+            if !self.is_installed("gnome-browser-connector")? {
+                self.aur_install_application("gnome-browser-connector")?;
             }
             if !self.is_installed("gnome-shell-extension-appindicator")? {
                 self.aur_install_application("gnome-shell-extension-appindicator")?;

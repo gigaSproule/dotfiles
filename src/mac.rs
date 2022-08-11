@@ -512,6 +512,10 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("rustup")? {
             self.install_application("rustup")?;

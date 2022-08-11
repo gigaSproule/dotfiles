@@ -554,6 +554,10 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("rustup.install")? {
             self.install_application("rustup.install")?;

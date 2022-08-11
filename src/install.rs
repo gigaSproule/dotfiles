@@ -105,6 +105,8 @@ pub(crate) async fn install<'s>(
         system.install_lutris()?;
         println!("Installing Origin");
         system.install_origin()?;
+        println!("Installing RetroArch");
+        system.install_retroarch()?;
         println!("Installing Steam");
         system.install_steam()?;
         println!("Installing Wine");
