@@ -129,7 +129,7 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("android-studi")? {
+        if !self.is_installed("android-studio")? {
             self.add_ppa("maarten-fonville/android-studio")?;
             self.update_os_repo()?;
             self.install_application("android-studio")?;
