@@ -164,15 +164,15 @@ impl<'s> System for Windows<'s> {
                 "https://github.com/dokan-dev/dokany/releases/download/v1.5.1.1000/DokanSetup.exe",
                 "DokanSetup.exe",
             )
-            .await?;
+                .await?;
             self.execute_powershell(
                 "Invoke-Expression -Command \".\\DokanSetup.exe /passive /norestart\"",
                 true,
             )?;
             fs::remove_file("DokanSetup.exe")?;
             println!(
-            "You will need to restart your machine for the kernel driver changes to take affect."
-        );
+                "You will need to restart your machine for the kernel driver changes to take affect."
+            );
         }
         Ok(())
     }
@@ -195,6 +195,10 @@ impl<'s> System for Windows<'s> {
         if !self.is_installed("discord")? {
             self.install_application("discord")?;
         }
+        Ok(())
+    }
+
+    fn install_development_extras(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
@@ -555,6 +559,9 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("retroarch")? {
+            self.install_application("retroarch")?;
+        }
         Ok(())
     }
 

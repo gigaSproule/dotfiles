@@ -77,6 +77,8 @@ pub(crate) async fn install<'s>(
         system.install_vscode()?;
         println!("Installing Xcode");
         system.install_xcode()?;
+        println!("Install development specific extras");
+        system.install_development_extras()?;
         println!("Setting development specific shortcuts");
         system.set_development_shortcuts()?;
         println!("Setting development environment settings");
@@ -334,6 +336,10 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
         mock_system
+            .expect_install_development_extras()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
             .expect_set_development_shortcuts()
             .times(1)
             .returning(|| Ok(()));
@@ -431,6 +437,10 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_origin()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_retroarch()
             .times(1)
             .returning(|| Ok(()));
         mock_system

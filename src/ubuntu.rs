@@ -235,6 +235,19 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_development_extras(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("build-essential")? {
+            self.install_application("build-essential")?;
+        }
+        if !self.is_installed("libssl-dev")? {
+            self.install_application("libssl-dev")?;
+        }
+        if !self.is_installed("pkg-config")? {
+            self.install_application("pkg-config")?;
+        }
+        Ok(())
+    }
+
     fn install_docker(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("docker")? {
             self.install_application("docker")?;

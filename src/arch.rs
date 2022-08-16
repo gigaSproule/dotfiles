@@ -185,6 +185,13 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_development_extras(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("pkgconf")? {
+            self.install_application("pkgconf")?;
+        }
+        Ok(())
+    }
+
     fn install_docker(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("docker")? {
             self.install_application("docker")?;
