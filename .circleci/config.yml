@@ -99,7 +99,7 @@ workflows:
     test_and_build:
         jobs:
             - test_linux
-            - test_macosx
+            - test_macosx_docker
             - test_windows
             - build_linux:
                   requires:
@@ -111,7 +111,7 @@ workflows:
                           only: /.*/
             - build_macosx:
                   requires:
-                      - test_macosx
+                      - test_macosx_docker
                   filters:
                       branches:
                           ignore: /.*/
