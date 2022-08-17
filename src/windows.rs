@@ -35,7 +35,7 @@ impl<'s> Windows<'s> {
     }
 
     fn install_wsl(&self, application: &str) -> Result<String, Box<dyn Error>> {
-        self.execute_wsl(format!("sudo apt install {}", application).as_str(), true)
+        self.execute_wsl(format!("-u root apt install {}", application).as_str(), true)
     }
 
     fn is_installed(&self, application: &str) -> Result<bool, Box<dyn Error>> {

@@ -63,7 +63,6 @@ jobs:
             - run: |
                   apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
                   rustup target add x86_64-pc-windows-gnu
-                  rustup toolchain install stable-x86_64-pc-windows-gnu
                   cargo test --target x86_64-pc-windows-gnu
     build_windows:
         docker:
@@ -75,7 +74,6 @@ jobs:
                   command: |
                       apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
                       rustup target add x86_64-pc-windows-gnu
-                      rustup toolchain install stable-x86_64-pc-windows-gnu
                       cargo build --release --target x86_64-pc-windows-gnu
                       mv target/x86_64-pc-windows-gnu/release/dotfiles.exe target/release/dotfiles-windows.exe
             - persist_to_workspace:
