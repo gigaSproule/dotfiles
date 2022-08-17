@@ -150,10 +150,6 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_conemu(&self) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         // Required as a dependency for cryptomator
         self.install_jdk()?;

@@ -96,6 +96,7 @@ mod tests {
 
     const CONFIG: config::Config = config::Config {
         browsers: false,
+        cli_only: false,
         development: false,
         docker: false,
         dry_run: false,
@@ -114,6 +115,7 @@ mod tests {
         video_editing: false,
         vm: false,
         vpn: false,
+        wsl: false,
     };
 
     #[test]

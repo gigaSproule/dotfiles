@@ -27,11 +27,7 @@ pub(crate) trait System: Send + Sync {
     /// let system: System = ...
     /// system.execute("mkdir /path/to/create", true);
     /// ```
-    fn execute(
-        &self,
-        command: &str,
-        super_user: bool,
-    ) -> Result<String, Box<dyn Error>>;
+    fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>>;
 
     fn get_home_dir(&self) -> String;
 
@@ -79,8 +75,6 @@ pub(crate) trait System: Send + Sync {
     fn install_bluetooth(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>>;
-
-    fn install_conemu(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>>;
 
@@ -344,10 +338,7 @@ pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Erro
 ///
 /// system::download_file("https://some/amazing/file", "some_file").await?;
 /// ```
-pub(crate) async fn download_file(
-    url: &str,
-    downloaded_file: &str,
-) -> Result<(), Box<dyn Error>> {
+pub(crate) async fn download_file(url: &str, downloaded_file: &str) -> Result<(), Box<dyn Error>> {
     let response = reqwest::get(url).await?;
 
     let mut file = match File::create(downloaded_file) {
@@ -493,7 +484,7 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Err
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
     )
-        .await?;
+    .await?;
     Ok(())
 }
 

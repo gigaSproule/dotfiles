@@ -200,10 +200,6 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_conemu(&self) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("cryptomator")? {
             self.add_ppa("sebastian-stenzel/cryptomator")?;

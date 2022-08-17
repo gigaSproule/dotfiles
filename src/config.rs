@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub(crate) struct Config {
     pub browsers: bool,
+    pub cli_only: bool,
     pub development: bool,
     pub docker: bool,
     pub dry_run: bool,
@@ -19,11 +20,13 @@ pub(crate) struct Config {
     pub video_editing: bool,
     pub vm: bool,
     pub vpn: bool,
+    pub wsl: bool,
 }
 
 pub(crate) fn parse(args: Vec<String>) -> Config {
     Config {
         browsers: args.contains(&"--browsers".to_string()),
+        cli_only: args.contains(&"--cli-only".to_string()),
         development: args.contains(&"--development".to_string()),
         docker: args.contains(&"--docker".to_string()),
         dry_run: args.contains(&"--dry-run".to_string()),
@@ -42,6 +45,7 @@ pub(crate) fn parse(args: Vec<String>) -> Config {
         video_editing: args.contains(&"--video-editing".to_string()),
         vm: args.contains(&"--vm".to_string()),
         vpn: args.contains(&"--vpn".to_string()),
+        wsl: !args.contains(&"--not-wsl".to_string()),
     }
 }
 
@@ -50,9 +54,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_sets_all_to_false_for_empty_args() {
+    fn parse_sets_correctly_for_empty_args() {
         let config = parse(vec![]);
         assert_eq!(config.browsers, false);
+        assert_eq!(config.cli_only, false);
         assert_eq!(config.development, false);
         assert_eq!(config.docker, false);
         assert_eq!(config.dry_run, false);
@@ -71,12 +76,19 @@ mod tests {
         assert_eq!(config.video_editing, false);
         assert_eq!(config.vm, false);
         assert_eq!(config.vpn, false);
+        assert_eq!(config.wsl, true);
     }
 
     #[test]
     fn parse_sets_browser_to_true() {
         let config = parse(vec!["--browsers".to_string()]);
         assert_eq!(config.browsers, true);
+    }
+
+    #[test]
+    fn parse_sets_cli_only_to_true() {
+        let config = parse(vec!["--cli-only".to_string()]);
+        assert_eq!(config.cli_only, true);
     }
 
     #[test]
@@ -188,9 +200,16 @@ mod tests {
     }
 
     #[test]
-    fn parse_sets_all_to_true_for_all_args() {
+    fn parse_sets_wsl_to_false() {
+        let config = parse(vec!["--not-wsl".to_string()]);
+        assert_eq!(config.wsl, false);
+    }
+
+    #[test]
+    fn parse_sets_correctly_for_all_args() {
         let config = parse(vec![
             "--browsers".to_string(),
+            "--cli-only".to_string(),
             "--development".to_string(),
             "--docker".to_string(),
             "--dry-run".to_string(),
@@ -207,8 +226,10 @@ mod tests {
             "--video-editing".to_string(),
             "--vm".to_string(),
             "--vpn".to_string(),
+            "--not-wsl".to_string(),
         ]);
         assert_eq!(config.browsers, true);
+        assert_eq!(config.cli_only, true);
         assert_eq!(config.development, true);
         assert_eq!(config.docker, true);
         assert_eq!(config.dry_run, true);
@@ -225,5 +246,6 @@ mod tests {
         assert_eq!(config.video_editing, true);
         assert_eq!(config.vm, true);
         assert_eq!(config.vpn, true);
+        assert_eq!(config.wsl, false);
     }
 }

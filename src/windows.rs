@@ -29,7 +29,7 @@ impl<'s> Windows<'s> {
     }
 
     fn execute_wsl(&self, command: &str, print_output: bool) -> Result<String, Box<dyn Error>> {
-        let mut wsl = Command::new("wsl");
+        let mut wsl = Command::new("wsl -d Ubuntu");
         let command = wsl.arg(command);
         system::run_command(command, print_output, self.config.dry_run)
     }
@@ -147,13 +147,6 @@ impl<'s> System for Windows<'s> {
         system::setup_codecs(self).await
     }
 
-    fn install_conemu(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("conemu")? {
-            self.install_application("conemu")?;
-        }
-        Ok(())
-    }
-
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("cryptomator")? {
             self.install_application("cryptomator")?;
@@ -164,7 +157,7 @@ impl<'s> System for Windows<'s> {
                 "https://github.com/dokan-dev/dokany/releases/download/v1.5.1.1000/DokanSetup.exe",
                 "DokanSetup.exe",
             )
-                .await?;
+            .await?;
             self.execute_powershell(
                 "Invoke-Expression -Command \".\\DokanSetup.exe /passive /norestart\"",
                 true,
@@ -178,7 +171,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_curl(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("curl")? {
+        if self.config.wsl && !self.is_installed_wsl("curl")? {
+            self.install_wsl("curl")?;
+        }
+        if !self.config.wsl && !self.is_installed("curl")? {
             self.install_application("curl")?;
         }
         Ok(())
@@ -262,7 +258,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_google_cloud_sdk(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gcloudsdk")? {
+        if self.config.wsl && !self.is_installed_wsl("gcloudsdk")? {
+            self.install_wsl("gcloudsdk")?;
+        }
+        if !self.config.wsl && !self.is_installed("gcloudsdk")? {
             self.install_application("gcloudsdk")?;
         }
         Ok(())
@@ -276,16 +275,18 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_git(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("git")? {
-            self.install_application("git")?;
-        }
-        system::setup_git_config(self)?;
-        self.execute("git config --system core.longpaths true", false)?;
-        if !self.is_installed("poshgit")? {
-            self.install_application("poshgit")?;
-        }
-        if !self.is_installed_wsl("git")? {
+        if self.config.wsl && !self.is_installed_wsl("git")? {
             self.install_wsl("git")?;
+        }
+        if !self.config.wsl {
+            if !self.is_installed("git")? {
+                self.install_application("git")?;
+            }
+            system::setup_git_config(self)?;
+            self.execute("git config --system core.longpaths true", false)?;
+            if !self.is_installed("poshgit")? {
+                self.install_application("poshgit")?;
+            }
         }
         Ok(())
     }
@@ -305,7 +306,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gradle")? {
+        if self.config.wsl && !self.is_installed_wsl("gradle")? {
+            self.install_wsl("gradle")?;
+        }
+        if !self.config.wsl && !self.is_installed("gradle")? {
             self.install_application("gradle")?;
         }
         Ok(())
@@ -322,7 +326,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("groovy")? {
+        if self.config.wsl && !self.is_installed_wsl("groovy")? {
+            self.install_wsl("groovy")?;
+        }
+        if !self.config.wsl && !self.is_installed("groovy")? {
             self.install_application("groovy")?;
         }
         Ok(())
@@ -354,7 +361,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("adoptopenjdk")? {
+        if self.config.wsl && !self.is_installed_wsl("openjdk")? {
+            self.install_wsl("openjdk")?;
+        }
+        if !self.config.wsl && !self.is_installed("adoptopenjdk")? {
             self.install_application("adoptopenjdk")?;
         }
         Ok(())
@@ -401,7 +411,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_maven(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("maven")? {
+        if self.config.wsl && !self.is_installed_wsl("maven")? {
+            self.install_wsl("maven")?;
+        }
+        if !self.config.wsl && !self.is_installed("maven")? {
             self.install_application("maven")?;
         }
         Ok(())
@@ -455,11 +468,16 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("nvm")? {
-            self.install_application("nvm")?;
+        // TODO: What about the rest?
+        if self.config.wsl && !self.is_installed_wsl("nvm")? {
+            self.install_wsl("nvm")?;
         }
+        if !self.config.wsl {
+            if !self.is_installed("nvm")? {
+                self.install_application("nvm")?;
+            }
 
-        let nvm_script = "function callnvm() {{\n\
+            let nvm_script = "function callnvm() {{\n\
           # Always use argument version if there is one\n\
           $versionDesired = $args[0]\n\
           if (($versionDesired -eq \"\" -Or $versionDesired -eq $null) -And (Test-Path .nvmrc -PathType Any)) {{\n\
@@ -484,30 +502,31 @@ impl<'s> System for Windows<'s> {
           }}\n\
        }}\n\
        Set-Alias nvmu -value \"callnvm\"";
-        system::add_to_file(
-            &format!(
-                r"{}\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1",
-                self.get_home_dir()
-            ),
-            nvm_script,
-        )?;
-        self.execute_powershell("refreshenv", false)?;
-        self.execute("nvm install latest", false)?;
-        let stdout = &self.execute("nvm list", false);
-        let output = stdout
-            .as_ref()
-            .expect("Could not find any installed npm versions");
-        for output_version in output.split("\n") {
-            if output_version != "" {
-                self.execute(
-                    format!("nvm use {}", output_version.replace(" ", "")).as_str(),
-                    false,
-                )?;
-                break;
+            system::add_to_file(
+                &format!(
+                    r"{}\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1",
+                    self.get_home_dir()
+                ),
+                nvm_script,
+            )?;
+            self.execute_powershell("refreshenv", false)?;
+            self.execute("nvm install latest", false)?;
+            let stdout = &self.execute("nvm list", false);
+            let output = stdout
+                .as_ref()
+                .expect("Could not find any installed npm versions");
+            for output_version in output.split("\n") {
+                if output_version != "" {
+                    self.execute(
+                        format!("nvm use {}", output_version.replace(" ", "")).as_str(),
+                        false,
+                    )?;
+                    break;
+                }
             }
+            self.execute_powershell("refreshenv", false)?;
+            self.execute_powershell("npm install --global yarn", true)?;
         }
-        self.execute_powershell("refreshenv", false)?;
-        self.execute_powershell("npm install --global yarn", true)?;
         Ok(())
     }
 
@@ -552,7 +571,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("python")? {
+        if self.config.wsl && !self.is_installed_wsl("python")? {
+            self.install_wsl("python")?;
+        }
+        if !self.config.wsl && !self.is_installed("python")? {
             self.install_application("python")?;
         }
         Ok(())
@@ -566,6 +588,10 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
+        if self.config.wsl && !self.is_installed_wsl("rustup")? {
+            self.install_wsl("rustup")?;
+        }
+        // Always install outside of WSL in case this needs updating for Windows
         if !self.is_installed("rustup.install")? {
             self.install_application("rustup.install")?;
         }
@@ -623,8 +649,9 @@ impl<'s> System for Windows<'s> {
         if !self.is_installed("microsoft-windows-terminal")? {
             self.install_application("microsoft-windows-terminal")?;
         }
-        if self.config.development {
-            self.execute_powershell("wsl --install", true)?;
+        if self.config.development && self.config.wsl {
+            self.execute_powershell("wsl --install -d Ubuntu", true)?;
+            // TODO: Download Linux binary, copy into Ubuntu WSL and run with development only flag
         }
         Ok(())
     }
@@ -660,6 +687,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_vscode(&self) -> Result<(), Box<dyn Error>> {
+        if self.config.wsl && !self.is_installed_wsl("vscode")? {
+            self.install_wsl("vscode")?;
+        }
+        // Always install outside of WSL in case this needs updating for Windows
         if !self.is_installed("vscode")? {
             self.install_application("vscode")?;
         }
@@ -675,7 +706,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_wget(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("wget")? {
+        if self.config.wsl && !self.is_installed_wsl("wget")? {
+            self.install_wsl("wget")?;
+        }
+        if !self.config.wsl && !self.is_installed("wget")? {
             self.install_application("wget")?;
         }
         Ok(())
