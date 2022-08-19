@@ -7,9 +7,9 @@ use std::path::Path;
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Ubuntu<'s> {
     config: &'s Config,
@@ -85,12 +85,7 @@ impl<'s> Ubuntu<'s> {
         Ok(())
     }
 
-    fn set_debconf(
-        &self,
-        installer: &str,
-        conf: &str,
-        value: &str,
-    ) -> Result<(), Box<dyn Error>> {
+    fn set_debconf(&self, installer: &str, conf: &str, value: &str) -> Result<(), Box<dyn Error>> {
         let debconf_file = format!("{}.debconf", Uuid::new_v4());
         let mut file = OpenOptions::new()
             .create(true)
@@ -106,11 +101,7 @@ impl<'s> Ubuntu<'s> {
 
 #[async_trait]
 impl<'s> System for Ubuntu<'s> {
-    fn execute(
-        &self,
-        command: &str,
-        super_user: bool,
-    ) -> Result<String, Box<dyn Error>> {
+    fn execute(&self, command: &str, super_user: bool) -> Result<String, Box<dyn Error>> {
         unix::execute(command, super_user, true, self.config.dry_run)
     }
 
@@ -118,10 +109,7 @@ impl<'s> System for Ubuntu<'s> {
         linux::get_home_dir()
     }
 
-    fn install_applications(
-        &self,
-        application: Vec<&str>,
-    ) -> Result<String, Box<dyn Error>> {
+    fn install_applications(&self, application: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
             &format!("apt-get install -y {}", application.join(" ")),
             true,
@@ -271,7 +259,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-            .await?;
+        .await?;
 
         system::add_to_file(
             "/opt/eclipse/eclipse.ini",
@@ -308,7 +296,7 @@ impl<'s> System for Ubuntu<'s> {
                 "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
                 "google-chrome.deb",
             )
-                .await?;
+            .await?;
             self.execute("dpkg -i google-chrome.deb", true)?;
             fs::remove_file("google-chrome.deb")?;
             println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
@@ -442,10 +430,10 @@ impl<'s> System for Ubuntu<'s> {
             let kubectl_version = reqwest::get(
                 "https://storage.googleapis.com/kubernetes-release/release/stable.txt",
             )
-                .await?
-                .text()
-                .await?
-                .replace("\n", "");
+            .await?
+            .text()
+            .await?
+            .replace("\n", "");
             system::download_file(
                 &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl").await?;
             unix::recursively_chmod("/usr/local/bin/kubectl", &0o755, &0o755)?;
@@ -550,7 +538,7 @@ impl<'s> System for Ubuntu<'s> {
                 "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
                 "/usr/local/bin/minikube",
             )
-                .await?;
+            .await?;
             unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
         }
         Ok(())
@@ -586,7 +574,7 @@ impl<'s> System for Ubuntu<'s> {
                 "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
                 "nvm-install.sh",
             )
-                .await?;
+            .await?;
             unix::recursively_chmod("nvm-install.sh", &0o755, &0o755)?;
             self.execute("./nvm-install.sh", false)?;
             fs::remove_file("nvm-install.sh")?;
@@ -714,7 +702,7 @@ impl<'s> System for Ubuntu<'s> {
             self.install_application("sweethome3d")?;
         }
 
-        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop", );
+        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop",);
         let mut sweet_home_3d_desktop_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -798,7 +786,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://raw.githubusercontent.com/gusbemacbe/suru-plus/master/install.sh",
             "suru-plus-install.sh",
         )
-            .await?;
+        .await?;
         unix::recursively_chmod("suru-plus-install.sh", &0o755, &0o755)?;
         self.execute("./suru-plus-install.sh", true)?;
 
@@ -809,6 +797,9 @@ impl<'s> System for Ubuntu<'s> {
             &user_id,
             &group_id,
         )?;
+        if self.config.gnome {
+            linux::gtk_theme(self)?;
+        }
         Ok(())
     }
 

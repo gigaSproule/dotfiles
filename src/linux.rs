@@ -412,3 +412,54 @@ pub(crate) fn untar_rename_root(src: &str, dest: &str) -> Result<(), std::io::Er
         .for_each(|x| println!("> {}", x.display()));
     Ok(())
 }
+
+pub(crate) fn gtk_theme(system: &impl System) -> Result<(), std::io::Error> {
+    let theme = "@import \"colors.css\";\n\
+\n\
+window.ssd headerbar.titlebar {\n\
+  padding-top: 2px;\n\
+  padding-bottom: 2px;\n\
+  min-height: 0;\n\
+}\n\
+\n\
+window.ssd headerbar.titlebar button.titlebutton {\n\
+  padding-top: 2px;\n\
+  padding-bottom: 2px;\n\
+  min-height: 0;\n\
+}\n\
+\n\
+/* shrink headebars */\n\
+headerbar {\n\
+  min-height: 38px;\n\
+  /* same as childrens vertical margins for nicer proportions */\n\
+  padding-left: 2px;\n\
+  padding-right: 2px;\n\
+}\n\
+\n\
+headerbar entry,\n\
+headerbar spinbutton,\n\
+headerbar button,\n\
+headerbar separator {\n\
+  /* same as headerbar side padding for nicer proportions */\n\
+  margin-top: 2px;\n\
+  margin-bottom: 2px;\n\
+}\n\
+\n\
+/* shrink ssd titlebars */\n\
+.default-decoration {\n\
+  /* let the entry and button drive the titlebar size */\n\
+  min-height: 0;\n\
+  padding: 2px;\n\
+}\n\
+\n\
+.default-decoration .titlebutton {\n\
+  /* tweak these two props to reduce button size */\n\
+  min-height: 26px;\n\
+  min-width: 26px;\n\
+}\n";
+    system::add_to_file(
+        &format!("{}/.config/gtk-3.0/gtk.css", system.get_home_dir()),
+        theme,
+    )?;
+    Ok(())
+}
