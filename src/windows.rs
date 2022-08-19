@@ -42,10 +42,10 @@ impl<'s> Windows<'s> {
     }
 
     fn is_installed(&self, application: &str) -> Result<bool, Box<dyn Error>> {
-        let mut choco = Command::new("choco");
-        let choco_command = choco.args(vec!["list", "-e", application, "--local-only"]);
-        let choco_output = system::run_command(choco_command, false, false)?;
-        if !choco_output.contains("0 packages installed") {
+        let mut winget = Command::new("winget");
+        let winget_command = winget.args(vec!["list", "--id", application]);
+        let winget_output = system::run_command(winget_command, false, false)?;
+        if !winget_output.contains("No installed package found matching input criteria.") {
             return Ok(true);
         }
         let mut import_module = Command::new("powershell");
@@ -117,21 +117,21 @@ impl<'s> System for Windows<'s> {
 
     fn install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
-            format!("choco install {}", applications.join(" ")).as_str(),
+            format!("winget install {}", applications.join(" ")).as_str(),
             true,
         )
     }
 
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("androidstudio")? {
-            self.install_application("androidstudio")?;
+        if !self.is_installed("Google.AndroidStudio")? {
+            self.install_application("Google.AndroidStudio")?;
         }
         Ok(())
     }
 
     fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("7zip")? {
-            self.install_application("7zip")?;
+        if !self.is_installed("7zip.7zip")? {
+            self.install_application("7zip.7zip")?;
         }
         Ok(())
     }
@@ -141,8 +141,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_blender(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("blender")? {
-            self.install_application("blender")?;
+        if !self.is_installed("BlenderFoundation.Blender")? {
+            self.install_application("BlenderFoundation.Blender")?;
         }
         Ok(())
     }
@@ -152,8 +152,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_calibre(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("calibre")? {
-            self.install_application("calibre")?;
+        if !self.is_installed("calibre.calibre")? {
+            self.install_application("calibre.calibre")?;
         }
         Ok(())
     }
@@ -163,24 +163,8 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("cryptomator")? {
-            self.install_application("cryptomator")?;
-        }
-        if !self.is_installed("Dokan")? {
-            // Required for reading files on VFS mounts
-            system::download_file(
-                "https://github.com/dokan-dev/dokany/releases/download/v1.5.1.1000/DokanSetup.exe",
-                "DokanSetup.exe",
-            )
-            .await?;
-            self.execute_powershell(
-                "Invoke-Expression -Command \".\\DokanSetup.exe /passive /norestart\"",
-                true,
-            )?;
-            fs::remove_file("DokanSetup.exe")?;
-            println!(
-                "You will need to restart your machine for the kernel driver changes to take affect."
-            );
+        if !self.is_installed("Cryptomator.Cryptomator")? {
+            self.install_application("Cryptomator.Cryptomator")?;
         }
         Ok(())
     }
@@ -189,6 +173,7 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("curl")? {
             self.install_wsl("curl")?;
         }
+        // TODO: What to replace this with
         if !self.config.wsl && !self.is_installed("curl")? {
             self.install_application("curl")?;
         }
@@ -203,15 +188,15 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_discord(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("discord")? {
-            self.install_application("discord")?;
+        if !self.is_installed("Discord.Discord")? {
+            self.install_application("Discord.Discord")?;
         }
         Ok(())
     }
 
     fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("windirstat")? {
-            self.install_application("windirstat")?;
+        if !self.is_installed("WinDirStat.WinDirStat")? {
+            self.install_application("WinDirStat.WinDirStat")?;
         }
         Ok(())
     }
@@ -221,8 +206,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_docker(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("docker-desktop")? {
-            self.install_application("docker-desktop")?;
+        if !self.is_installed("Docker.DockerDesktop")? {
+            self.install_application("Docker.DockerDesktop")?;
         }
         if !self.is_installed("DockerCompletion")? {
             self.execute_powershell("Install-Module -Name DockerCompletion -Force", true)?;
@@ -237,8 +222,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("dropbox")? {
-            self.install_application("dropbox")?;
+        if !self.is_installed("Dropbox.Dropbox")? {
+            self.install_application("Dropbox.Dropbox")?;
         }
         Ok(())
     }
@@ -252,15 +237,15 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("epicgameslauncher")? {
-            self.install_application("epicgameslauncher")?;
+        if !self.is_installed("EpicGames.EpicGamesLauncher")? {
+            self.install_application("EpicGames.EpicGamesLauncher")?;
         }
         Ok(())
     }
 
     fn install_firefox(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("firefox")? {
-            self.install_application("firefox")?;
+        if !self.is_installed("Mozilla.Firefox")? {
+            self.install_application("Mozilla.Firefox")?;
         }
         Ok(())
     }
@@ -274,8 +259,8 @@ impl<'s> System for Windows<'s> {
             self.install_wsl("git")?;
         }
         if !self.config.wsl {
-            if !self.is_installed("git")? {
-                self.install_application("git")?;
+            if !self.is_installed("Git.Git")? {
+                self.install_application("Git.Git")?;
             }
             system::setup_git_config(self)?;
             self.execute("git config --system core.longpaths true", false)?;
@@ -293,22 +278,22 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gimp")? {
-            self.install_application("gimp")?;
+        if !self.is_installed("GIMP.GIMP")? {
+            self.install_application("GIMP.GIMP")?;
         }
         Ok(())
     }
 
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("goggalaxy")? {
-            self.install_application("goggalaxy")?;
+        if !self.is_installed("GOG.Galaxy")? {
+            self.install_application("GOG.Galaxy")?;
         }
         Ok(())
     }
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("googlechrome")? {
-            self.install_application("googlechrome")?;
+        if !self.is_installed("Google.Chrome")? {
+            self.install_application("Google.Chrome")?;
         }
         Ok(())
     }
@@ -317,22 +302,22 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("gcloudsdk")? {
             self.install_wsl("gcloudsdk")?;
         }
-        if !self.config.wsl && !self.is_installed("gcloudsdk")? {
-            self.install_application("gcloudsdk")?;
+        if !self.config.wsl && !self.is_installed("Google.CloudSDK")? {
+            self.install_application("Google.CloudSDK")?;
         }
         Ok(())
     }
 
     fn install_google_drive(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("google-drive-file-stream")? {
-            self.install_application("google-drive-file-stream")?;
+        if !self.is_installed("Google.Drive")? {
+            self.install_application("Google.Drive")?;
         }
         Ok(())
     }
 
     fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gpg4win")? {
-            self.install_application("gpg4win")?;
+        if !self.is_installed("GnuPG.Gpg4win")? {
+            self.install_application("GnuPG.Gpg4win")?;
         }
         Ok(())
     }
@@ -349,8 +334,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_gramps(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gramps")? {
-            self.install_application("gramps")?;
+        if !self.is_installed("Gramps.Gramps")? {
+            self.install_application("Gramps.Gramps")?;
         }
         Ok(())
     }
@@ -369,22 +354,22 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("groovy")? {
             self.install_wsl("groovy")?;
         }
-        if !self.config.wsl && !self.is_installed("groovy")? {
-            self.install_application("groovy")?;
+        if !self.config.wsl && !self.is_installed("Apache.Groovy.4")? {
+            self.install_application("Apache.Groovy.4")?;
         }
         Ok(())
     }
 
     fn install_handbrake(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("handbrake")? {
-            self.install_application("handbrake")?;
+        if !self.is_installed("HandBrake.HandBrake")? {
+            self.install_application("HandBrake.HandBrake")?;
         }
         Ok(())
     }
 
     fn install_inkscape(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("inkscape")? {
-            self.install_application("inkscape")?;
+        if !self.is_installed("Inkscape.Inkscape")? {
+            self.install_application("Inkscape.Inkscape")?;
         }
         Ok(())
     }
@@ -394,8 +379,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_intellij(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("intellijidea-ultimate")? {
-            self.install_application("intellijidea-ultimate")?;
+        if !self.is_installed("JetBrains.IntelliJIDEA.Ultimate")? {
+            self.install_application("JetBrains.IntelliJIDEA.Ultimate")?;
         }
         Ok(())
     }
@@ -404,22 +389,22 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("openjdk")? {
             self.install_wsl("openjdk")?;
         }
-        if !self.config.wsl && !self.is_installed("adoptopenjdk")? {
-            self.install_application("adoptopenjdk")?;
+        if !self.config.wsl && !self.is_installed("EclipseAdoptium.Temurin.18.JDK")? {
+            self.install_application("EclipseAdoptium.Temurin.18.JDK")?;
         }
         Ok(())
     }
 
     fn install_keepassxc(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("keepassxc")? {
-            self.install_application("keepassxc")?;
+        if !self.is_installed("KeePassXCTeam.KeePassXC")? {
+            self.install_application("KeePassXCTeam.KeePassXC")?;
         }
         Ok(())
     }
 
     async fn install_kubectl(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("kubernetes-cli")? {
-            self.install_application("kubernetes-cli")?;
+        if !self.is_installed("Kubernetes.kubectl")? {
+            self.install_application("Kubernetes.kubectl")?;
         }
         Ok(())
     }
@@ -442,8 +427,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("libreoffice-fresh")? {
-            self.install_application("libreoffice-fresh")?;
+        if !self.is_installed("TheDocumentFoundation.LibreOffice")? {
+            self.install_application("TheDocumentFoundation.LibreOffice")?;
         }
         Ok(())
     }
@@ -463,8 +448,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_makemkv(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("makemkv")? {
-            self.install_application("makemkv")?;
+        if !self.is_installed("GuinpinSoft.MakeMKV")? {
+            self.install_application("GuinpinSoft.MakeMKV")?;
         }
         Ok(())
     }
@@ -478,22 +463,22 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("minikube")? {
-            self.install_application("minikube")?;
+        if !self.is_installed("Kubernetes.minikube")? {
+            self.install_application("Kubernetes.minikube")?;
         }
         Ok(())
     }
 
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("mkvtoolnix")? {
-            self.install_application("mkvtoolnix")?;
+        if !self.is_installed("MKVToolNix.MKVToolNix")? {
+            self.install_application("MKVToolNix.MKVToolNix")?;
         }
         Ok(())
     }
 
     fn install_networking_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("nmap")? {
-            self.install_application("nmap")?;
+        if !self.is_installed("Insecure.Nmap")? {
+            self.install_application("Insecure.Nmap")?;
         }
         self.execute(
             "dism /online /Enable-Feature /FeatureName:TelnetClient",
@@ -503,8 +488,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("nextcloud-client")? {
-            self.install_application("nextcloud-client")?;
+        if !self.is_installed("Nextcloud.NextcloudDesktop")? {
+            self.install_application("Nextcloud.NextcloudDesktop")?;
         }
         Ok(())
     }
@@ -514,8 +499,8 @@ impl<'s> System for Windows<'s> {
             self.install_wsl("nvm")?;
         }
         if !self.config.wsl {
-            if !self.is_installed("nvm")? {
-                self.install_application("nvm")?;
+            if !self.is_installed("CoreyButler.NVMforWindows")? {
+                self.install_application("CoreyButler.NVMforWindows")?;
             }
 
             let nvm_script = "function callnvm() {{\n\
@@ -572,15 +557,15 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("nordvpn")? {
-            self.install_application("nordvpn")?;
+        if !self.is_installed("NordVPN.NordVPN")? {
+            self.install_application("NordVPN.NordVPN")?;
         }
         Ok(())
     }
 
     fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("geforce-experience")? {
-            self.install_application("geforce-experience")?;
+        if !self.is_installed("Nvidia.GeForceExperience")? {
+            self.install_application("Nvidia.GeForceExperience")?;
         }
         Ok(())
     }
@@ -590,8 +575,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_obs_studio(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("obs-studio")? {
-            self.install_application("obs-studio")?;
+        if !self.is_installed("OBSProject.OBSStudio")? {
+            self.install_application("OBSProject.OBSStudio")?;
         }
         Ok(())
     }
@@ -601,8 +586,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_origin(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("origin")? {
-            self.install_application("origin")?;
+        if !self.is_installed("ElectronicArts.EADesktop")? {
+            self.install_application("ElectronicArts.EADesktop")?;
         }
         Ok(())
     }
@@ -615,15 +600,15 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("python")? {
             self.install_wsl("python")?;
         }
-        if !self.config.wsl && !self.is_installed("python")? {
-            self.install_application("python")?;
+        if !self.config.wsl && !self.is_installed("Python.Python.3.10")? {
+            self.install_application("Python.Python.3.10")?;
         }
         Ok(())
     }
 
     fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("retroarch")? {
-            self.install_application("retroarch")?;
+        if !self.is_installed("Libretro.RetroArch")? {
+            self.install_application("Libretro.RetroArch")?;
         }
         Ok(())
     }
@@ -633,47 +618,47 @@ impl<'s> System for Windows<'s> {
             self.install_wsl("rustup")?;
         }
         // Always install outside of WSL in case this needs updating for Windows
-        if !self.is_installed("rustup.install")? {
-            self.install_application("rustup.install")?;
+        if !self.is_installed("Rustlang.Rustup")? {
+            self.install_application("Rustlang.Rustup")?;
         }
         // Required for compilation
-        if !self.is_installed("visualstudio2022buildtools")? {
-            self.install_application("visualstudio2022buildtools")?;
+        if !self.is_installed("Microsoft.VisualStudio.2022.BuildTools")? {
+            self.install_application("Microsoft.VisualStudio.2022.BuildTools --silent --override \"--wait --quiet --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended\"")?;
         }
         Ok(())
     }
 
     fn install_slack(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("slack")? {
-            self.install_application("slack")?;
+        if !self.is_installed("SlackTechnologies.Slack")? {
+            self.install_application("SlackTechnologies.Slack")?;
         }
         Ok(())
     }
 
     fn install_spotify(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("spotify")? {
-            self.install_application("spotify")?;
+        if !self.is_installed("Spotify.Spotify")? {
+            self.install_application("Spotify.Spotify")?;
         }
         Ok(())
     }
 
     fn install_steam(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("steam-client")? {
-            self.install_application("steam-client")?;
+        if !self.is_installed("Valve.Steam")? {
+            self.install_application("Valve.Steam")?;
         }
         Ok(())
     }
 
     fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("strawberrymusicplayer")? {
-            self.install_application("strawberrymusicplayer")?;
+        if !self.is_installed("StrawberryMusicPlayer.Strawberry")? {
+            self.install_application("StrawberryMusicPlayer.Strawberry")?;
         }
         Ok(())
     }
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("sweet-home-3d")? {
-            self.install_application("sweet-home-3d")?;
+        if !self.is_installed("eTeks.SweetHome3D")? {
+            self.install_application("eTeks.SweetHome3D")?;
         }
         Ok(())
     }
@@ -681,23 +666,12 @@ impl<'s> System for Windows<'s> {
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         // Needed to install powershell modules
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
-        system::download_file("https://chocolatey.org/install.ps1", "install.ps1").await?;
-        self.execute_powershell("iex .\\install.ps1", true)?;
-        self.execute_powershell(
-            "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force",
-            true,
-        )?;
-        self.execute_powershell(
-            "Import-Module \"$env:ProgramData\\chocolatey\\helpers\\chocolateyInstaller.psm1\"",
-            true,
-        )?;
-        self.execute_powershell("refreshenv", true)?;
         self.execute("REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f", true)?;
-        if !self.is_installed("powershell-core")? {
-            self.install_application("powershell-core")?;
+        if !self.is_installed("Microsoft.PowerShell")? {
+            self.install_application("Microsoft.PowerShell")?;
         }
-        if !self.is_installed("microsoft-windows-terminal")? {
-            self.install_application("microsoft-windows-terminal")?;
+        if !self.is_installed("Microsoft.WindowsTerminal")? {
+            self.install_application("Microsoft.WindowsTerminal")?;
         }
         if self.config.development && self.config.wsl {
             self.execute_powershell("wsl --install -d Ubuntu", true)?;
@@ -719,15 +693,15 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_vim(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("vim")? {
-            self.install_application("vim")?;
+        if !self.is_installed("vim.vim")? {
+            self.install_application("vim.vim")?;
         }
         Ok(())
     }
 
     fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("vlc")? {
-            self.install_application("vlc")?;
+        if !self.is_installed("VideoLAN.VLC")? {
+            self.install_application("VideoLAN.VLC")?;
         }
         Ok(())
     }
@@ -741,8 +715,8 @@ impl<'s> System for Windows<'s> {
             self.install_wsl("vscode")?;
         }
         // Always install outside of WSL in case this needs updating for Windows
-        if !self.is_installed("vscode")? {
-            self.install_application("vscode")?;
+        if !self.is_installed("Microsoft.VisualStudioCode")? {
+            self.install_application("Microsoft.VisualStudioCode")?;
         }
         Ok(())
     }
@@ -759,8 +733,8 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("wget")? {
             self.install_wsl("wget")?;
         }
-        if !self.config.wsl && !self.is_installed("wget")? {
-            self.install_application("wget")?;
+        if !self.config.wsl && !self.is_installed("GnuWin32.Wget")? {
+            self.install_application("GnuWin32.Wget")?;
         }
         Ok(())
     }
@@ -790,7 +764,7 @@ impl<'s> System for Windows<'s> {
     }
 
     fn update_os(&self) -> Result<(), Box<dyn Error>> {
-        self.execute("choco upgrade all", true)?;
+        self.execute("winget upgrade --all", true)?;
         Ok(())
     }
 
