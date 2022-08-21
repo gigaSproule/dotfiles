@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::system::System;
 use crate::system::{self, file_contains};
+use crate::system::System;
 use crate::unix;
 use crate::unix::get_username;
 
@@ -60,7 +60,7 @@ pub(crate) fn get_home_dir() -> String {
         false,
         false,
     )
-    .unwrap();
+        .unwrap();
     passwd_entry.split(":").nth(5).unwrap().to_string()
 }
 
@@ -107,94 +107,87 @@ pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::
         .truncate(true)
         .open(&convert_audio)?;
 
-    writeln!(convert_audio_file, "#!/usr/bin/env bash")?;
-    writeln!(convert_audio_file, "set -e")?;
-    writeln!(convert_audio_file, "shopt -s extglob nullglob")?;
-    writeln!(convert_audio_file, "directory=$1")?;
-    writeln!(convert_audio_file, "backup_dir=\"$directory/original\"")?;
-    writeln!(convert_audio_file, "extensions=\"${{@:2}}\"")?;
-    writeln!(
-        convert_audio_file,
-        "extensions=\"${{extensions:-m4a aac}}\""
-    )?;
-    writeln!(convert_audio_file, "echo $extensions")?;
-    writeln!(convert_audio_file, "if [ ! -d \"$backup_dir\" ];")?;
-    writeln!(convert_audio_file, "then")?;
-    writeln!(
-        convert_audio_file,
-        "echo \"Creating $backup_dir directory.\""
-    )?;
-    writeln!(convert_audio_file, "mkdir \"$backup_dir\"")?;
-    writeln!(convert_audio_file, "fi")?;
-    writeln!(convert_audio_file, "for ext in $extensions; do")?;
-    writeln!(
-        convert_audio_file,
-        "    for audio in \"$directory\"/*.$ext; do"
-    )?;
-    writeln!(convert_audio_file, "        noext=$(basename \"$audio\")")?;
-    writeln!(convert_audio_file, "        noext=\"${{noext%.$ext}}\"")?;
-    writeln!(convert_audio_file, "        echo $noext")?;
-    writeln!(
-        convert_audio_file,
-        "        ffmpeg -i \"$audio\" -f flac \"converted.flac\""
-    )?;
-    writeln!(convert_audio_file, "        mv \"$audio\" \"$backup_dir\"")?;
-    writeln!(
-        convert_audio_file,
-        "        mv \"converted.flac\" \"$directory/${{noext// /_}}.flac\""
-    )?;
-    writeln!(convert_audio_file, "    done")?;
-    writeln!(convert_audio_file, "done")?;
-    writeln!(convert_audio_file, "")?;
+    write!(convert_audio_file, r##"#!/usr/bin/env bash
+set -e
+shopt -s extglob nullglob
+directory=$1
+backup_dir="$directory/original"
+extensions="${{@:2}}"
+extensions="${{extensions:-m4a aac}}"
+echo $extensions
+if [ ! -d "$backup_dir" ]; then
+    echo "Creating $backup_dir directory."
+    mkdir "$backup_dir"
+fi
+
+for ext in $extensions; do
+    for audio in "$directory"/*.$ext; do
+        ffmpeg -i "$audio" -f flac "converted.flac"
+        filename=$(basename \"$audio\")
+        noext="${{filename%.$ext}}"
+        echo $noext
+        mv "$audio" "$backup_dir"
+        mv "converted.flac" "$directory/${{noext// /_}}.flac"
+    done
+done
+"##)?;
     unix::recursively_chmod(&convert_audio, &0o755, &0o755)?;
 
-    let convert_video = format!("{}/bin/convert_video", system.get_home_dir());
+    let convert_video = format!("{}/bin/convert_videos", system.get_home_dir());
     let mut convert_video_file = OpenOptions::new()
         .create(true)
         .write(true)
         .truncate(true)
         .open(&convert_video)?;
 
-    writeln!(convert_video_file, "#!/usr/bin/env bash")?;
-    writeln!(convert_video_file, "set -e")?;
-    writeln!(convert_video_file, "shopt -s extglob nullglob")?;
-    writeln!(convert_video_file, "directory=$1")?;
-    writeln!(convert_video_file, "backup_dir=\"$directory/original\"")?;
-    writeln!(convert_video_file, "extensions=\"${{@:2}}\"")?;
-    writeln!(
-        convert_video_file,
-        "extensions=\"${{extensions:-mp4 MP4}}\""
-    )?;
-    writeln!(convert_video_file, "echo $extensions")?;
-    writeln!(convert_video_file, "if [ ! -d \"$backup_dir\" ];")?;
-    writeln!(convert_video_file, "then")?;
-    writeln!(
-        convert_video_file,
-        "echo \"Creating $backup_dir directory.\""
-    )?;
-    writeln!(convert_video_file, "mkdir \"$backup_dir\"")?;
-    writeln!(convert_video_file, "fi")?;
-    writeln!(convert_video_file, "for ext in $extensions; do")?;
-    writeln!(
-        convert_video_file,
-        "    for video in \"$directory\"/*.$ext; do"
-    )?;
-    writeln!(convert_video_file, "        noext=$(basename \"video\")")?;
-    writeln!(convert_video_file, "        noext=\"${{noext%.$ext}}\"")?;
-    writeln!(convert_video_file, "        echo $noext")?;
-    writeln!(
-        convert_video_file,
-        "        ffmpeg -i \"$video\" -acodec pcm_s16le -vcodec copy \"converted.mov\""
-    )?;
-    writeln!(convert_video_file, "        mv \"$video\" \"$backup_dir\"")?;
-    writeln!(
-        convert_video_file,
-        "        mv \"converted.mov\" \"$directory/${{noext// /_}}.mov\""
-    )?;
-    writeln!(convert_video_file, "    done")?;
-    writeln!(convert_video_file, "done")?;
-    writeln!(convert_video_file, "")?;
+    write!(convert_video_file, r##"#!/usr/bin/env bash
+
+set -e
+video=$1
+codec=${{2:-pcm_s16le}}
+container=${{3:-mov}}
+directory="$(basename "$(dirname "$video")")"
+backup_dir="$directory/original"
+
+if [ ! -d "$backup_dir" ]; then
+    echo "Creating $backup_dir directory."
+    mkdir "$backup_dir"
+fi
+
+ffmpeg -i "$video" -acodec "$codec" -vcodec copy "converted.$container"
+filename=$(basename "$video")
+extension="${{filename##*.}}"
+noext="${{filename%.$extension}}"
+echo $noext
+mv "$video" "$backup_dir"
+mv "converted.$container" "$directory/${{noext// /_}}.$container"
+"##)?;
     unix::recursively_chmod(&convert_video, &0o755, &0o755)?;
+    let convert_videos = format!("{}/bin/convert_videos", system.get_home_dir());
+
+    let mut convert_videos_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(&convert_videos)?;
+
+    write!(convert_videos_file, r##"#!/usr/bin/env bash
+
+set -e
+shopt -s extglob nullglob
+directory=${{1:-.}}
+backup_dir="$directory/original"
+extensions="${{@:2}}"
+extensions="${{extensions:-mp4 MP4}}"
+echo $extensions
+
+for ext in $extensions; do
+    for video in "$directory"/*.$ext; do
+        convert_video $video pcm_s16le mov
+    done
+done
+"##)?;
+    unix::recursively_chmod(&convert_videos, &0o755, &0o755)?;
     Ok(())
 }
 
