@@ -183,7 +183,7 @@ echo $extensions
 
 for ext in $extensions; do
     for video in "$directory"/*.$ext; do
-        convert_video $video pcm_s16le mov
+        convert_video "$video" pcm_s16le mov
     done
 done
 "##)?;
