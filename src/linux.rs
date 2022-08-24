@@ -68,26 +68,26 @@ pub(crate) fn gnome_development_shortcuts(
     system: &dyn System,
 ) -> Result<(), Box<dyn std::error::Error>> {
     system.execute(
-        "gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-up []",
+        r#"gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-up "[]""#,
         false,
     )?;
     system.execute(
-        "gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-down []",
+        r#"gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-down "[]""#,
         false,
     )?;
     system.execute(
-        "gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-left []",
+        r#"gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-left "[]""#,
         false,
     )?;
     system.execute(
-        "gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-right []",
+        r#"gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-right "[]""#,
         false,
     )?;
     system.execute(
-        "gsettings set org.gnome.desktop.wm.keybindings begin-move []",
+        r#"gsettings set org.gnome.desktop.wm.keybindings begin-move "[]""#,
         false,
     )?;
-    system.execute("gsettings set org.gnome.shell.extensions.screenshot-window-sizer cycle-screenshot-sizes []", false)?;
+    system.execute(r#"gsettings set org.gnome.shell.extensions.screenshot-window-sizer cycle-screenshot-sizes "[]""#, false)?;
     Ok(())
 }
 
