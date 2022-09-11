@@ -45,6 +45,12 @@ impl<'s> Windows<'s> {
         if !choco_output.contains("0 packages installed") {
             return Ok(true);
         }
+        let mut import_module = Command::new("powershell");
+        let import_module_command = import_module.args(vec!["Import-Module", "-Name", application]);
+        let import_module_output = system::run_command(import_module_command, false, false)?;
+        if !import_module_output.contains("was not loaded because no valid module file was found") {
+            return Ok(true);
+        }
         let regkey = Hive::LocalMachine.open(
             r"Software\Microsoft\Windows\CurrentVersion\Uninstall",
             Security::Read,
@@ -68,7 +74,6 @@ impl<'s> Windows<'s> {
             r"Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
             Security::Read,
         )?;
-        let mut found = false;
         for key in regkey.keys() {
             let opened = key.unwrap().open(Security::Read).unwrap();
             let display_name = opened.value("DisplayName");
@@ -99,7 +104,7 @@ impl<'s> Windows<'s> {
 impl<'s> System for Windows<'s> {
     fn execute(&self, command: &str, _super_user: bool) -> Result<String, Box<dyn Error>> {
         let mut cmd = Command::new("cmd");
-        let child = cmd.arg(command);
+        let child = cmd.args(vec!["/c", command]);
         system::run_command(child, true, self.config.dry_run)
     }
 
@@ -143,6 +148,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_calibre(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("calibre")? {
+            self.install_application("calibre")?;
+        }
+        Ok(())
+    }
+
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         system::setup_codecs(self).await
     }
@@ -157,7 +169,7 @@ impl<'s> System for Windows<'s> {
                 "https://github.com/dokan-dev/dokany/releases/download/v1.5.1.1000/DokanSetup.exe",
                 "DokanSetup.exe",
             )
-            .await?;
+                .await?;
             self.execute_powershell(
                 "Invoke-Expression -Command \".\\DokanSetup.exe /passive /norestart\"",
                 true,
@@ -194,6 +206,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("windirstat")? {
+            self.install_application("windirstat")?;
+        }
+        Ok(())
+    }
+
     fn install_development_extras(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -201,8 +220,11 @@ impl<'s> System for Windows<'s> {
     fn install_docker(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("docker-desktop")? {
             self.install_application("docker-desktop")?;
+        }
+        if !self.is_installed("DockerCompletion")? {
             self.execute_powershell("Install-Module -Name DockerCompletion -Force", true)?;
-            self.execute_powershell("Import-Module DockerCompletion", true)?;
+            self.execute_powershell("Import-Module -Name DockerCompletion", true)?;
+            // TODO: Append if needed instead of blindly re-creating file
             fs::write(
                 "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1",
                 "Import-Module DockerCompletion\r\n".as_bytes(),
@@ -219,6 +241,7 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
+        // TODO: Should this just be removed?
         if !self.is_installed("eclipse")? {
             self.install_application("eclipse")?;
         }
@@ -240,6 +263,36 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_firmware_updater(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn install_git(&self) -> Result<(), Box<dyn Error>> {
+        if self.config.wsl && !self.is_installed_wsl("git")? {
+            self.install_wsl("git")?;
+        }
+        if !self.config.wsl {
+            if !self.is_installed("git")? {
+                self.install_application("git")?;
+            }
+            system::setup_git_config(self)?;
+            self.execute("git config --system core.longpaths true", false)?;
+            if !self.is_installed("posh-git")? {
+                self.execute_powershell("Install-Module -Name posh-git -Force", true)?;
+                self.execute_powershell("Import-Module -Name posh-git", true)?;
+                // TODO: Append if needed instead of blindly re-creating file
+                fs::write(
+                    "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1",
+                    "Import-Module posh-git\r\n".as_bytes(),
+                )?;
+            }
+        }
+        Ok(())
+    }
+
+    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gimp")? {
+            self.install_application("gimp")?;
+        }
         Ok(())
     }
 
@@ -274,30 +327,6 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_git(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.wsl && !self.is_installed_wsl("git")? {
-            self.install_wsl("git")?;
-        }
-        if !self.config.wsl {
-            if !self.is_installed("git")? {
-                self.install_application("git")?;
-            }
-            system::setup_git_config(self)?;
-            self.execute("git config --system core.longpaths true", false)?;
-            if !self.is_installed("poshgit")? {
-                self.install_application("poshgit")?;
-            }
-        }
-        Ok(())
-    }
-
-    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gimp")? {
-            self.install_application("gimp")?;
-        }
-        Ok(())
-    }
-
     fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("gpg4win")? {
             self.install_application("gpg4win")?;
@@ -309,8 +338,16 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("gradle")? {
             self.install_wsl("gradle")?;
         }
+        // TODO: Alternative?
         if !self.config.wsl && !self.is_installed("gradle")? {
             self.install_application("gradle")?;
+        }
+        Ok(())
+    }
+
+    fn install_gramps(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gramps")? {
+            self.install_application("gramps")?;
         }
         Ok(())
     }
@@ -385,6 +422,7 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_helm(&self) -> Result<(), Box<dyn Error>> {
+        // TODO: Alternative?
         if !self.is_installed("kubernetes-helm")? {
             self.install_application("kubernetes-helm")?;
         }
@@ -392,6 +430,7 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
+        // TODO: Alternative?
         if !self.is_installed("texlive")? {
             self.install_application("texlive")?;
             self.execute(" C:\\texlive\\2021\\bin\\win32\\tlmgr.bat install latexmk enumitem titlesec latexindent", true)?;
@@ -468,7 +507,6 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
-        // TODO: What about the rest?
         if self.config.wsl && !self.is_installed_wsl("nvm")? {
             self.install_wsl("nvm")?;
         }
@@ -595,11 +633,9 @@ impl<'s> System for Windows<'s> {
         if !self.is_installed("rustup.install")? {
             self.install_application("rustup.install")?;
         }
+        // Required for compilation
         if !self.is_installed("visualstudio2022buildtools")? {
             self.install_application("visualstudio2022buildtools")?;
-        }
-        if !self.is_installed("windows-sdk-10.1")? {
-            self.install_application("windows-sdk-10.1")?;
         }
         Ok(())
     }
@@ -625,6 +661,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("strawberrymusicplayer")? {
+            self.install_application("strawberrymusicplayer")?;
+        }
+        Ok(())
+    }
+
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("sweet-home-3d")? {
             self.install_application("sweet-home-3d")?;
@@ -633,6 +676,7 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
+        // Needed to install powershell modules
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
         system::download_file("https://chocolatey.org/install.ps1", "install.ps1").await?;
         self.execute_powershell("iex .\\install.ps1", true)?;
@@ -646,6 +690,9 @@ impl<'s> System for Windows<'s> {
         )?;
         self.execute_powershell("refreshenv", true)?;
         self.execute("REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f", true)?;
+        if !self.is_installed("powershell-core")? {
+            self.install_application("powershell-core")?;
+        }
         if !self.is_installed("microsoft-windows-terminal")? {
             self.install_application("microsoft-windows-terminal")?;
         }

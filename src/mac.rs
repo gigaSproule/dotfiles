@@ -116,6 +116,13 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_calibre(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("calibre")? {
+            self.cask_install_application("calibre")?;
+        }
+        Ok(())
+    }
+
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         system::setup_codecs(self).await?;
         let user_id = unix::get_user_id();
@@ -150,6 +157,10 @@ impl<'s> System for Mac<'s> {
         if !self.is_installed("discord")? {
             self.cask_install_application("discord")?;
         }
+        Ok(())
+    }
+
+    fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
@@ -193,6 +204,21 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_git(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("git")? {
+            self.install_application("git")?;
+        }
+        system::setup_git_config(self)?;
+        Ok(())
+    }
+
+    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gimp")? {
+            self.cask_install_application("gimp")?;
+        }
+        Ok(())
+    }
+
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -215,21 +241,6 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_git(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("git")? {
-            self.install_application("git")?;
-        }
-        system::setup_git_config(self)?;
-        Ok(())
-    }
-
-    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gimp")? {
-            self.cask_install_application("gimp")?;
-        }
-        Ok(())
-    }
-
     fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("GPG Keychain")? {
             self.cask_install_application("gpg-suite")?;
@@ -240,6 +251,13 @@ impl<'s> System for Mac<'s> {
     fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("gradle")? {
             self.install_applications(vec!["gradle", "gradle-completion"])?;
+        }
+        Ok(())
+    }
+
+    fn install_gramps(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gramps")? {
+            self.install_application("gramps")?;
         }
         Ok(())
     }
@@ -545,6 +563,13 @@ impl<'s> System for Mac<'s> {
     fn install_steam(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("steam")? {
             self.cask_install_application("steam")?;
+        }
+        Ok(())
+    }
+
+    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("strawberry")? {
+            self.cask_install_application("strawberry")?;
         }
         Ok(())
     }

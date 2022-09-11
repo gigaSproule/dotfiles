@@ -164,6 +164,13 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_calibre(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("calibre")? {
+            self.install_application("calibre")?;
+        }
+        Ok(())
+    }
+
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("libdvd-pkg")? {
             self.install_application("libdvd-pkg")?;
@@ -215,6 +222,20 @@ impl<'s> System for Ubuntu<'s> {
     fn install_discord(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("discord")? {
             self.snap_install_application("discord", false)?;
+        }
+        Ok(())
+    }
+
+    fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>> {
+        if self.config.gnome == true {
+            if !self.is_installed("baobab")? {
+                self.install_application("baobab ")?;
+            }
+        }
+        if self.config.kde == true {
+            if !self.is_installed("filelight")? {
+                self.install_application("filelight")?;
+            }
         }
         Ok(())
     }
@@ -286,6 +307,21 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_git(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("git")? {
+            self.install_application("git")?;
+        }
+        system::setup_git_config(self)?;
+        Ok(())
+    }
+
+    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gimp")? {
+            self.install_application("gimp")?;
+        }
+        Ok(())
+    }
+
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -320,21 +356,6 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_git(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("git")? {
-            self.install_application("git")?;
-        }
-        system::setup_git_config(self)?;
-        Ok(())
-    }
-
-    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gimp")? {
-            self.install_application("gimp")?;
-        }
-        Ok(())
-    }
-
     fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("seahorse-nautilus")? {
             self.install_application("seahorse-nautilus")?;
@@ -345,6 +366,13 @@ impl<'s> System for Ubuntu<'s> {
     fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("gradle")? {
             self.install_application("gradle")?;
+        }
+        Ok(())
+    }
+
+    fn install_gramps(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gramps")? {
+            self.install_application("gramps")?;
         }
         Ok(())
     }
@@ -594,6 +622,9 @@ impl<'s> System for Ubuntu<'s> {
             self.update_os_repo()?;
             self.install_application("nordvpn")?;
         }
+        if self.config.kde == true {
+            open::that("https://store.kde.org/p/1689651")?;
+        }
         Ok(())
     }
 
@@ -693,6 +724,15 @@ impl<'s> System for Ubuntu<'s> {
     fn install_steam(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("steam-installer")? {
             self.install_application("steam-installer")?;
+        }
+        Ok(())
+    }
+
+    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("strawberry")? {
+            self.add_ppa("jonaski/strawberry")?;
+            self.update_os_repo()?;
+            self.install_application("strawberry")?;
         }
         Ok(())
     }

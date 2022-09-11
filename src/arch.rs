@@ -6,9 +6,9 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
+use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
-use crate::{linux, system, unix};
 
 pub(crate) struct Arch<'s> {
     config: &'s Config,
@@ -119,6 +119,13 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_calibre(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("calibre")? {
+            self.install_application("calibre")?;
+        }
+        Ok(())
+    }
+
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         // TOOD: Break this down
         if !self.is_installed("bluez")? {
@@ -181,6 +188,20 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>> {
+        if self.config.gnome == true {
+            if !self.is_installed("baobab")? {
+                self.install_application("baobab ")?;
+            }
+        }
+        if self.config.kde == true {
+            if !self.is_installed("filelight")? {
+                self.install_application("filelight")?;
+            }
+        }
+        Ok(())
+    }
+
     fn install_development_extras(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("pkgconf")? {
             self.install_application("pkgconf")?;
@@ -220,8 +241,7 @@ impl<'s> System for Arch<'s> {
         system::download_file(
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
-        )
-        .await?;
+        ).await?;
 
         system::add_to_file(
             "/opt/eclipse/eclipse.ini",
@@ -249,6 +269,21 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_git(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("git")? {
+            self.install_application("git")?;
+        }
+        system::setup_git_config(self)?;
+        Ok(())
+    }
+
+    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gimp")? {
+            self.install_application("gimp")?;
+        }
+        Ok(())
+    }
+
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -272,21 +307,6 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_git(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("git")? {
-            self.install_application("git")?;
-        }
-        system::setup_git_config(self)?;
-        Ok(())
-    }
-
-    fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("gimp")? {
-            self.install_application("gimp")?;
-        }
-        Ok(())
-    }
-
     fn install_gpg(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("seahorse")? {
             self.install_application("seahorse")?;
@@ -300,6 +320,13 @@ impl<'s> System for Arch<'s> {
     fn install_gradle(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("gradle")? {
             self.install_application("gradle")?;
+        }
+        Ok(())
+    }
+
+    fn install_gramps(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gramps")? {
+            self.install_application("gramps")?;
         }
         Ok(())
     }
@@ -507,6 +534,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("nordvpn-bin")? {
             self.aur_install_application("nordvpn-bin")?;
         }
+        if self.config.kde == true {
+            open::that("https://store.kde.org/p/1689651")?;
+        }
         self.enable_service("nordvpnd")?;
         Ok(())
     }
@@ -635,12 +665,19 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("strawberry")? {
+            self.install_application("strawberry")?;
+        }
+        Ok(())
+    }
+
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("sweethome3d")? {
             self.install_application("sweethome3d")?;
         }
 
-        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop",);
+        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop", );
         let mut sweet_home_3d_desktop_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -707,7 +744,7 @@ impl<'s> System for Arch<'s> {
                 "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
                 "yay.tar.gz",
             )
-            .await?;
+                .await?;
             linux::untar_rename_root("yay.tar.gz", "yay")?;
             let user_id = unix::get_user_id();
             let group_id = unix::get_group_id();

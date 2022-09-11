@@ -64,6 +64,12 @@ sudo su -- ubuntuuser
 sudo target/debug/dotfiles [options]
 ```
 
+## Quirks
+
+### Windows
+
+- If there is a PowerShell profile file under `$HOME\OneDrive\Documents\WindowsPowerShell`, then make sure it doesn't error PowerShell on startup.
+
 ## Install Root CA Certificate
 
 ### Get Root CA Certificate

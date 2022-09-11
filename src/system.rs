@@ -74,6 +74,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_bluetooth(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_calibre(&self) -> Result<(), Box<dyn Error>>;
+
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>>;
@@ -83,6 +85,8 @@ pub(crate) trait System: Send + Sync {
     fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_discord(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_development_extras(&self) -> Result<(), Box<dyn Error>>;
 
@@ -98,6 +102,10 @@ pub(crate) trait System: Send + Sync {
 
     fn install_firmware_updater(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_git(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_gimp(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>>;
@@ -106,13 +114,11 @@ pub(crate) trait System: Send + Sync {
 
     fn install_google_drive(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_git(&self) -> Result<(), Box<dyn Error>>;
-
-    fn install_gimp(&self) -> Result<(), Box<dyn Error>>;
-
     fn install_gpg(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_gradle(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_gramps(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>>;
 
@@ -185,6 +191,8 @@ pub(crate) trait System: Send + Sync {
     fn install_spotify(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_steam(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>>;
 
