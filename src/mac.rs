@@ -586,8 +586,7 @@ impl<'s> System for Mac<'s> {
             system::download_file(
                 "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
                 "brew-install",
-            )
-                .await?;
+            ).await?;
             unix::recursively_chmod("brew-install", &0o755, &0o755)?;
             self.execute("NONINTERACTIVE=1 ./brew-install", false)?;
             fs::remove_file("brew-install")?;

@@ -156,7 +156,7 @@ pub(crate) fn recursively_chmod(
                 child_path,
                 fs::Permissions::from_mode(*directory_permission),
             )
-            .unwrap();
+                .unwrap();
         } else {
             fs::set_permissions(child_path, fs::Permissions::from_mode(*file_permission)).unwrap();
         }
@@ -417,8 +417,7 @@ pub(crate) async fn setup_zsh(
     system::download_file(
         "https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh",
         "oh-my-zsh.sh",
-    )
-    .await?;
+    ).await?;
     recursively_chmod("./oh-my-zsh.sh", &0o755, &0o755)?;
     system.execute("./oh-my-zsh.sh", false)?;
     system.execute(&format!("chsh -s {}", zsh), true)?;

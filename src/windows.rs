@@ -168,8 +168,7 @@ impl<'s> System for Windows<'s> {
             system::download_file(
                 "https://github.com/dokan-dev/dokany/releases/download/v1.5.1.1000/DokanSetup.exe",
                 "DokanSetup.exe",
-            )
-                .await?;
+            ).await?;
             self.execute_powershell(
                 "Invoke-Expression -Command \".\\DokanSetup.exe /passive /norestart\"",
                 true,

@@ -677,7 +677,7 @@ impl<'s> System for Arch<'s> {
             self.install_application("sweethome3d")?;
         }
 
-        let sweet_home_3d_desktop = format!("/usr/share/applictaions/sweethome3d.desktop", );
+        let sweet_home_3d_desktop = "/usr/share/applictaions/sweethome3d.desktop";
         let mut sweet_home_3d_desktop_file = OpenOptions::new()
             .create(true)
             .write(true)
@@ -743,8 +743,7 @@ impl<'s> System for Arch<'s> {
             system::download_file(
                 "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
                 "yay.tar.gz",
-            )
-                .await?;
+            ).await?;
             linux::untar_rename_root("yay.tar.gz", "yay")?;
             let user_id = unix::get_user_id();
             let group_id = unix::get_group_id();
