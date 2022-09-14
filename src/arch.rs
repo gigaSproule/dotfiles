@@ -929,6 +929,9 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("dolphin-plugins")? {
                 self.install_application("dolphin-plugins")?;
             }
+            if !self.is_installed("phonon-qt5-vlc")? {
+                self.install_application("phonon-qt5-vlc")?;
+            }
             if !self.is_installed("ffmpegthumbnailer")? {
                 self.install_application("ffmpegthumbnailer")?;
             }
