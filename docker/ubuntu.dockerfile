@@ -16,4 +16,6 @@ COPY Cargo.toml Cargo.lock /app/
 RUN chown -R ubuntuuser:ubuntuuser /app
 WORKDIR /app
 
+USER ubuntuuser
+
 CMD [ "bash" ]

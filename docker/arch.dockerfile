@@ -11,4 +11,6 @@ COPY Cargo.toml Cargo.lock /app/
 RUN chown -R archuser:archuser /app
 WORKDIR /app
 
+USER archuser
+
 CMD [ "bash" ]
