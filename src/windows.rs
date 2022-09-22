@@ -35,7 +35,10 @@ impl<'s> Windows<'s> {
     }
 
     fn install_wsl(&self, application: &str) -> Result<String, Box<dyn Error>> {
-        self.execute_wsl(format!("-u root apt install {}", application).as_str(), true)
+        self.execute_wsl(
+            format!("-u root apt install {}", application).as_str(),
+            true,
+        )
     }
 
     fn is_installed(&self, application: &str) -> Result<bool, Box<dyn Error>> {
@@ -168,7 +171,8 @@ impl<'s> System for Windows<'s> {
             system::download_file(
                 "https://github.com/dokan-dev/dokany/releases/download/v1.5.1.1000/DokanSetup.exe",
                 "DokanSetup.exe",
-            ).await?;
+            )
+            .await?;
             self.execute_powershell(
                 "Invoke-Expression -Command \".\\DokanSetup.exe /passive /norestart\"",
                 true,

@@ -491,7 +491,8 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Err
     download_file(
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
-    ).await?;
+    )
+    .await?;
     Ok(())
 }
 
