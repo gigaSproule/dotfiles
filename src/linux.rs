@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use flate2::read::GzDecoder;
 use tar::Archive;
 
-use crate::system::{self, file_contains};
 use crate::system::System;
+use crate::system::{self, file_contains};
 use crate::unix;
 use crate::unix::get_username;
 
@@ -26,14 +26,15 @@ use crate::unix::get_username;
 /// ```
 pub(crate) fn get_cpu_name() -> Option<String> {
     let file = File::open("/proc/cpuinfo");
-    if file.is_ok() {
-        let buffer = BufReader::new(file.unwrap());
+    if let Ok(unwrapped_file) = file {
+        let buffer = BufReader::new(unwrapped_file);
         let cpu_name = buffer.lines().find_map(|line| {
-            if line.is_ok() && line.as_ref().unwrap().starts_with("vendor_id") {
-                let unwrapped_line = line.unwrap();
-                return Some(unwrapped_line.split(":").next()?.to_string());
+            if let Ok(unwrapped_line) = line {
+                if unwrapped_line.starts_with("vendor_id") {
+                    return Some(unwrapped_line.split(':').next()?.to_string());
+                }
             }
-            return None;
+            None
         });
         return cpu_name;
     }
@@ -60,8 +61,8 @@ pub(crate) fn get_home_dir() -> String {
         false,
         false,
     )
-        .unwrap();
-    passwd_entry.split(":").nth(5).unwrap().to_string()
+    .unwrap();
+    passwd_entry.split(':').nth(5).unwrap().to_string()
 }
 
 pub(crate) fn gnome_development_shortcuts(
@@ -107,7 +108,9 @@ pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::
         .truncate(true)
         .open(&convert_audio)?;
 
-    write!(convert_audio_file, r##"#!/usr/bin/env bash
+    write!(
+        convert_audio_file,
+        r##"#!/usr/bin/env bash
 set -e
 shopt -s extglob nullglob
 directory=$1
@@ -130,7 +133,8 @@ for ext in $extensions; do
         mv "converted.flac" "$directory/${{noext// /_}}.flac"
     done
 done
-"##)?;
+"##
+    )?;
     unix::recursively_chmod(&convert_audio, &0o755, &0o755)?;
 
     let convert_video = format!("{}/bin/convert_videos", system.get_home_dir());
@@ -140,7 +144,9 @@ done
         .truncate(true)
         .open(&convert_video)?;
 
-    write!(convert_video_file, r##"#!/usr/bin/env bash
+    write!(
+        convert_video_file,
+        r##"#!/usr/bin/env bash
 
 set -e
 video=$1
@@ -161,7 +167,8 @@ noext="${{filename%.$extension}}"
 echo $noext
 mv "$video" "$backup_dir"
 mv "converted.$container" "$directory/${{noext// /_}}.$container"
-"##)?;
+"##
+    )?;
     unix::recursively_chmod(&convert_video, &0o755, &0o755)?;
     let convert_videos = format!("{}/bin/convert_videos", system.get_home_dir());
 
@@ -171,7 +178,9 @@ mv "converted.$container" "$directory/${{noext// /_}}.$container"
         .truncate(true)
         .open(&convert_videos)?;
 
-    write!(convert_videos_file, r##"#!/usr/bin/env bash
+    write!(
+        convert_videos_file,
+        r##"#!/usr/bin/env bash
 
 set -e
 shopt -s extglob nullglob
@@ -186,7 +195,8 @@ for ext in $extensions; do
         convert_video "$video" pcm_s16le mov
     done
 done
-"##)?;
+"##
+    )?;
     unix::recursively_chmod(&convert_videos, &0o755, &0o755)?;
     Ok(())
 }
@@ -210,7 +220,7 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
 
         writeln!(smb_credentials_file, "username=")?;
         writeln!(smb_credentials_file, "password=")?;
-        writeln!(smb_credentials_file, "")?;
+        writeln!(smb_credentials_file)?;
     }
 
     let user_id = unix::get_user_id();
@@ -237,7 +247,7 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
     writeln!(mount_nas_file, "#!/usr/bin/env bash")?;
     writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/benjamin {}", benjamin_mount)?;
     writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/shared {}", shared_mount)?;
-    writeln!(mount_nas_file, "")?;
+    writeln!(mount_nas_file)?;
     unix::recursively_chmod(&mount_nas, &0o755, &0o755)?;
 
     let unmount_nas = format!("{}/bin/unmount-nas", system.get_home_dir());
@@ -250,7 +260,7 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
     writeln!(unmount_nas_file, "#!/usr/bin/env bash")?;
     writeln!(unmount_nas_file, "sudo umount {}", benjamin_mount)?;
     writeln!(unmount_nas_file, "sudo umount {}", shared_mount)?;
-    writeln!(unmount_nas_file, "")?;
+    writeln!(unmount_nas_file)?;
     unix::recursively_chmod(&unmount_nas, &0o755, &0o755)?;
 
     Ok(())
@@ -350,10 +360,10 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
                 if unwrapped_line.starts_with("GRUB_CMDLINE_LINUX_DEFAULT=")
                     && !unwrapped_line.contains("mem_sleep_default = deep")
                 {
-                    let mut split_line = unwrapped_line.split("=");
+                    let mut split_line = unwrapped_line.split('=');
                     split_line.next();
                     let unwrapped_next_split = split_line.next().unwrap();
-                    let mut value = unwrapped_next_split.replace("\"", "");
+                    let mut value = unwrapped_next_split.replace('\"', "");
                     value += "mem_sleep_default = deep";
                     format!("GRUB_CMDLINE_LINUX_DEFAULT=\"{}\"", value)
                 } else {

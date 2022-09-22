@@ -6,9 +6,9 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
-use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Arch<'s> {
     config: &'s Config,
@@ -80,15 +80,11 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.gnome {
-            if !self.is_installed("file-roller")? {
-                self.install_application("file-roller")?;
-            }
+        if self.config.gnome && !self.is_installed("file-roller")? {
+            self.install_application("file-roller")?;
         }
-        if self.config.kde {
-            if !self.is_installed("ark")? {
-                self.install_application("ark")?;
-            }
+        if self.config.kde && !self.is_installed("ark")? {
+            self.install_application("ark")?;
         }
         Ok(())
     }
@@ -189,15 +185,11 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.gnome == true {
-            if !self.is_installed("baobab")? {
-                self.install_application("baobab ")?;
-            }
+        if self.config.gnome && !self.is_installed("baobab")? {
+            self.install_application("baobab")?;
         }
-        if self.config.kde == true {
-            if !self.is_installed("filelight")? {
-                self.install_application("filelight")?;
-            }
+        if self.config.kde && !self.is_installed("filelight")? {
+            self.install_application("filelight")?;
         }
         Ok(())
     }
@@ -241,7 +233,8 @@ impl<'s> System for Arch<'s> {
         system::download_file(
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
-        ).await?;
+        )
+        .await?;
 
         system::add_to_file(
             "/opt/eclipse/eclipse.ini",
@@ -534,7 +527,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("nordvpn-bin")? {
             self.aur_install_application("nordvpn-bin")?;
         }
-        if self.config.kde == true {
+        if self.config.kde {
             open::that("https://store.kde.org/p/1689651")?;
         }
         self.enable_service("nordvpnd")?;
@@ -714,18 +707,18 @@ impl<'s> System for Arch<'s> {
         let mut new_lines = original_lines
             .map(|line| {
                 let unwrapped_line = line.unwrap();
-                return if unwrapped_line.starts_with("#[multilib]") {
+                if unwrapped_line.starts_with("#[multilib]") {
                     // Crude way to signify that we are under the multilib section
                     enable_multilib = true;
-                    unwrapped_line.replacen("#", "", 1)
+                    unwrapped_line.replacen('#', "", 1)
                 } else if enable_multilib
                     && unwrapped_line.starts_with("#Include = /etc/pacman.d/mirrorlist")
                 {
                     enable_multilib = false;
-                    unwrapped_line.replacen("#", "", 1)
+                    unwrapped_line.replacen('#', "", 1)
                 } else {
                     unwrapped_line
-                };
+                }
             })
             .collect::<Vec<String>>();
 
@@ -743,7 +736,8 @@ impl<'s> System for Arch<'s> {
             system::download_file(
                 "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
                 "yay.tar.gz",
-            ).await?;
+            )
+            .await?;
             linux::untar_rename_root("yay.tar.gz", "yay")?;
             let user_id = unix::get_user_id();
             let group_id = unix::get_group_id();

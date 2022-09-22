@@ -49,7 +49,7 @@ pub(crate) fn add_to_path(
             .map(|line| {
                 let unwrapped_line = line.unwrap();
                 if unwrapped_line.starts_with("export PATH=") && !unwrapped_line.contains(&path) {
-                    let mut split_line = unwrapped_line.split("=");
+                    let mut split_line = unwrapped_line.split('=');
                     split_line.next();
                     let unwrapped_next_split = split_line.next().unwrap();
                     format!("export PATH={}{}", unwrapped_next_split, path)
@@ -87,7 +87,7 @@ pub(crate) fn add_variable_to_file(
     key: &str,
     value: &str,
 ) -> Result<(), std::io::Error> {
-    if !system::file_contains(&file, key) {
+    if !system::file_contains(file, key) {
         let mut actual_file = OpenOptions::new().append(true).open(&file)?;
         writeln!(actual_file, "export {}={}", key, value)?;
     }
@@ -132,7 +132,7 @@ pub(crate) fn execute_path(
         let mut split = command.split_whitespace();
         let mut return_command = Command::new(
             split
-                .nth(0)
+                .next()
                 .expect("Could not find the first part of the command"),
         );
         return_command.args(split.collect::<Vec<&str>>());
@@ -156,7 +156,7 @@ pub(crate) fn recursively_chmod(
                 child_path,
                 fs::Permissions::from_mode(*directory_permission),
             )
-                .unwrap();
+            .unwrap();
         } else {
             fs::set_permissions(child_path, fs::Permissions::from_mode(*file_permission)).unwrap();
         }
@@ -228,7 +228,7 @@ pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn std::error:
         bashrc_file,
         "export PATH=$PATH:${{HOME}}/bin:${{HOME}}/.local/bin"
     )?;
-    writeln!(bashrc_file, "")?;
+    writeln!(bashrc_file)?;
 
     let user_id = get_user_id();
     let group_id = get_group_id();
@@ -246,7 +246,7 @@ pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn std::error:
             bashrc_custom_file,
             "# File to contain custom config that won't get overwritten"
         )?;
-        writeln!(bashrc_custom_file, "")?;
+        writeln!(bashrc_custom_file)?;
 
         let user_id = get_user_id();
         let group_id = get_group_id();
@@ -279,10 +279,10 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     writeln!(tmux_conf_file, "set-option -g prefix C-a")?;
     writeln!(tmux_conf_file, "unbind C-a")?;
     writeln!(tmux_conf_file, "bind-key C-a send-prefix")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# set vi mode keys")?;
     writeln!(tmux_conf_file, "setw -g mode-keys vi")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(
         tmux_conf_file,
         "# set some bindings for moving around terminals (vim-like)"
@@ -291,7 +291,7 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     writeln!(tmux_conf_file, "bind j select-pane -D")?;
     writeln!(tmux_conf_file, "bind k select-pane -U")?;
     writeln!(tmux_conf_file, "bind l select-pane -R")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "bind C-M-h resize-pane -L 5")?;
     writeln!(tmux_conf_file, "bind C-h resize-pane -L 1")?;
     writeln!(tmux_conf_file, "bind C-M-j resize-pane -D 5")?;
@@ -300,47 +300,47 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     writeln!(tmux_conf_file, "bind C-k resize-pane -U 1")?;
     writeln!(tmux_conf_file, "bind C-M-l resize-pane -R 5")?;
     writeln!(tmux_conf_file, "bind C-l resize-pane -R 1")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# Define my custom menu bar")?;
     writeln!(tmux_conf_file, "# status bar colors")?;
     writeln!(tmux_conf_file, "set -g status-bg black")?;
     writeln!(tmux_conf_file, "set -g status-fg white")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# alignment settings")?;
     writeln!(tmux_conf_file, "set-option -g status-justify centre")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# status left options")?;
     writeln!(
         tmux_conf_file,
         "set-option -g status-left '#[fg=green][#[bg=black,fg=cyan]#S#[fg=green]]'"
     )?;
     writeln!(tmux_conf_file, "set-option -g status-left-length 20")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# window list options")?;
     writeln!(tmux_conf_file, "setw -g automatic-rename on")?;
     writeln!(tmux_conf_file, "set-window-option -g window-status-format '#[fg=cyan,dim]#I#[fg=blue]:#[default]#W#[fg=grey,dim]#F'")?;
     writeln!(tmux_conf_file, "set-window-option -g window-status-current-format '#[bg=blue,fg=cyan,bold]#I#[bg=blue,fg=cyan]:#[fg=colour230]#W#[fg=dim]#F'")?;
     writeln!(tmux_conf_file, "set -g base-index 1")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# status right options")?;
     writeln!(tmux_conf_file, "set -g status-right '#[fg=green][#[fg=blue]%Y-%m-%d #[fg=white]%H:%M#[default]  #($HOME/bin/battery)#[fg=green]]'")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# bind a reload key")?;
     writeln!(
         tmux_conf_file,
         "bind R source-file ~/.tmux.conf \\; display-message \"  Config reloaded..\"."
     )?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# Set Copy-Mode settings")?;
     writeln!(tmux_conf_file, "bind [ copy-mode")?;
     writeln!(tmux_conf_file, "#bind -T vi-copy v begin-selection")?;
     writeln!(tmux_conf_file, "#bind -T vi-copy y copy-selection")?;
     writeln!(tmux_conf_file, "#bind -T vi-copy V rectangle-toggle")?;
     writeln!(tmux_conf_file, "bind ] paste-buffer")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "# buffer")?;
     writeln!(tmux_conf_file, "bind Space choose-buffer")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(tmux_conf_file, "set -g mouse on")?;
     writeln!(
         tmux_conf_file,
@@ -363,13 +363,13 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
         tmux_conf_file,
         "#bind -T vi-copy    C-WheelDownPane halfpage-down"
     )?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
     writeln!(
         tmux_conf_file,
         "if-shell -b '[ -f $HOME/.tmux.custom.conf ]' \\"
     )?;
     writeln!(tmux_conf_file, "    \"source-file ~/.tmux.custom.conf\"")?;
-    writeln!(tmux_conf_file, "")?;
+    writeln!(tmux_conf_file)?;
 
     let user_id = get_user_id();
     let group_id = get_group_id();
@@ -387,7 +387,7 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
             tmux_conf_custom_file,
             "# File to contain custom config that won't get overwritten"
         )?;
-        writeln!(tmux_conf_custom_file, "")?;
+        writeln!(tmux_conf_custom_file)?;
 
         let user_id = get_user_id();
         let group_id = get_group_id();
@@ -417,7 +417,8 @@ pub(crate) async fn setup_zsh(
     system::download_file(
         "https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh",
         "oh-my-zsh.sh",
-    ).await?;
+    )
+    .await?;
     recursively_chmod("./oh-my-zsh.sh", &0o755, &0o755)?;
     system.execute("./oh-my-zsh.sh", false)?;
     system.execute(&format!("chsh -s {}", zsh), true)?;
@@ -435,49 +436,49 @@ pub(crate) async fn setup_zsh(
     writeln!(zshrc_file, "plugins=(common-aliases docker docker-compose git git-flow gradle jira kubectl mvn pip web-search)")?;
     writeln!(zshrc_file, "export PATH=\"/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${{HOME}}/bin:${{HOME}}/.local/bin\"")?;
     writeln!(zshrc_file, "source $ZSH/oh-my-zsh.sh")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gfp() {{")?;
     writeln!(zshrc_file, "    for i in `git remote`; do")?;
     writeln!(zshrc_file, "        git fetch --prune $i")?;
     writeln!(zshrc_file, "    done")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gco() {{")?;
     writeln!(zshrc_file, "    git checkout")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gpod() {{")?;
     writeln!(zshrc_file, "    git pull origin develop")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function grprt() {{")?;
     writeln!(zshrc_file, "    lsof -i :$1 -S")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gitCurrentBranch() {{")?;
     writeln!(zshrc_file, "    git rev-parse --abbrev-ref HEAD")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gitGraph() {{")?;
     writeln!(zshrc_file, "    git log --graph --oneline --all")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gitDummyCommit() {{")?;
     writeln!(zshrc_file, "    git commit --allow-empty -m ${{1}}")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gitDeleteRemote() {{")?;
     writeln!(zshrc_file, "    git push -d origin ${{1}}")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gitDeleteLocal() {{")?;
     writeln!(zshrc_file, "    git branch -d ${{1}}")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function gitDeleteUntracked() {{")?;
     writeln!(zshrc_file, "    git fetch -p && for branch in $(git for-each-ref --format '%(refname) %(upstream:track)' refs/heads | awk '$2 == \"[gone]\" {{sub(\"refs/heads/\", \"\", $1); print $1}}'); do git branch -D $branch; done")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "function migrateGitRepo() {{")?;
     writeln!(zshrc_file, "    if [ -z $1 ]; then")?;
     writeln!(
@@ -486,24 +487,24 @@ pub(crate) async fn setup_zsh(
     )?;
     writeln!(zshrc_file, "        return")?;
     writeln!(zshrc_file, "    fi")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(
         zshrc_file,
         "    for remote in `git branch -r | grep -v master `; do"
     )?;
     writeln!(zshrc_file, "        git checkout --track $remote")?;
     writeln!(zshrc_file, "    done")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "    git remote rm origin")?;
     writeln!(zshrc_file, "    git remote add origin $1")?;
     writeln!(zshrc_file, "    git remote show origin")?;
     writeln!(zshrc_file, "    git push origin '*:*'")?;
     writeln!(zshrc_file, "}}")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
     writeln!(zshrc_file, "if [ -f $HOME/.zshrc.custom ]; then")?;
     writeln!(zshrc_file, "    source $HOME/.zshrc.custom")?;
     writeln!(zshrc_file, "fi")?;
-    writeln!(zshrc_file, "")?;
+    writeln!(zshrc_file)?;
 
     let user_id = get_user_id();
     let group_id = get_group_id();
@@ -521,7 +522,7 @@ pub(crate) async fn setup_zsh(
             zshrc_custom_file,
             "# File to contain custom config that won't get overwritten"
         )?;
-        writeln!(zshrc_custom_file, "")?;
+        writeln!(zshrc_custom_file)?;
 
         let user_id = get_user_id();
         let group_id = get_group_id();

@@ -116,8 +116,8 @@ workflows:
         jobs:
             - semgrep-scan
             - test_linux
-            - test_macosx_docker
-            - test_windows
+            # - test_macosx_docker
+            # - test_windows
             - build_linux:
                   requires:
                       - test_linux
@@ -127,16 +127,16 @@ workflows:
                       tags:
                           only: /.*/
             - build_macosx:
-                  requires:
-                      - test_macosx_docker
+                  #   requires:
+                  #       - test_macosx_docker
                   filters:
                       branches:
                           ignore: /.*/
                       tags:
                           only: /.*/
             - build_windows:
-                  requires:
-                      - test_windows
+                  #   requires:
+                  #       - test_windows
                   filters:
                       branches:
                           ignore: /.*/

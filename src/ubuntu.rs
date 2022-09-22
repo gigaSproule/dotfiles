@@ -7,9 +7,9 @@ use std::path::Path;
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Ubuntu<'s> {
     config: &'s Config,
@@ -126,15 +126,11 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.gnome {
-            if !self.is_installed("file-roller")? {
-                self.install_application("file-roller")?;
-            }
+        if self.config.gnome && !self.is_installed("file-roller")? {
+            self.install_application("file-roller")?;
         }
-        if self.config.kde {
-            if !self.is_installed("ark")? {
-                self.install_application("ark")?;
-            }
+        if self.config.kde && !self.is_installed("ark")? {
+            self.install_application("ark")?;
         }
         Ok(())
     }
@@ -227,15 +223,11 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_disk_usage_analyser(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.gnome == true {
-            if !self.is_installed("baobab")? {
-                self.install_application("baobab ")?;
-            }
+        if self.config.gnome && !self.is_installed("baobab")? {
+            self.install_application("baobab ")?;
         }
-        if self.config.kde == true {
-            if !self.is_installed("filelight")? {
-                self.install_application("filelight")?;
-            }
+        if self.config.kde && !self.is_installed("filelight")? {
+            self.install_application("filelight")?;
         }
         Ok(())
     }
@@ -279,7 +271,8 @@ impl<'s> System for Ubuntu<'s> {
         system::download_file(
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
-        ).await?;
+        )
+        .await?;
 
         system::add_to_file(
             "/opt/eclipse/eclipse.ini",
@@ -330,7 +323,8 @@ impl<'s> System for Ubuntu<'s> {
             system::download_file(
                 "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
                 "google-chrome.deb",
-            ).await?;
+            )
+            .await?;
             self.execute("dpkg -i google-chrome.deb", true)?;
             fs::remove_file("google-chrome.deb")?;
             println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
@@ -455,9 +449,11 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("kubectl")? {
             let kubectl_version = reqwest::get(
                 "https://storage.googleapis.com/kubernetes-release/release/stable.txt",
-            ).await?
-                .text().await?
-                .replace("\n", "");
+            )
+            .await?
+            .text()
+            .await?
+            .replace('\n', "");
             system::download_file(
                 &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl").await?;
             unix::recursively_chmod("/usr/local/bin/kubectl", &0o755, &0o755)?;
@@ -561,7 +557,8 @@ impl<'s> System for Ubuntu<'s> {
             system::download_file(
                 "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
                 "/usr/local/bin/minikube",
-            ).await?;
+            )
+            .await?;
             unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
         }
         Ok(())
@@ -596,7 +593,8 @@ impl<'s> System for Ubuntu<'s> {
             system::download_file(
                 "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
                 "nvm-install.sh",
-            ).await?;
+            )
+            .await?;
             unix::recursively_chmod("nvm-install.sh", &0o755, &0o755)?;
             self.execute("./nvm-install.sh", false)?;
             fs::remove_file("nvm-install.sh")?;
@@ -615,7 +613,7 @@ impl<'s> System for Ubuntu<'s> {
             self.update_os_repo()?;
             self.install_application("nordvpn")?;
         }
-        if self.config.kde == true {
+        if self.config.kde {
             open::that("https://store.kde.org/p/1689651")?;
         }
         Ok(())
