@@ -364,6 +364,15 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("insync")? {
             self.aur_install_application("insync")?;
         }
+        if !self.is_installed("insync-emblem-icons")? {
+            self.aur_install_application("insync-emblem-icons")?;
+        }
+        if self.config.gnome == true && !self.is_installed("insync-nautilus")? {
+            self.aur_install_application("insync-nautilus")?;
+        }
+        if self.config.kde == true && !self.is_installed("insync-dolphin")? {
+            self.aur_install_application("insync-dolphin")?;
+        }
         Ok(())
     }
 
