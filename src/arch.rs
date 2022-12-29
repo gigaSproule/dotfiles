@@ -570,6 +570,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("obs-studio")? {
             self.install_application("obs-studio")?;
         }
+        if !self.is_installed("qt6-wayland")? {
+            self.install_application("qt6-wayland")?;
+        }
         Ok(())
     }
 
