@@ -288,6 +288,10 @@ impl<'s> System for Ubuntu<'s> {
     fn install_firefox(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("firefox")? {
             self.install_application("firefox")?;
+            system::add_to_file(
+                &format!("{}/.config/environment.d/envvars.conf", self.get_home_dir()),
+                "MOZ_ENABLE_WAYLAND=1",
+            )?;
         }
         Ok(())
     }

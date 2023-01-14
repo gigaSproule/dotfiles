@@ -329,7 +329,7 @@ pub(crate) trait System: Send + Sync {
 /// ```
 pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Error> {
     if !file_contains(file, content) {
-        let mut actual_file = OpenOptions::new().append(true).open(&file)?;
+        let mut actual_file = OpenOptions::new().create(true).append(true).open(&file)?;
         writeln!(actual_file, "{}", content)?;
     }
     Ok(())
@@ -530,6 +530,8 @@ pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn Error
 
 #[cfg(test)]
 mod tests {
+    use serial_test::serial;
+
     use super::*;
 
     #[test]
@@ -545,8 +547,65 @@ mod tests {
     }
 
     #[test]
-    fn test_file_contains_file_contains_text() {
-        let result = file_contains("tests/test-file.txt", "content");
-        assert_eq!(result, true);
+    #[serial]
+    fn test_add_to_file_appends_content_to_file() {
+        let path = &"tests/created-file.txt";
+        let create_result = File::create(path);
+        create_result.expect("Failed to create file");
+
+        let result = add_to_file(path, "content");
+        assert_eq!(result.unwrap(), ());
+
+        let mut created_file = File::open(path).unwrap();
+        let mut file_contents = String::new();
+        created_file
+            .read_to_string(&mut file_contents)
+            .expect("Failed to read content of file");
+        assert_eq!(file_contents, "content\n");
+
+        let delete_result = fs::remove_file(path);
+        delete_result.expect("Failed to delete file");
+    }
+
+    #[test]
+    #[serial]
+    fn test_add_to_file_creates_file_if_not_exist() {
+        let path = &"tests/created-file.txt";
+
+        let result = add_to_file(path, "content");
+        assert_eq!(result.unwrap(), ());
+
+        let mut created_file = File::open(path).unwrap();
+        let mut file_contents = String::new();
+        created_file
+            .read_to_string(&mut file_contents)
+            .expect("Failed to read content of file");
+        assert_eq!(file_contents, "content\n");
+
+        let delete_result = fs::remove_file(path);
+        delete_result.expect("Failed to delete file");
+    }
+
+    #[test]
+    #[serial]
+    fn test_add_to_file_does_not_duplicate_content() {
+        let path = &"tests/created-file.txt";
+        let create_result = File::create(path);
+        create_result.expect("Failed to create file");
+
+        let first_write_result = add_to_file(path, "content");
+        assert_eq!(first_write_result.unwrap(), ());
+        let second_write_result = add_to_file(path, "content");
+        assert_eq!(second_write_result.unwrap(), ());
+
+        let mut created_file = File::open(path).unwrap();
+        let mut file_contents = String::new();
+        created_file
+            .read_to_string(&mut file_contents)
+            .expect("Failed to read content of file");
+        assert_eq!(file_contents, "content\n");
+
+        let delete_result = fs::remove_file(path);
+        delete_result.expect("Failed to delete file");
     }
 }
