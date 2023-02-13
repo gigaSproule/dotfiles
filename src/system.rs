@@ -92,8 +92,6 @@ pub(crate) trait System: Send + Sync {
 
     fn install_docker(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_dropbox(&self) -> Result<(), Box<dyn Error>>;
-
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>>;
@@ -206,7 +204,7 @@ pub(crate) trait System: Send + Sync {
 
     fn install_vim(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_vlc(&self) -> Result<(), Box<dyn Error>>;
+    async fn install_vlc(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_vm_tools(&self) -> Result<(), Box<dyn Error>>;
 
@@ -217,6 +215,8 @@ pub(crate) trait System: Send + Sync {
     fn install_window_manager(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_wget(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_whatsapp(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_wine(&self) -> Result<(), Box<dyn Error>>;
 

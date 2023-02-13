@@ -125,6 +125,11 @@ impl<'s> System for Mac<'s> {
 
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         system::setup_codecs(self).await?;
+        system::download_file(
+            "https://vlc-bluray.whoknowsmy.name/files/mac/libaacs.dylib",
+            format!("/usr/local/lib/libaacs.dylib").as_str(),
+        )
+        .await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
@@ -171,13 +176,6 @@ impl<'s> System for Mac<'s> {
     fn install_docker(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("docker")? {
             self.cask_install_application("docker")?;
-        }
-        Ok(())
-    }
-
-    fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("dropbox")? {
-            self.cask_install_application("dropbox")?;
         }
         Ok(())
     }
@@ -635,7 +633,7 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("vlc")? {
             self.cask_install_application("vlc")?;
         }
@@ -662,6 +660,10 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_wget(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn install_whatsapp(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 

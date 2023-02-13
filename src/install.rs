@@ -165,8 +165,6 @@ pub(crate) async fn install<'s>(
         system.install_gpg()?;
 
         if !config.cli_only {
-            println!("Installing Dropbox");
-            system.install_dropbox()?;
             println!("Installing Google Drive");
             system.install_google_drive()?;
             println!("Installing Insync");
@@ -183,6 +181,8 @@ pub(crate) async fn install<'s>(
             system.install_sweet_home_3d()?;
             println!("Installing themes");
             system.install_themes().await?;
+            println!("Installing WhatsApp");
+            system.install_whatsapp().await?;
         }
     }
 
@@ -204,7 +204,7 @@ pub(crate) async fn install<'s>(
         println!("Installing Codecs");
         system.install_codecs().await?;
         println!("Installing VLC");
-        system.install_vlc()?;
+        system.install_vlc().await?;
     }
 
     if config.video_editing && !config.cli_only {
@@ -680,10 +680,6 @@ mod tests {
         };
         let mut mock_system = get_mock_system(&config);
         mock_system
-            .expect_install_dropbox()
-            .times(1)
-            .returning(|| Ok(()));
-        mock_system
             .expect_install_google_drive()
             .times(1)
             .returning(|| Ok(()));
@@ -1128,7 +1124,6 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
         mock_system.expect_install_blender().times(0);
-        mock_system.expect_install_dropbox().times(0);
         mock_system.expect_install_google_drive().times(0);
         mock_system
             .expect_install_gpg()

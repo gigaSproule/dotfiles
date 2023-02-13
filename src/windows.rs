@@ -101,6 +101,13 @@ impl<'s> Windows<'s> {
         }
         Ok(false)
     }
+
+    fn refreshenv(&self) -> Result<String, Box<dyn Error>> {
+        self.execute_powershell(
+            "$Env:Path = [System.Environment]::GetEnvironmentVariable(\"Path\",\"Machine\")",
+            false,
+        )
+    }
 }
 
 #[async_trait]
@@ -117,7 +124,11 @@ impl<'s> System for Windows<'s> {
 
     fn install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
-            format!("winget install {}", applications.join(" ")).as_str(),
+            format!(
+                "winget install --accept-source-agreements --accept-package-agreements {}",
+                applications.join(" ")
+            )
+            .as_str(),
             true,
         )
     }
@@ -221,13 +232,6 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("Dropbox.Dropbox")? {
-            self.install_application("Dropbox.Dropbox")?;
-        }
-        Ok(())
-    }
-
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
         // TODO: Should this just be removed?
         if !self.is_installed("eclipse")? {
@@ -257,15 +261,19 @@ impl<'s> System for Windows<'s> {
     fn install_git(&self) -> Result<(), Box<dyn Error>> {
         if self.config.wsl && !self.is_installed_wsl("git")? {
             self.install_wsl("git")?;
+            self.refreshenv()?;
         }
         if !self.config.wsl {
             if !self.is_installed("Git.Git")? {
                 self.install_application("Git.Git")?;
             }
             system::setup_git_config(self)?;
-            self.execute("git config --system core.longpaths true", false)?;
+            self.execute("git config --system core.longpaths true", true)?;
             if !self.is_installed("posh-git")? {
-                self.execute_powershell("Install-Module -Name posh-git -Force", true)?;
+                self.execute_powershell(
+                    "Install-Module -Name posh-git -Force -Confirm:$False",
+                    true,
+                )?;
                 self.execute_powershell("Import-Module -Name posh-git", true)?;
                 // TODO: Append if needed instead of blindly re-creating file
                 fs::write(
@@ -389,8 +397,8 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("openjdk")? {
             self.install_wsl("openjdk")?;
         }
-        if !self.config.wsl && !self.is_installed("EclipseAdoptium.Temurin.18.JDK")? {
-            self.install_application("EclipseAdoptium.Temurin.18.JDK")?;
+        if !self.config.wsl && !self.is_installed("EclipseAdoptium.Temurin.19.JDK")? {
+            self.install_application("EclipseAdoptium.Temurin.19.JDK")?;
         }
         Ok(())
     }
@@ -418,10 +426,11 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
-        // TODO: Alternative?
-        if !self.is_installed("texlive")? {
-            self.install_application("texlive")?;
-            self.execute(" C:\\texlive\\2021\\bin\\win32\\tlmgr.bat install latexmk enumitem titlesec latexindent", true)?;
+        if !self.is_installed("ChristianSchenk.MiKTeX")? {
+            self.install_application("ChristianSchenk.MiKTeX")?;
+        }
+        if !self.is_installed("TeXstudio.TeXstudio")? {
+            self.install_application("TeXstudio.TeXstudio")?;
         }
         Ok(())
     }
@@ -481,7 +490,7 @@ impl<'s> System for Windows<'s> {
             self.install_application("Insecure.Nmap")?;
         }
         self.execute(
-            "dism /online /Enable-Feature /FeatureName:TelnetClient",
+            "dism /online /Enable-Feature /FeatureName:TelnetClient /NoRestart",
             true,
         )?;
         Ok(())
@@ -535,22 +544,10 @@ impl<'s> System for Windows<'s> {
                 ),
                 nvm_script,
             )?;
-            self.execute_powershell("refreshenv", false)?;
+            self.refreshenv()?;
             self.execute("nvm install latest", false)?;
-            let stdout = &self.execute("nvm list", false);
-            let output = stdout
-                .as_ref()
-                .expect("Could not find any installed npm versions");
-            for output_version in output.split("\n") {
-                if output_version != "" {
-                    self.execute(
-                        format!("nvm use {}", output_version.replace(" ", "")).as_str(),
-                        false,
-                    )?;
-                    break;
-                }
-            }
-            self.execute_powershell("refreshenv", false)?;
+            self.execute("nvm use latest", false)?;
+            self.refreshenv()?;
             self.execute_powershell("npm install --global yarn", true)?;
         }
         Ok(())
@@ -600,8 +597,8 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("python")? {
             self.install_wsl("python")?;
         }
-        if !self.config.wsl && !self.is_installed("Python.Python.3.10")? {
-            self.install_application("Python.Python.3.10")?;
+        if !self.config.wsl && !self.is_installed("Python.Python.3.11")? {
+            self.install_application("Python.Python.3.11")?;
         }
         Ok(())
     }
@@ -673,6 +670,9 @@ impl<'s> System for Windows<'s> {
         if !self.is_installed("Microsoft.WindowsTerminal")? {
             self.install_application("Microsoft.WindowsTerminal")?;
         }
+        if !self.is_installed("gerardog.gsudo")? {
+            self.install_application("gerardog.gsudo")?;
+        }
         if self.config.development && self.config.wsl {
             self.execute_powershell("wsl --install -d Ubuntu", true)?;
             // TODO: Download Linux binary, copy into Ubuntu WSL and run with development only flag
@@ -699,10 +699,15 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("VideoLAN.VLC")? {
             self.install_application("VideoLAN.VLC")?;
         }
+        system::download_file(
+            "https://vlc-bluray.whoknowsmy.name/files/win64/libaacs.dll",
+            format!("C:\\Program Files\\VideoLAN\\VLC\\libaacs.dll").as_str(),
+        )
+        .await?;
         Ok(())
     }
 
@@ -733,8 +738,15 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("wget")? {
             self.install_wsl("wget")?;
         }
-        if !self.config.wsl && !self.is_installed("GnuWin32.Wget")? {
-            self.install_application("GnuWin32.Wget")?;
+        if !self.config.wsl && !self.is_installed("JernejSimoncic.Wget")? {
+            self.install_application("JernejSimoncic.Wget")?;
+        }
+        Ok(())
+    }
+
+    fn install_whatsapp(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("WhatsApp.WhatsApp")? {
+            self.install_application("WhatsApp.WhatsApp")?;
         }
         Ok(())
     }

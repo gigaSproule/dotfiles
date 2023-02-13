@@ -212,16 +212,6 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_dropbox(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("dropbox")? {
-            self.install_application("dropbox")?;
-        }
-        if !self.is_installed("nautilus-dropbox")? {
-            self.install_application("nautilus-dropbox")?;
-        }
-        Ok(())
-    }
-
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("eclipse-jee")? {
             self.aur_install_application("eclipse-jee")?;
@@ -848,7 +838,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_vlc(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("vlc")? {
             self.install_application("vlc")?;
         }
@@ -997,6 +987,10 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("wget")? {
             self.install_application("wget")?;
         }
+        Ok(())
+    }
+
+    fn install_whatsapp(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
