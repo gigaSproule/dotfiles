@@ -36,7 +36,7 @@ impl<'s> Windows<'s> {
 
     fn install_wsl(&self, application: &str) -> Result<String, Box<dyn Error>> {
         self.execute_wsl(
-            format!("-u root apt install {}", application).as_str(),
+            format!("-u root apt -y install {}", application).as_str(),
             true,
         )
     }
@@ -104,7 +104,7 @@ impl<'s> Windows<'s> {
 
     fn refreshenv(&self) -> Result<String, Box<dyn Error>> {
         self.execute_powershell(
-            "$Env:Path = [System.Environment]::GetEnvironmentVariable(\"Path\",\"Machine\")",
+            "$env:Path = [System.Environment]::GetEnvironmentVariable(\"Path\",\"Machine\") + \";\" + [System.Environment]::GetEnvironmentVariable(\"Path\",\"User\")",
             false,
         )
     }
@@ -261,11 +261,20 @@ impl<'s> System for Windows<'s> {
     fn install_git(&self) -> Result<(), Box<dyn Error>> {
         if self.config.wsl && !self.is_installed_wsl("git")? {
             self.install_wsl("git")?;
-            self.refreshenv()?;
+            self.execute_wsl("git config --global user.name \"Benjamin Sproule\"", false)?;
+            self.execute_wsl(
+                "git config --global user.email benjamin@benjaminsproule.com",
+                false,
+            )?;
+            self.execute_wsl(
+                "git config --global credential.helper cache --timeout=86400",
+                false,
+            )?;
         }
         if !self.config.wsl {
             if !self.is_installed("Git.Git")? {
                 self.install_application("Git.Git")?;
+                self.refreshenv()?;
             }
             system::setup_git_config(self)?;
             self.execute("git config --system core.longpaths true", true)?;
@@ -394,8 +403,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.wsl && !self.is_installed_wsl("openjdk")? {
-            self.install_wsl("openjdk")?;
+        if self.config.wsl && !self.is_installed_wsl("openjdk-19-jdk")? {
+            self.install_wsl("openjdk-19-jdk")?;
         }
         if !self.config.wsl && !self.is_installed("EclipseAdoptium.Temurin.19.JDK")? {
             self.install_application("EclipseAdoptium.Temurin.19.JDK")?;
@@ -505,7 +514,19 @@ impl<'s> System for Windows<'s> {
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
         if self.config.wsl && !self.is_installed_wsl("nvm")? {
-            self.install_wsl("nvm")?;
+            self.execute_wsl(
+                "wget -q https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh",
+                false,
+            )?;
+            self.execute_wsl("-u root ./install.sh", true)?;
+            self.execute_wsl("rm ./install.sh", false)?;
+            self.execute_wsl("echo 'export NVM_DIR=\"$HOME/.nvm\"' > ~/.bashrc", false)?;
+            self.execute_wsl(
+                "echo '[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\"  # This loads nvm' >> ~/.bashrc",
+                false,
+            )?;
+            self.execute_wsl("echo '[ -s \"$NVM_DIR/bash_completion\" ] && \\. \"$NVM_DIR/bash_completion\"  # This loads nvm bash_completion' >> ~/.bashrc", false)?;
+            self.execute_wsl("nvm install node", false)?;
         }
         if !self.config.wsl {
             if !self.is_installed("CoreyButler.NVMforWindows")? {
@@ -594,8 +615,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.wsl && !self.is_installed_wsl("python")? {
-            self.install_wsl("python")?;
+        if self.config.wsl && !self.is_installed_wsl("python3")? {
+            self.install_wsl("python3")?;
         }
         if !self.config.wsl && !self.is_installed("Python.Python.3.11")? {
             self.install_application("Python.Python.3.11")?;
@@ -612,7 +633,9 @@ impl<'s> System for Windows<'s> {
 
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
         if self.config.wsl && !self.is_installed_wsl("rustup")? {
-            self.install_wsl("rustup")?;
+            self.execute_wsl("wget -q -O rustup-install https://sh.rustup.rs", false)?;
+            self.execute_wsl("./rustup-install -y", false)?;
+            self.execute_wsl("rm ./rustup-install", false)?;
         }
         // Always install outside of WSL in case this needs updating for Windows
         if !self.is_installed("Rustlang.Rustup")? {
@@ -675,6 +698,8 @@ impl<'s> System for Windows<'s> {
         }
         if self.config.development && self.config.wsl {
             self.execute_powershell("wsl --install -d Ubuntu", true)?;
+            self.execute_wsl("-u root apt update", true)?;
+            self.execute_wsl("-u root apt update", true)?;
             // TODO: Download Linux binary, copy into Ubuntu WSL and run with development only flag
         }
         Ok(())
