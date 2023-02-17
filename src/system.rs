@@ -142,7 +142,7 @@ pub(crate) trait System: Send + Sync {
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>>;
+    fn install_office(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_lutris(&self) -> Result<(), Box<dyn Error>>;
 

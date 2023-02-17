@@ -423,7 +423,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
+    fn install_office(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("libreoffice-fresh")? {
             self.install_application("libreoffice-fresh")?;
         }

@@ -173,6 +173,8 @@ pub(crate) async fn install<'s>(
             system.install_latex()?;
             println!("Installing Nextcloud Client");
             system.install_nextcloud_client()?;
+            println!("Installing Office");
+            system.install_office()?;
             println!("Installing OneDrive");
             system.install_onedrive()?;
             println!("Installing Spotify");
@@ -182,7 +184,7 @@ pub(crate) async fn install<'s>(
             println!("Installing themes");
             system.install_themes().await?;
             println!("Installing WhatsApp");
-            system.install_whatsapp().await?;
+            system.install_whatsapp()?;
         }
     }
 

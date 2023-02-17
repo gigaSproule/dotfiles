@@ -346,7 +346,7 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
+    fn install_office(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("libreoffice")? {
             self.cask_install_application("libreoffice")?;
         }

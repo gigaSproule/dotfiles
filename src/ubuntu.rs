@@ -475,7 +475,7 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
+    fn install_office(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("libreoffice")? {
             self.install_application("libreoffice")?;
         }

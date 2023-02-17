@@ -444,9 +444,9 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_libreoffice(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("TheDocumentFoundation.LibreOffice")? {
-            self.install_application("TheDocumentFoundation.LibreOffice")?;
+    fn install_office(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("9WZDNCRD29V9")? {
+            self.install_application("9WZDNCRD29V9")?;
         }
         Ok(())
     }
