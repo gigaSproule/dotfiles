@@ -790,6 +790,18 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_terraform(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("terraform")? {
+            self.add_apt_key("https://apt.releases.hashicorp.com/gpg")?;
+            self.add_apt_repo(
+                "terraform",
+                vec!["https://apt.releases.hashicorp.com jammy"],
+            )?;
+            self.install_application("terraform")?;
+        }
+        Ok(())
+    }
+
     async fn install_themes(&self) -> Result<(), Box<dyn Error>> {
         fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()))?;
         let user_id = unix::get_user_id();

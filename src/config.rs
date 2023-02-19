@@ -8,6 +8,7 @@ pub(crate) struct Config {
     pub gaming: bool,
     pub gcp: bool,
     pub gnome: bool,
+    pub infrastructure: bool,
     pub images: bool,
     pub kde: bool,
     pub help: bool,
@@ -35,6 +36,7 @@ pub(crate) fn parse(args: Vec<String>) -> Config {
         gnome: args.contains(&"--gnome".to_string()),
         help: args.contains(&"--help".to_string()),
         images: args.contains(&"--images".to_string()),
+        infrastructure: args.contains(&"--infrastructure".to_string()),
         kde: args.contains(&"--kde".to_string()),
         laptop: args.contains(&"--laptop".to_string()),
         modelling: args.contains(&"--modelling".to_string()),
@@ -66,6 +68,7 @@ mod tests {
         assert_eq!(config.gnome, false);
         assert_eq!(config.help, false);
         assert_eq!(config.images, false);
+        assert_eq!(config.infrastructure, false);
         assert_eq!(config.kde, false);
         assert_eq!(config.laptop, false);
         assert_eq!(config.modelling, false);
@@ -137,6 +140,12 @@ mod tests {
     fn parse_sets_images_to_true() {
         let config = parse(vec!["--images".to_string()]);
         assert_eq!(config.images, true);
+    }
+
+    #[test]
+    fn parse_sets_infrastructure_to_true() {
+        let config = parse(vec!["--infrastructure".to_string()]);
+        assert_eq!(config.infrastructure, true);
     }
 
     #[test]

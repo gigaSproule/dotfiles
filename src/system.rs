@@ -196,6 +196,8 @@ pub(crate) trait System: Send + Sync {
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_terraform(&self) -> Result<(), Box<dyn Error>>;
+
     async fn install_themes(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_tlp(&self) -> Result<(), Box<dyn Error>>;

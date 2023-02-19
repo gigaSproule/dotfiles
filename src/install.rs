@@ -133,6 +133,11 @@ pub(crate) async fn install<'s>(
         system.install_inkscape()?;
     }
 
+    if config.infrastructure {
+        println!("Installing Terraform");
+        system.install_terraform()?;
+    }
+
     if config.laptop {
         println!("Installing Bluetooth");
         system.install_bluetooth()?;
@@ -248,6 +253,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -292,6 +298,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -384,6 +391,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -428,6 +436,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -492,6 +501,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -528,6 +538,7 @@ mod tests {
             gnome: false,
             help: false,
             images: true,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -554,6 +565,43 @@ mod tests {
     }
 
     #[test]
+    fn test_install_infrastructure() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            cli_only: false,
+            development: false,
+            docker: false,
+            dry_run: false,
+            gaming: false,
+            gcp: false,
+            gnome: false,
+            help: false,
+            images: false,
+            infrastructure: true,
+            kde: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+            wsl: false,
+        };
+        let mut mock_system = get_mock_system(&config);
+        mock_system
+            .expect_install_terraform()
+            .times(1)
+            .returning(|| Ok(()));
+
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
+    }
+
+    #[test]
     fn test_install_laptop() {
         let rt = tokio::runtime::Runtime::new().unwrap();
 
@@ -568,6 +616,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: true,
             modelling: false,
@@ -632,6 +681,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: true,
@@ -668,6 +718,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -702,6 +753,10 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
         mock_system
+            .expect_install_office()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
             .expect_install_onedrive()
             .times(1)
             .returning(|| Ok(()));
@@ -717,6 +772,10 @@ mod tests {
             .expect_install_themes()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
+        mock_system
+            .expect_install_whatsapp()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
@@ -736,6 +795,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -772,6 +832,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -816,6 +877,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -836,7 +898,7 @@ mod tests {
         mock_system
             .expect_install_vlc()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
@@ -856,6 +918,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -892,6 +955,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -928,6 +992,7 @@ mod tests {
             gnome: false,
             help: false,
             images: false,
+            infrastructure: false,
             kde: false,
             laptop: false,
             modelling: false,
@@ -964,6 +1029,7 @@ mod tests {
             gnome: true,
             help: true,
             images: true,
+            infrastructure: true,
             kde: true,
             laptop: true,
             modelling: true,
@@ -1095,6 +1161,10 @@ mod tests {
         mock_system.expect_install_gimp().times(0);
         mock_system.expect_install_inkscape().times(0);
         mock_system
+            .expect_install_terraform()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
             .expect_install_bluetooth()
             .times(1)
             .returning(|| Ok(()));
@@ -1134,10 +1204,12 @@ mod tests {
         mock_system.expect_install_insync().times(0);
         mock_system.expect_install_latex().times(0);
         mock_system.expect_install_nextcloud_client().times(0);
+        mock_system.expect_install_office().times(0);
         mock_system.expect_install_onedrive().times(0);
         mock_system.expect_install_spotify().times(0);
         mock_system.expect_install_sweet_home_3d().times(0);
         mock_system.expect_install_themes().times(0);
+        mock_system.expect_install_whatsapp().times(0);
         mock_system.expect_install_obs_studio().times(0);
         mock_system.expect_install_handbrake().times(0);
         mock_system.expect_install_makemkv().times(0);

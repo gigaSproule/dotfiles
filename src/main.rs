@@ -103,6 +103,7 @@ mod tests {
         gcp: false,
         gnome: false,
         images: false,
+        infrastructure: false,
         kde: false,
         help: false,
         laptop: false,

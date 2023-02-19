@@ -705,6 +705,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_terraform(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("Hashicorp.Terraform")? {
+            self.install_application("Hashicorp.Terraform")?;
+        }
+        Ok(())
+    }
+
     async fn install_themes(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }

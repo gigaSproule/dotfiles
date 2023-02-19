@@ -609,6 +609,13 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_terraform(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("terraform")? {
+            self.install_application("terraform")?;
+        }
+        Ok(())
+    }
+
     async fn install_themes(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
