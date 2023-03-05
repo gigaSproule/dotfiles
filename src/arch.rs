@@ -1012,7 +1012,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("xbox-xcloud")? {
             self.aur_install_application("xbox-xcloud")?;
         }

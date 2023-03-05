@@ -117,7 +117,11 @@ impl<'s> System for Mac<'s> {
         unix::setup_bash(self)?;
         let bashrc = format!("{}/.bashrc", self.get_home_dir());
         let mut bashrc_file = OpenOptions::new().append(true).open(&bashrc)?;
-        writeln!(bashrc_file, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        writeln!(
+            bashrc_file,
+            "eval \"$({}/bin/brew shellenv)\"",
+            self.get_brew_prefix()?
+        )?;
         Ok(())
     }
 
@@ -145,7 +149,7 @@ impl<'s> System for Mac<'s> {
             "https://vlc-bluray.whoknowsmy.name/files/mac/libaacs.dylib",
             format!("/usr/local/lib/libaacs.dylib").as_str(),
         )
-        .await?;
+            .await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
@@ -321,7 +325,7 @@ impl<'s> System for Mac<'s> {
             "{}/opt/openjdk/libexec/openjdk.jdk",
             self.get_brew_prefix()?
         ))
-        .exists()
+            .exists()
         {
             self.install_application("openjdk")?;
             unix::symlink(
@@ -531,7 +535,7 @@ impl<'s> System for Mac<'s> {
             "{}/opt/python/libexec/bin",
             self.get_brew_prefix()?
         ))
-        .exists()
+            .exists()
         {
             self.install_application("python")?;
         }
@@ -596,22 +600,28 @@ impl<'s> System for Mac<'s> {
     }
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("bew")? {
+        if !self.is_installed("brew")? {
             system::download_file(
                 "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
                 "brew-install",
             )
-            .await?;
+                .await?;
             unix::recursively_chmod("brew-install", &0o755, &0o755)?;
             self.execute("NONINTERACTIVE=1 ./brew-install", false)?;
             fs::remove_file("brew-install")?;
         }
 
         let zshrc = format!("{}/.zshrc", self.get_home_dir());
-        system::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        system::add_to_file(
+            &zshrc,
+            &format!("eval \"$({}/bin/brew shellenv)\"", self.get_brew_prefix()?),
+        )?;
 
         let bashrc = format!("{}/.bashrc", self.get_home_dir());
-        system::add_to_file(&bashrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        system::add_to_file(
+            &bashrc,
+            &format!("eval \"$({}/bin/brew shellenv)\"", self.get_brew_prefix()?),
+        )?;
 
         if !self.is_installed("mas")? {
             self.install_application("mas")?;
@@ -694,15 +704,16 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
         // if !self.is_installed("9MV0B5HZVK9Z")? {
-        self.download_file(
-            "https://github.com/unknownskl/xbox-xcloud-client/releases/download/v2.0.0-beta3/Greenlight-2.0.0-beta3-universal.dmg",
-            "greenlight.dmg"
-        )?.await;
-        self.execute("hdiutil attach greenlight.dmg", true);
-        fs::copy("/Volumes/greenlight/Greenlight.app", "/Applications");
-        self.execute("hdiutil detach /Volumes/greenlight", true);
+        let version = "2.0.0-beta3";
+        system::download_file(
+            format!("https://github.com/unknownskl/xbox-xcloud-client/releases/download/v2.0.0-beta3/Greenlight-{}-universal.dmg", &version).as_str(),
+            "greenlight.dmg",
+        ).await?;
+        self.execute("hdiutil attach greenlight.dmg", true)?;
+        fs::copy(format!("/Volumes/Greenlight {}-universal/Greenlight.app", &version), "/Applications")?;
+        self.execute(format!("hdiutil detach /Volumes/Greenlight {}-universal", &version).as_str(), true)?;
         fs::remove_file("greenlight.dmg")?;
         // }
         Ok(())
@@ -722,7 +733,10 @@ impl<'s> System for Mac<'s> {
         unix::setup_zsh(self, Some(&format!("{}/bin/zsh", self.get_brew_prefix()?))).await?;
 
         let zshrc = format!("{}/.zshrc", self.get_home_dir());
-        system::add_to_file(&zshrc, "eval \"$(/opt/homebrew/bin/brew shellenv)\"")?;
+        system::add_to_file(
+            &zshrc,
+            &format!("eval \"$({}/bin/brew shellenv)\"", self.get_brew_prefix()?),
+        )?;
 
         Ok(())
     }

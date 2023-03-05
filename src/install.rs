@@ -120,7 +120,7 @@ pub(crate) async fn install<'s>(
         println!("Installing Wine");
         system.install_wine()?;
         println!("Installing Xbox streaming");
-        system.install_xbox_streaming()?;
+        system.install_xbox_streaming().await?;
     }
 
     if config.gcp {
@@ -489,7 +489,7 @@ mod tests {
         mock_system
             .expect_install_xbox_streaming()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }

@@ -803,7 +803,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("9MV0B5HZVK9Z")? {
             self.install_application("9MV0B5HZVK9Z")?;
         }

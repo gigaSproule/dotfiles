@@ -5,11 +5,12 @@ use std::io::Write;
 use std::path::Path;
 
 use async_trait::async_trait;
+
 use uuid::Uuid;
 
+use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
-use crate::{linux, system, unix};
 
 pub(crate) struct Ubuntu<'s> {
     config: &'s Config,
@@ -269,7 +270,7 @@ impl<'s> System for Ubuntu<'s> {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-        .await?;
+            .await?;
 
         system::add_to_file(
             "/opt/eclipse/eclipse.ini",
@@ -325,7 +326,7 @@ impl<'s> System for Ubuntu<'s> {
                 "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb",
                 "google-chrome.deb",
             )
-            .await?;
+                .await?;
             self.execute("dpkg -i google-chrome.deb", true)?;
             fs::remove_file("google-chrome.deb")?;
             println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
@@ -451,10 +452,10 @@ impl<'s> System for Ubuntu<'s> {
             let kubectl_version = reqwest::get(
                 "https://storage.googleapis.com/kubernetes-release/release/stable.txt",
             )
-            .await?
-            .text()
-            .await?
-            .replace('\n', "");
+                .await?
+                .text()
+                .await?
+                .replace('\n', "");
             system::download_file(
                 &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl").await?;
             unix::recursively_chmod("/usr/local/bin/kubectl", &0o755, &0o755)?;
@@ -559,7 +560,7 @@ impl<'s> System for Ubuntu<'s> {
                 "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
                 "/usr/local/bin/minikube",
             )
-            .await?;
+                .await?;
             unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
         }
         Ok(())
@@ -595,7 +596,7 @@ impl<'s> System for Ubuntu<'s> {
                 "https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh",
                 "nvm-install.sh",
             )
-            .await?;
+                .await?;
             unix::recursively_chmod("nvm-install.sh", &0o755, &0o755)?;
             self.execute("./nvm-install.sh", false)?;
             fs::remove_file("nvm-install.sh")?;
@@ -996,11 +997,11 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
-        self.download_file(
+    async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+        system::download_file(
             "https://github.com/unknownskl/xbox-xcloud-client/releases/download/v2.0.0-beta3/greenlight_2.0.0-beta3_amd64.deb",
-            "greenlight.deb"
-        )?.await;
+            "greenlight.deb",
+        ).await?;
         self.execute("dpkg -i greenlight.deb", true)?;
         fs::remove_file("greenlight.deb")?;
         Ok(())
