@@ -119,6 +119,8 @@ pub(crate) async fn install<'s>(
         system.install_steam()?;
         println!("Installing Wine");
         system.install_wine()?;
+        println!("Installing Xbox streaming");
+        system.install_xbox_streaming()?;
     }
 
     if config.gcp {
@@ -127,6 +129,8 @@ pub(crate) async fn install<'s>(
     }
 
     if config.images && !config.cli_only {
+        println!("Installing Affinity Suite");
+        system.install_affinity_suite()?;
         println!("Installing Gimp");
         system.install_gimp()?;
         println!("Installing Inkscape");
@@ -482,6 +486,10 @@ mod tests {
             .expect_install_wine()
             .times(1)
             .returning(|| Ok(()));
+        mock_system
+            .expect_install_xbox_streaming()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
@@ -552,6 +560,10 @@ mod tests {
             wsl: false,
         };
         let mut mock_system = get_mock_system(&config);
+        mock_system
+            .expect_install_affinity_suite()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_gimp()
             .times(1)
@@ -1154,10 +1166,12 @@ mod tests {
         mock_system.expect_install_retroarch().times(0);
         mock_system.expect_install_steam().times(0);
         mock_system.expect_install_wine().times(0);
+        mock_system.expect_install_xbox_streaming().times(0);
         mock_system
             .expect_install_google_cloud_sdk()
             .times(1)
             .returning(|| Ok(()));
+        mock_system.expect_install_affinity_suite().times(0);
         mock_system.expect_install_gimp().times(0);
         mock_system.expect_install_inkscape().times(0);
         mock_system

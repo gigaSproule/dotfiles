@@ -116,6 +116,10 @@ impl<'s> System for Ubuntu<'s> {
         )
     }
 
+    fn install_affinity_suite(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("android-studio")? {
             self.add_ppa("maarten-fonville/android-studio")?;
@@ -989,6 +993,16 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("wine")? {
             self.install_application("wine")?;
         }
+        Ok(())
+    }
+
+    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+        self.download_file(
+            "https://github.com/unknownskl/xbox-xcloud-client/releases/download/v2.0.0-beta3/greenlight_2.0.0-beta3_amd64.deb",
+            "greenlight.deb"
+        )?.await;
+        self.execute("dpkg -i greenlight.deb", true)?;
+        fs::remove_file("greenlight.deb")?;
         Ok(())
     }
 

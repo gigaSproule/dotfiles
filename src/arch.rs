@@ -72,6 +72,10 @@ impl<'s> System for Arch<'s> {
         )
     }
 
+    fn install_affinity_suite(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("android-studio")? {
             self.aur_install_application("android-studio")?;
@@ -1004,6 +1008,13 @@ impl<'s> System for Arch<'s> {
     fn install_wine(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("wine")? {
             self.install_application("wine")?;
+        }
+        Ok(())
+    }
+
+    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("xbox-xcloud")? {
+            self.aur_install_application("xbox-xcloud")?;
         }
         Ok(())
     }

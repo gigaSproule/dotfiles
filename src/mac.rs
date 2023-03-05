@@ -83,6 +83,22 @@ impl<'s> System for Mac<'s> {
         self.execute(&format!("brew install {}", applications.join(" ")), false)
     }
 
+    fn install_affinity_suite(&self) -> Result<(), Box<dyn Error>> {
+        // Affinity Photo 2
+        if !self.is_installed("affinity-photo")? {
+            self.cask_install_application("affinity-photo")?;
+        }
+        // Affinity Publisher 2
+        if !self.is_installed("affinity-publisher")? {
+            self.cask_install_application("affinity-publisher")?;
+        }
+        // Affinity Designer 2
+        if !self.is_installed("affinity-designer")? {
+            self.cask_install_application("affinity-designer")?;
+        }
+        Ok(())
+    }
+
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("android-studio")? {
             self.cask_install_application("android-studio")?;
@@ -675,6 +691,20 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_wine(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+        // if !self.is_installed("9MV0B5HZVK9Z")? {
+        self.download_file(
+            "https://github.com/unknownskl/xbox-xcloud-client/releases/download/v2.0.0-beta3/Greenlight-2.0.0-beta3-universal.dmg",
+            "greenlight.dmg"
+        )?.await;
+        self.execute("hdiutil attach greenlight.dmg", true);
+        fs::copy("/Volumes/greenlight/Greenlight.app", "/Applications");
+        self.execute("hdiutil detach /Volumes/greenlight", true);
+        fs::remove_file("greenlight.dmg")?;
+        // }
         Ok(())
     }
 

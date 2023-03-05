@@ -133,6 +133,22 @@ impl<'s> System for Windows<'s> {
         )
     }
 
+    fn install_affinity_suite(&self) -> Result<(), Box<dyn Error>> {
+        // Affinity Photo 2
+        if !self.is_installed("9P8DVF1XW02V")? {
+            self.install_application("9P8DVF1XW02V")?;
+        }
+        // Affinity Publisher 2
+        if !self.is_installed("9NTV2DZ11KD9")? {
+            self.install_application("9NTV2DZ11KD9")?;
+        }
+        // Affinity Designer 2
+        if !self.is_installed("9N2D0P16C80H")? {
+            self.install_application("9N2D0P16C80H")?;
+        }
+        Ok(())
+    }
+
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("Google.AndroidStudio")? {
             self.install_application("Google.AndroidStudio")?;
@@ -787,6 +803,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("9MV0B5HZVK9Z")? {
+            self.install_application("9MV0B5HZVK9Z")?;
+        }
+        Ok(())
+    }
+
     fn install_xcode(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -813,6 +836,7 @@ impl<'s> System for Windows<'s> {
     }
 
     fn update_os_repo(&self) -> Result<(), Box<dyn Error>> {
+        self.execute("winget update", true)?;
         Ok(())
     }
 }

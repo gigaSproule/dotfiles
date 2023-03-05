@@ -64,6 +64,8 @@ pub(crate) trait System: Send + Sync {
         applications: Vec<&'a str>,
     ) -> Result<String, Box<dyn Error>>;
 
+    fn install_affinity_suite(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_android_studio(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_archiver(&self) -> Result<(), Box<dyn Error>>;
@@ -221,6 +223,8 @@ pub(crate) trait System: Send + Sync {
     fn install_whatsapp(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_wine(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_xcode(&self) -> Result<(), Box<dyn Error>>;
 
