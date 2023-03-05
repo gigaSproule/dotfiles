@@ -1,11 +1,10 @@
 version: 2.1
 
 orbs:
-    gh: circleci/github-cli@2.0.0
+    gh: circleci/github-cli@2.2.0
 
 jobs:
     semgrep-scan:
-        parameters:
         environment:
             # Scan changed files in PRs, block on new issues only (existing issues ignored)
             # SEMGREP_BASELINE_REF: << parameters.diff_branch >>
@@ -14,7 +13,7 @@ jobs:
             # Change job timeout (default is 1800 seconds; set to 0 to disable)
             # SEMGREP_TIMEOUT: 300
         docker:
-            - image: returntocorp/semgrep
+            - image: returntocorp/semgrep:latest
         steps:
             - checkout
             - run:
@@ -99,7 +98,7 @@ jobs:
 
     upload_artifacts:
         docker:
-            - image: circleci/base:stable
+            - image: cimg/base:stable
         resource_class: small
         steps:
             - attach_workspace:
