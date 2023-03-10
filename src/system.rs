@@ -70,6 +70,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_archiver(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_authy(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_blender(&self) -> Result<(), Box<dyn Error>>;
@@ -498,7 +500,7 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Err
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
     )
-    .await?;
+        .await?;
     Ok(())
 }
 

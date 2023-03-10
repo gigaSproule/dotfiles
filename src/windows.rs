@@ -3,6 +3,7 @@ use std::fs;
 use std::process::Command;
 
 use async_trait::async_trait;
+
 use registry::{Hive, Security};
 
 use crate::config::Config;
@@ -125,10 +126,10 @@ impl<'s> System for Windows<'s> {
     fn install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
             format!(
-                "winget install --accept-source-agreements --accept-package-agreements {}",
+                "winget install --accept-source-agreements --accept-package-agreements -e {}",
                 applications.join(" ")
             )
-            .as_str(),
+                .as_str(),
             true,
         )
     }
@@ -159,6 +160,13 @@ impl<'s> System for Windows<'s> {
     fn install_archiver(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("7zip.7zip")? {
             self.install_application("7zip.7zip")?;
+        }
+        Ok(())
+    }
+
+    fn install_authy(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("Twilio.Authy")? {
+            self.install_application("Twilio.Authy")?;
         }
         Ok(())
     }
@@ -755,7 +763,7 @@ impl<'s> System for Windows<'s> {
             "https://vlc-bluray.whoknowsmy.name/files/win64/libaacs.dll",
             format!("C:\\Program Files\\VideoLAN\\VLC\\libaacs.dll").as_str(),
         )
-        .await?;
+            .await?;
         Ok(())
     }
 

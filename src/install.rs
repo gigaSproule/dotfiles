@@ -174,6 +174,8 @@ pub(crate) async fn install<'s>(
         system.install_gpg()?;
 
         if !config.cli_only {
+            println!("Installing Authy");
+            system.install_authy()?;
             println!("Installing Google Drive");
             system.install_google_drive()?;
             println!("Installing Insync");
@@ -745,6 +747,10 @@ mod tests {
         };
         let mut mock_system = get_mock_system(&config);
         mock_system
+            .expect_install_authy()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
             .expect_install_google_drive()
             .times(1)
             .returning(|| Ok(()));
@@ -1210,6 +1216,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
         mock_system.expect_install_blender().times(0);
+        mock_system.expect_install_authy().times(0);
         mock_system.expect_install_google_drive().times(0);
         mock_system
             .expect_install_gpg()

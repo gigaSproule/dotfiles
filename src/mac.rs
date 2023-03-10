@@ -113,6 +113,13 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_authy(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("authy")? {
+            self.cask_install_application("authy")?;
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         let bashrc = format!("{}/.bashrc", self.get_home_dir());

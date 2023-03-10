@@ -140,6 +140,13 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_authy(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("authy")? {
+            self.snap_install_application("authy", false)?;
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         Ok(())
