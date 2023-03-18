@@ -70,6 +70,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_archiver(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_audacity(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_authy(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_bash(&self) -> Result<(), Box<dyn Error>>;

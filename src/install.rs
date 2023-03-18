@@ -200,6 +200,8 @@ pub(crate) async fn install<'s>(
     }
 
     if config.recording && !config.cli_only {
+        println!("Installing Audacity");
+        system.install_audacity()?;
         println!("Installing OBS Studio");
         system.install_obs_studio()?;
     }
@@ -828,6 +830,10 @@ mod tests {
         };
         let mut mock_system = get_mock_system(&config);
         mock_system
+            .expect_install_audacity()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
             .expect_install_obs_studio()
             .times(1)
             .returning(|| Ok(()));
@@ -1231,6 +1237,7 @@ mod tests {
         mock_system.expect_install_sweet_home_3d().times(0);
         mock_system.expect_install_themes().times(0);
         mock_system.expect_install_whatsapp().times(0);
+        mock_system.expect_install_audacity().times(0);
         mock_system.expect_install_obs_studio().times(0);
         mock_system.expect_install_handbrake().times(0);
         mock_system.expect_install_makemkv().times(0);

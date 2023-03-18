@@ -164,6 +164,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_audacity(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("Audacity.Audacity")? {
+            self.install_application("Audacity.Audacity")?;
+        }
+        Ok(())
+    }
+
     fn install_authy(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("Twilio.Authy")? {
             self.install_application("Twilio.Authy")?;
@@ -723,7 +730,7 @@ impl<'s> System for Windows<'s> {
         if self.config.development && self.config.wsl {
             self.execute_powershell("wsl --install -d Ubuntu", true)?;
             self.execute_wsl("-u root apt update", true)?;
-            self.execute_wsl("-u root apt update", true)?;
+            self.execute_wsl("-u root apt dist-upgrade", true)?;
             // TODO: Download Linux binary, copy into Ubuntu WSL and run with development only flag
         }
         Ok(())
