@@ -27,7 +27,7 @@ walkdir = "2.3.2"
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
-registry = "1.2.2"
+registry = "1.2.3"
 
 [profile.release]
 strip = true
