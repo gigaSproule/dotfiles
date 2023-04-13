@@ -1251,7 +1251,7 @@ mod tests {
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
-    fn get_mock_system<'s>(_config: &'s Config) -> MockSystem {
+    fn get_mock_system(_config: &Config) -> MockSystem {
         let mut mock_system = MockSystem::new();
         mock_system
             .expect_setup_user_bin()
