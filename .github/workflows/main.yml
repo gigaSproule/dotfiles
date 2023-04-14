@@ -141,7 +141,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: dotfiles-macos
-          path: target/release/dotfiles-windows
+          path: target/release/dotfiles-macos
           retention-days: 1
   release:
     runs-on: "ubuntu-latest"
