@@ -114,7 +114,7 @@ jobs:
       - name: Run build
         run: cargo build --release
       - name: Rename binary
-        run: mv target\release\dotfiles target\release\dotfiles-windows
+        run: mv target\release\dotfiles.exe target\release\dotfiles-windows.exe
       - name: Temporarily save windows binary
         uses: actions/upload-artifact@v2
         with:
