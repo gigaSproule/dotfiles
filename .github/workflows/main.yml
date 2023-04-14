@@ -119,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: dotfiles-windows
-          path: target\release\dotfiles-windows
+          path: target\release\dotfiles-windows.exe
           retention-days: 1
   build-macos:
     runs-on: "macos-latest"
