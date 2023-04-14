@@ -58,160 +58,160 @@ mod tests {
     #[test]
     fn parse_sets_correctly_for_empty_args() {
         let config = parse(vec![]);
-        assert_eq!(config.browsers, false);
-        assert_eq!(config.cli_only, false);
-        assert_eq!(config.development, false);
-        assert_eq!(config.docker, false);
-        assert_eq!(config.dry_run, false);
-        assert_eq!(config.gaming, false);
-        assert_eq!(config.gcp, false);
-        assert_eq!(config.gnome, false);
-        assert_eq!(config.help, false);
-        assert_eq!(config.images, false);
-        assert_eq!(config.infrastructure, false);
-        assert_eq!(config.kde, false);
-        assert_eq!(config.laptop, false);
-        assert_eq!(config.modelling, false);
-        assert_eq!(config.personal, false);
-        assert_eq!(config.recording, false);
-        assert_eq!(config.ripping, false);
-        assert_eq!(config.video, false);
-        assert_eq!(config.video_editing, false);
-        assert_eq!(config.vm, false);
-        assert_eq!(config.vpn, false);
-        assert_eq!(config.wsl, true);
+        assert!(!config.browsers);
+        assert!(!config.cli_only);
+        assert!(!config.development);
+        assert!(!config.docker);
+        assert!(!config.dry_run);
+        assert!(!config.gaming);
+        assert!(!config.gcp);
+        assert!(!config.gnome);
+        assert!(!config.help);
+        assert!(!config.images);
+        assert!(!config.infrastructure);
+        assert!(!config.kde);
+        assert!(!config.laptop);
+        assert!(!config.modelling);
+        assert!(!config.personal);
+        assert!(!config.recording);
+        assert!(!config.ripping);
+        assert!(!config.video);
+        assert!(!config.video_editing);
+        assert!(!config.vm);
+        assert!(!config.vpn);
+        assert!(config.wsl);
     }
 
     #[test]
     fn parse_sets_browser_to_true() {
         let config = parse(vec!["--browsers".to_string()]);
-        assert_eq!(config.browsers, true);
+        assert!(config.browsers);
     }
 
     #[test]
     fn parse_sets_cli_only_to_true() {
         let config = parse(vec!["--cli-only".to_string()]);
-        assert_eq!(config.cli_only, true);
+        assert!(config.cli_only);
     }
 
     #[test]
     fn parse_sets_development_to_true() {
         let config = parse(vec!["--development".to_string()]);
-        assert_eq!(config.development, true);
+        assert!(config.development);
     }
 
     #[test]
     fn parse_sets_docker_to_true() {
         let config = parse(vec!["--docker".to_string()]);
-        assert_eq!(config.docker, true);
+        assert!(config.docker);
     }
 
     #[test]
     fn parse_sets_dry_run_to_true() {
         let config = parse(vec!["--dry-run".to_string()]);
-        assert_eq!(config.dry_run, true);
+        assert!(config.dry_run);
     }
 
     #[test]
     fn parse_sets_gaming_to_true() {
         let config = parse(vec!["--gaming".to_string()]);
-        assert_eq!(config.gaming, true);
+        assert!(config.gaming);
     }
 
     #[test]
     fn parse_sets_gcp_to_true() {
         let config = parse(vec!["--gcp".to_string()]);
-        assert_eq!(config.gcp, true);
+        assert!(config.gcp);
     }
 
     #[test]
     fn parse_sets_gnome_to_true() {
         let config = parse(vec!["--gnome".to_string()]);
-        assert_eq!(config.gnome, true);
+        assert!(config.gnome);
     }
 
     #[test]
     fn parse_sets_help_to_true() {
         let config = parse(vec!["--help".to_string()]);
-        assert_eq!(config.help, true);
+        assert!(config.help);
     }
 
     #[test]
     fn parse_sets_images_to_true() {
         let config = parse(vec!["--images".to_string()]);
-        assert_eq!(config.images, true);
+        assert!(config.images);
     }
 
     #[test]
     fn parse_sets_infrastructure_to_true() {
         let config = parse(vec!["--infrastructure".to_string()]);
-        assert_eq!(config.infrastructure, true);
+        assert!(config.infrastructure);
     }
 
     #[test]
     fn parse_sets_kde_to_true() {
         let config = parse(vec!["--kde".to_string()]);
-        assert_eq!(config.kde, true);
+        assert!(config.kde);
     }
 
     #[test]
     fn parse_sets_laptop_to_true() {
         let config = parse(vec!["--laptop".to_string()]);
-        assert_eq!(config.laptop, true);
+        assert!(config.laptop);
     }
 
     #[test]
     fn parse_sets_modelling_to_true() {
         let config = parse(vec!["--modelling".to_string()]);
-        assert_eq!(config.modelling, true);
+        assert!(config.modelling);
     }
 
     #[test]
     fn parse_sets_personal_to_true() {
         let config = parse(vec!["--personal".to_string()]);
-        assert_eq!(config.personal, true);
+        assert!(config.personal);
     }
 
     #[test]
     fn parse_sets_recording_to_true() {
         let config = parse(vec!["--recording".to_string()]);
-        assert_eq!(config.recording, true);
+        assert!(config.recording);
     }
 
     #[test]
     fn parse_sets_ripping_to_true() {
         let config = parse(vec!["--ripping".to_string()]);
-        assert_eq!(config.ripping, true);
+        assert!(config.ripping);
     }
 
     #[test]
     fn parse_sets_video_to_true() {
         let config = parse(vec!["--video".to_string()]);
-        assert_eq!(config.video, true);
+        assert!(config.video);
     }
 
     #[test]
     fn parse_sets_video_editing_to_true() {
         let config = parse(vec!["--video-editing".to_string()]);
-        assert_eq!(config.video_editing, true);
+        assert!(config.video_editing);
     }
 
     #[test]
     fn parse_sets_vm_to_true() {
         let config = parse(vec!["--vm".to_string()]);
-        assert_eq!(config.vm, true);
+        assert!(config.vm);
     }
 
     #[test]
     fn parse_sets_vpn_to_true() {
         let config = parse(vec!["--vpn".to_string()]);
-        assert_eq!(config.vpn, true);
+        assert!(config.vpn);
     }
 
     #[test]
     fn parse_sets_wsl_to_false() {
         let config = parse(vec!["--not-wsl".to_string()]);
-        assert_eq!(config.wsl, false);
+        assert!(!config.wsl);
     }
 
     #[test]
@@ -237,24 +237,24 @@ mod tests {
             "--vpn".to_string(),
             "--not-wsl".to_string(),
         ]);
-        assert_eq!(config.browsers, true);
-        assert_eq!(config.cli_only, true);
-        assert_eq!(config.development, true);
-        assert_eq!(config.docker, true);
-        assert_eq!(config.dry_run, true);
-        assert_eq!(config.gaming, true);
-        assert_eq!(config.gcp, true);
-        assert_eq!(config.help, true);
-        assert_eq!(config.images, true);
-        assert_eq!(config.laptop, true);
-        assert_eq!(config.modelling, true);
-        assert_eq!(config.personal, true);
-        assert_eq!(config.recording, true);
-        assert_eq!(config.ripping, true);
-        assert_eq!(config.video, true);
-        assert_eq!(config.video_editing, true);
-        assert_eq!(config.vm, true);
-        assert_eq!(config.vpn, true);
-        assert_eq!(config.wsl, false);
+        assert!(config.browsers);
+        assert!(config.cli_only);
+        assert!(config.development);
+        assert!(config.docker);
+        assert!(config.dry_run);
+        assert!(config.gaming);
+        assert!(config.gcp);
+        assert!(config.help);
+        assert!(config.images);
+        assert!(config.laptop);
+        assert!(config.modelling);
+        assert!(config.personal);
+        assert!(config.recording);
+        assert!(config.ripping);
+        assert!(config.video);
+        assert!(config.video_editing);
+        assert!(config.vm);
+        assert!(config.vpn);
+        assert!(!config.wsl);
     }
 }

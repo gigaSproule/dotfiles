@@ -53,7 +53,7 @@ impl<'s> Mac<'s> {
         if !mas_output.starts_with("No results found") {
             return Ok(true);
         }
-        for entry in fs::read_dir("/Applications") {
+        if let Ok(entry) = fs::read_dir("/Applications") {
             if entry.into_iter().any(|f| {
                 f.unwrap()
                     .file_name()
@@ -130,7 +130,7 @@ impl<'s> System for Mac<'s> {
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         let bashrc = format!("{}/.bashrc", self.get_home_dir());
-        let mut bashrc_file = OpenOptions::new().append(true).open(&bashrc)?;
+        let mut bashrc_file = OpenOptions::new().append(true).open(bashrc)?;
         writeln!(
             bashrc_file,
             "eval \"$({}/bin/brew shellenv)\"",
@@ -161,9 +161,9 @@ impl<'s> System for Mac<'s> {
         system::setup_codecs(self).await?;
         system::download_file(
             "https://vlc-bluray.whoknowsmy.name/files/mac/libaacs.dylib",
-            format!("/usr/local/lib/libaacs.dylib").as_str(),
+            "/usr/local/lib/libaacs.dylib".to_string().as_str(),
         )
-            .await?;
+        .await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
@@ -339,7 +339,7 @@ impl<'s> System for Mac<'s> {
             "{}/opt/openjdk/libexec/openjdk.jdk",
             self.get_brew_prefix()?
         ))
-            .exists()
+        .exists()
         {
             self.install_application("openjdk")?;
             unix::symlink(
@@ -549,7 +549,7 @@ impl<'s> System for Mac<'s> {
             "{}/opt/python/libexec/bin",
             self.get_brew_prefix()?
         ))
-            .exists()
+        .exists()
         {
             self.install_application("python")?;
         }
@@ -619,7 +619,7 @@ impl<'s> System for Mac<'s> {
                 "https://raw.githubusercontent.com/Homebrew/install/master/install.sh",
                 "brew-install",
             )
-                .await?;
+            .await?;
             unix::recursively_chmod("brew-install", &0o755, &0o755)?;
             self.execute("NONINTERACTIVE=1 ./brew-install", false)?;
             fs::remove_file("brew-install")?;
@@ -726,8 +726,14 @@ impl<'s> System for Mac<'s> {
             "greenlight.dmg",
         ).await?;
         self.execute("hdiutil attach greenlight.dmg", true)?;
-        fs::copy(format!("/Volumes/Greenlight {}-universal/Greenlight.app", &version), "/Applications")?;
-        self.execute(format!("hdiutil detach /Volumes/Greenlight {}-universal", &version).as_str(), true)?;
+        fs::copy(
+            format!("/Volumes/Greenlight {}-universal/Greenlight.app", &version),
+            "/Applications",
+        )?;
+        self.execute(
+            format!("hdiutil detach /Volumes/Greenlight {}-universal", &version).as_str(),
+            true,
+        )?;
         fs::remove_file("greenlight.dmg")?;
         // }
         Ok(())

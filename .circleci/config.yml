@@ -1,158 +1,158 @@
 version: 2.1
 
 orbs:
-    gh: circleci/github-cli@2.2.0
+  gh: circleci/github-cli@2.2.0
 
 jobs:
-    semgrep-scan:
-        environment:
-            # Scan changed files in PRs, block on new issues only (existing issues ignored)
-            # SEMGREP_BASELINE_REF: << parameters.diff_branch >>
-            SEMGREP_REPO_URL: << pipeline.project.git_url >>
-            SEMGREP_BRANCH: << pipeline.git.branch >>
-            # Change job timeout (default is 1800 seconds; set to 0 to disable)
-            # SEMGREP_TIMEOUT: 300
-        docker:
-            - image: returntocorp/semgrep:latest
-        steps:
-            - checkout
-            - run:
-                  name: "Semgrep scan"
-                  command: semgrep ci
-    test_linux:
-        docker:
-            - image: rust:latest
-        resource_class: small
-        steps:
-            - checkout
-            - run: cargo test
-    build_linux:
-        docker:
-            - image: rust:latest
-        resource_class: small
-        steps:
-            - checkout
-            - run:
-                  command: |
-                      cargo build --release
-                      mv target/release/dotfiles target/release/dotfiles-linux
-            - persist_to_workspace:
-                  root: target/release/
-                  paths:
-                      - dotfiles-linux
-    test_macosx:
-        macos:
-            xcode: 12.5.1
-        steps:
-            - checkout
-            - run: brew install rustup
-            - run: rustup-init -y
-            - run: cargo test
-    test_macosx_docker:
-        docker:
-            - image: joseluisq/rust-linux-darwin-builder:latest
-        resource_class: small
-        steps:
-            - checkout
-            - run: cargo test --target x86_64-apple-darwin
-    build_macosx:
-        docker:
-            - image: joseluisq/rust-linux-darwin-builder:latest
-        resource_class: small
-        steps:
-            - checkout
-            - run:
-                  command: |
-                      cargo build --release --target x86_64-apple-darwin
-                      mv target/x86_64-apple-darwin/release/dotfiles target/release/dotfiles-mac
-            - persist_to_workspace:
-                  root: target/release/
-                  paths:
-                      - dotfiles-mac
-    test_windows:
-        docker:
-            - image: rust:latest
-        resource_class: small
-        steps:
-            - checkout
-            - run: |
-                  apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
-                  rustup target add x86_64-pc-windows-gnu
-                  cargo test --target x86_64-pc-windows-gnu
-    build_windows:
-        docker:
-            - image: rust:latest
-        resource_class: small
-        steps:
-            - checkout
-            - run:
-                  command: |
-                      apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
-                      rustup target add x86_64-pc-windows-gnu
-                      cargo build --release --target x86_64-pc-windows-gnu
-                      mv target/x86_64-pc-windows-gnu/release/dotfiles.exe target/release/dotfiles-windows.exe
-            - persist_to_workspace:
-                  root: target/release/
-                  paths:
-                      - dotfiles-windows.exe
+  semgrep-scan:
+    environment:
+      # Scan changed files in PRs, block on new issues only (existing issues ignored)
+      # SEMGREP_BASELINE_REF: << parameters.diff_branch >>
+      SEMGREP_REPO_URL: << pipeline.project.git_url >>
+      SEMGREP_BRANCH: << pipeline.git.branch >>
+      # Change job timeout (default is 1800 seconds; set to 0 to disable)
+      # SEMGREP_TIMEOUT: 300
+    docker:
+      - image: returntocorp/semgrep:latest
+    steps:
+      - checkout
+      - run:
+          name: "Semgrep scan"
+          command: semgrep ci
+  test_linux:
+    docker:
+      - image: rust:latest
+    resource_class: small
+    steps:
+      - checkout
+      - run: cargo test
+  build_linux:
+    docker:
+      - image: rust:latest
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          command: |
+            cargo build --release
+            mv target/release/dotfiles target/release/dotfiles-linux
+      - persist_to_workspace:
+          root: target/release/
+          paths:
+            - dotfiles-linux
+  test_macosx:
+    macos:
+      xcode: 12.5.1
+    steps:
+      - checkout
+      - run: brew install rustup
+      - run: rustup-init -y
+      - run: cargo test
+  test_macosx_docker:
+    docker:
+      - image: joseluisq/rust-linux-darwin-builder:latest
+    resource_class: small
+    steps:
+      - checkout
+      - run: cargo test --target x86_64-apple-darwin
+  build_macosx:
+    docker:
+      - image: joseluisq/rust-linux-darwin-builder:latest
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          command: |
+            cargo build --release --target x86_64-apple-darwin
+            mv target/x86_64-apple-darwin/release/dotfiles target/release/dotfiles-mac
+      - persist_to_workspace:
+          root: target/release/
+          paths:
+            - dotfiles-mac
+  test_windows:
+    docker:
+      - image: rust:latest
+    resource_class: small
+    steps:
+      - checkout
+      - run: |
+          apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
+          rustup target add x86_64-pc-windows-gnu
+          cargo test --target x86_64-pc-windows-gnu
+  build_windows:
+    docker:
+      - image: rust:latest
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          command: |
+            apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev ca-certificates gcc-mingw-w64-x86-64
+            rustup target add x86_64-pc-windows-gnu
+            cargo build --release --target x86_64-pc-windows-gnu
+            mv target/x86_64-pc-windows-gnu/release/dotfiles.exe target/release/dotfiles-windows.exe
+      - persist_to_workspace:
+          root: target/release/
+          paths:
+            - dotfiles-windows.exe
 
-    upload_artifacts:
-        docker:
-            - image: cimg/base:stable
-        resource_class: small
-        steps:
-            - attach_workspace:
-                  at: /tmp/workspace
-            - gh/install
-            - gh/setup
-            - run:
-                  command: |
-                      gh release upload $CIRCLE_TAG /tmp/workspace/dotfiles-linux /tmp/workspace/dotfiles-mac /tmp/workspace/dotfiles-windows.exe
+  upload_artifacts:
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - gh/install
+      - gh/setup
+      - run:
+          command: |
+            gh release upload $CIRCLE_TAG /tmp/workspace/dotfiles-linux /tmp/workspace/dotfiles-mac /tmp/workspace/dotfiles-windows.exe
 
 workflows:
-    version: 2
-    test_and_build:
-        jobs:
-            - semgrep-scan
+  version: 2
+  test_and_build:
+    jobs:
+      - semgrep-scan
+      - test_linux
+      # - test_macosx_docker
+      # - test_windows
+      - build_linux:
+          requires:
             - test_linux
-            # - test_macosx_docker
-            # - test_windows
-            - build_linux:
-                  requires:
-                      - test_linux
-                  filters:
-                      branches:
-                          ignore: /.*/
-                      tags:
-                          only: /.*/
-            - build_macosx:
-                  #   requires:
-                  #       - test_macosx_docker
-                  filters:
-                      branches:
-                          ignore: /.*/
-                      tags:
-                          only: /.*/
-            - build_windows:
-                  #   requires:
-                  #       - test_windows
-                  filters:
-                      branches:
-                          ignore: /.*/
-                      tags:
-                          only: /.*/
-            - gh/release:
-                  context:
-                      - GITHUB_CREDS
-                  filters:
-                      branches:
-                          ignore: /.*/
-                      tags:
-                          only: /.*/
-                  files: target/release/dotfiles
-                  requires:
-                      - build_linux
-                      - build_macosx
-                      - build_windows
-                  tag: $CIRCLE_TAG
-                  title: $CIRCLE_TAG
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+      - build_macosx:
+          #   requires:
+          #       - test_macosx_docker
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+      - build_windows:
+          #   requires:
+          #       - test_windows
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+      - gh/release:
+          context:
+            - GITHUB_CREDS
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+          files: target/release/dotfiles
+          requires:
+            - build_linux
+            - build_macosx
+            - build_windows
+          tag: $CIRCLE_TAG
+          title: $CIRCLE_TAG

@@ -1,0 +1,10 @@
+name: "Setup Rust"
+description: "Downloads rustup and installs the default toolchain"
+runs:
+  using: "composite"
+  steps:
+    - name: Setup rust
+      shell: "bash"
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        rustup default stable

@@ -48,7 +48,7 @@ pub(crate) fn add_to_path(
         let new_lines = original_lines
             .map(|line| {
                 let unwrapped_line = line.unwrap();
-                if unwrapped_line.starts_with("export PATH=") && !unwrapped_line.contains(&path) {
+                if unwrapped_line.starts_with("export PATH=") && !unwrapped_line.contains(path) {
                     let mut split_line = unwrapped_line.split('=');
                     split_line.next();
                     let unwrapped_next_split = split_line.next().unwrap();
@@ -88,7 +88,7 @@ pub(crate) fn add_variable_to_file(
     value: &str,
 ) -> Result<(), std::io::Error> {
     if !system::file_contains(file, key) {
-        let mut actual_file = OpenOptions::new().append(true).open(&file)?;
+        let mut actual_file = OpenOptions::new().append(true).open(file)?;
         writeln!(actual_file, "export {}={}", key, value)?;
     }
     Ok(())

@@ -339,7 +339,7 @@ pub(crate) trait System: Send + Sync {
 /// ```
 pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Error> {
     if !file_contains(file, content) {
-        let mut actual_file = OpenOptions::new().create(true).append(true).open(&file)?;
+        let mut actual_file = OpenOptions::new().create(true).append(true).open(file)?;
         writeln!(actual_file, "{}", content)?;
     }
     Ok(())
@@ -502,7 +502,7 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Err
         "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
         format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
     )
-        .await?;
+    .await?;
     Ok(())
 }
 
@@ -547,13 +547,13 @@ mod tests {
     #[test]
     fn test_file_contains_file_does_not_exist() {
         let result = file_contains("tests/does-not-exist.txt", "content");
-        assert_eq!(result, false);
+        assert!(!result);
     }
 
     #[test]
     fn test_file_contains_file_does_not_contain_text() {
         let result = file_contains("tests/test-file.txt", "does not exist");
-        assert_eq!(result, false);
+        assert!(!result);
     }
 
     #[test]
@@ -564,7 +564,7 @@ mod tests {
         create_result.expect("Failed to create file");
 
         let result = add_to_file(path, "content");
-        assert_eq!(result.unwrap(), ());
+        assert!(result.is_ok());
 
         let mut created_file = File::open(path).unwrap();
         let mut file_contents = String::new();
@@ -583,7 +583,7 @@ mod tests {
         let path = &"tests/created-file.txt";
 
         let result = add_to_file(path, "content");
-        assert_eq!(result.unwrap(), ());
+        assert!(result.is_ok());
 
         let mut created_file = File::open(path).unwrap();
         let mut file_contents = String::new();
@@ -604,9 +604,9 @@ mod tests {
         create_result.expect("Failed to create file");
 
         let first_write_result = add_to_file(path, "content");
-        assert_eq!(first_write_result.unwrap(), ());
+        assert!(first_write_result.is_ok());
         let second_write_result = add_to_file(path, "content");
-        assert_eq!(second_write_result.unwrap(), ());
+        assert!(second_write_result.is_ok());
 
         let mut created_file = File::open(path).unwrap();
         let mut file_contents = String::new();

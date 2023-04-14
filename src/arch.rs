@@ -6,9 +6,9 @@ use std::path::Path;
 
 use async_trait::async_trait;
 
-use crate::{linux, system, unix};
 use crate::config::Config;
 use crate::system::System;
+use crate::{linux, system, unix};
 
 pub(crate) struct Arch<'s> {
     config: &'s Config,
@@ -242,7 +242,7 @@ impl<'s> System for Arch<'s> {
             "https://projectlombok.org/downloads/lombok.jar",
             "/opt/eclipse/lombok.jar",
         )
-            .await?;
+        .await?;
 
         system::add_to_file(
             "/opt/eclipse/eclipse.ini",
@@ -761,7 +761,7 @@ impl<'s> System for Arch<'s> {
                 "https://aur.archlinux.org/cgit/aur.git/snapshot/yay.tar.gz",
                 "yay.tar.gz",
             )
-                .await?;
+            .await?;
             linux::untar_rename_root("yay.tar.gz", "yay")?;
             let user_id = unix::get_user_id();
             let group_id = unix::get_group_id();

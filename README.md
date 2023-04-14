@@ -7,7 +7,7 @@ A collection of configs and scripts to setup everything I need
 1. Run
 
 ```bash
-sudo dotfiles [options]'
+sudo dotfiles [options]
 ```
 
 ## Testing
@@ -68,7 +68,8 @@ sudo target/debug/dotfiles [options]
 
 ### Windows
 
-- If there is a PowerShell profile file under `$HOME\OneDrive\Documents\WindowsPowerShell`, then make sure it doesn't error PowerShell on startup.
+- If there is a PowerShell profile file under `$HOME\OneDrive\Documents\WindowsPowerShell`, then make sure it doesn't
+  error PowerShell on startup.
 
 ## Install Root CA Certificate
 

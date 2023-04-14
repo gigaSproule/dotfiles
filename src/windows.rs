@@ -129,7 +129,7 @@ impl<'s> System for Windows<'s> {
                 "winget install --accept-source-agreements --accept-package-agreements -e {}",
                 applications.join(" ")
             )
-                .as_str(),
+            .as_str(),
             true,
         )
     }
@@ -770,7 +770,7 @@ impl<'s> System for Windows<'s> {
             "https://vlc-bluray.whoknowsmy.name/files/win64/libaacs.dll",
             format!("C:\\Program Files\\VideoLAN\\VLC\\libaacs.dll").as_str(),
         )
-            .await?;
+        .await?;
         Ok(())
     }
 
