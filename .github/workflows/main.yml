@@ -65,6 +65,18 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: cargo test
+  test-macos:
+    runs-on: "macos-latest"
+    if: github.ref_type != 'tags'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup rust
+        uses: ./.github/actions/setup-rust
+      - name: Configure Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Run tests
+        run: cargo test
   build-linux:
     runs-on: "ubuntu-latest"
     if: github.event_name != 'pull_request' && !failure()
@@ -102,11 +114,33 @@ jobs:
       - name: Run build
         run: cargo build --release
       - name: Rename binary
-        run: mv target/release/dotfiles target/release/dotfiles-windows
+        run: mv target\release\dotfiles target\release\dotfiles-windows
       - name: Temporarily save windows binary
         uses: actions/upload-artifact@v2
         with:
           name: dotfiles-windows
+          path: target\release\dotfiles-windows
+          retention-days: 1
+  build-macos:
+    runs-on: "macos-latest"
+    if: github.event_name != 'pull_request' && !failure()
+    needs:
+      - test-macos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup rust
+        uses: ./.github/actions/setup-rust
+      - name: Configure Rust cache
+        uses: Swatinem/rust-cache@v2
+      - name: Run build
+        run: cargo build --release
+      - name: Rename binary
+        run: mv target/release/dotfiles target/release/dotfiles-macos
+      - name: Temporarily save mac os binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: dotfiles-macos
           path: target/release/dotfiles-windows
           retention-days: 1
   release:
@@ -115,6 +149,7 @@ jobs:
     needs:
       - build-linux
       - build-windows
+      - build-macos
     steps:
       - name: Retrieve saved linux binary
         uses: actions/download-artifact@v2
@@ -124,6 +159,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: dotfiles-windows
+      - name: Retrieve saved mac os binary
+        uses: actions/download-artifact@v2
+        with:
+          name: dotfiles-macos
       - name: Create Release
         uses: ncipollo/release-action@v1.12.0
         with:
