@@ -97,6 +97,14 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("audacity")? {
             self.install_application("audacity")?;
         }
+
+        if !self.is_installed("ffmpeg")? {
+            self.install_application("ffmpeg")?;
+        }
+
+        if !self.is_installed("lame")? {
+            self.install_application("lame")?;
+        }
         Ok(())
     }
 

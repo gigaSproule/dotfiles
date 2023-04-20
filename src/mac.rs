@@ -117,6 +117,10 @@ impl<'s> System for Mac<'s> {
         if !self.is_installed("audacity")? {
             self.cask_install_application("audacity")?;
         }
+
+        if !self.is_installed("ffmpeg")? {
+            self.install_application("ffmpeg")?;
+        }
         Ok(())
     }
 

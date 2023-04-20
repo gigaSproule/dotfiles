@@ -126,7 +126,7 @@ impl<'s> System for Windows<'s> {
     fn install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
             format!(
-                "winget install --accept-source-agreements --accept-package-agreements -e {}",
+                "winget install --accept-source-agreements --accept-package-agreements --id {}",
                 applications.join(" ")
             )
             .as_str(),
@@ -167,6 +167,10 @@ impl<'s> System for Windows<'s> {
     fn install_audacity(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("Audacity.Audacity")? {
             self.install_application("Audacity.Audacity")?;
+        }
+
+        if !self.is_installed("Gyan.FFmpeg.Shared")? {
+            self.install_application("Gyan.FFmpeg.Shared")?;
         }
         Ok(())
     }
@@ -731,6 +735,9 @@ impl<'s> System for Windows<'s> {
             self.execute_powershell("wsl --install -d Ubuntu", true)?;
             self.execute_wsl("-u root apt update", true)?;
             self.execute_wsl("-u root apt dist-upgrade", true)?;
+            if !self.is_installed("dorssel.usbipd-win")? {
+                self.install_application("dorssel.usbipd-win")?;
+            }
             // TODO: Download Linux binary, copy into Ubuntu WSL and run with development only flag
         }
         Ok(())
