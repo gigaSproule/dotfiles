@@ -2,6 +2,8 @@ use std::env;
 
 use crate::{config::parse, install::install};
 
+use registry::{Data, Hive, Security};
+use utfx::U16CString;
 #[cfg(all(not(test), target_os = "linux"))]
 use whoami;
 

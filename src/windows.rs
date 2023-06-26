@@ -4,7 +4,8 @@ use std::process::Command;
 
 use async_trait::async_trait;
 
-use registry::{Hive, Security};
+use registry::{Data, Hive, Security};
+use utfx::U16CString;
 
 use crate::config::Config;
 use crate::system;
@@ -204,6 +205,39 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_cplusplus(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("GnuWin32.Make")? {
+            self.install_application("GnuWin32.Make")?;
+            let regkey = Hive::LocalMachine.open(
+                r"System\CurrentControlSet\Control\Session Manager\Environment",
+                Security::Read | Security::Write,
+            )?;
+            for value in regkey.values() {
+                let mut opened = value.unwrap();
+                let name = opened.name();
+                if name.to_string().unwrap() == "Path" {
+                    println!("{:?}", name);
+                    opened.set_data(Data::String(
+                        U16CString::from_str(format!(
+                            "{};C:\\Program Files (x86)\\GnuWin32\\bin",
+                            opened.data().to_string()
+                        ))
+                        .unwrap(),
+                    ))?;
+                    break;
+                }
+            }
+            self.refreshenv()?;
+        }
+        if !self.is_installed("Kitware.CMake")? {
+            self.install_application("Kitware.CMake")?;
+        }
+        if !self.is_installed("Microsoft.VisualStudio.2022.BuildTools")? {
+            self.install_application("Microsoft.VisualStudio.2022.BuildTools --silent --override \"--wait --quiet --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended\"")?;
+        }
+        Ok(())
+    }
+
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         system::setup_codecs(self).await
     }
@@ -278,6 +312,13 @@ impl<'s> System for Windows<'s> {
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("EpicGames.EpicGamesLauncher")? {
             self.install_application("EpicGames.EpicGamesLauncher")?;
+        }
+        Ok(())
+    }
+
+    async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("Exercism.CLI")? {
+            self.install_application("Exercism.CLI")?;
         }
         Ok(())
     }
@@ -721,7 +762,19 @@ impl<'s> System for Windows<'s> {
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         // Needed to install powershell modules
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
-        self.execute("REG ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f", true)?;
+        let regkey = Hive::LocalMachine.open(
+            r"SYSTEM\CurrentControlSet\Control\FileSystem",
+            Security::Read | Security::Write,
+        )?;
+        for value in regkey.values() {
+            let mut opened = value.unwrap();
+            let name = opened.name();
+            if name.to_string().unwrap() == "LongPathsEnabled" {
+                println!("{:?}", name);
+                opened.set_data(Data::U32(1))?;
+                break;
+            }
+        }
         if !self.is_installed("Microsoft.PowerShell")? {
             self.install_application("Microsoft.PowerShell")?;
         }

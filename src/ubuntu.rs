@@ -218,6 +218,19 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_cplusplus(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gcc")? {
+            self.install_application("gcc")?;
+        }
+        if !self.is_installed("make")? {
+            self.install_application("make")?;
+        }
+        if !self.is_installed("cmake")? {
+            self.install_application("cmake")?;
+        }
+        Ok(())
+    }
+
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("cryptomator")? {
             self.add_ppa("sebastian-stenzel/cryptomator")?;
@@ -302,6 +315,22 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("exercism")? {
+            self.download_file("https://github.com/exercism/cli/releases/download/v3.1.0/exercism-3.1.0-linux-x86_64.tar.gz", "exercism.tar.gz").await?;
+            let exercism_path = format!("{}/bin/exercism", self.get_home_dir());
+            linux::untar_rename_root("exercism.tar.gz", exercism_path)?;
+            let user_id = unix::get_user_id();
+            let group_id = unix::get_group_id();
+            unix::recursively_chown("exercism", &user_id, &group_id)?;
+            let exercism_bin_path = format!("{}/exercism", exercism_path);
+            unix::recursively_chmod(exercism_bin_path);
+            unix::add_to_path(exercism_bin_path);
+            fs::remove_file("exercism.tar.gz");
+        }
         Ok(())
     }
 

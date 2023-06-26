@@ -52,6 +52,10 @@ pub(crate) async fn install<'s>(
     }
 
     if config.development {
+        println!("Installing C++");
+        system.install_cplusplus()?;
+        println!("Installing exercism");
+        system.install_exercism().await?;
         println!("Installing Gradle");
         system.install_gradle()?;
         println!("Installing Git");
@@ -320,6 +324,14 @@ mod tests {
             wsl: false,
         };
         let mut mock_system = get_mock_system(&config);
+        mock_system
+            .expect_install_cplusplus()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_exercism()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_gradle()
             .times(1)
@@ -1113,6 +1125,14 @@ mod tests {
         mock_system.expect_install_firefox().times(0);
         mock_system.expect_install_google_chrome().times(0);
         mock_system.expect_install_microsoft_edge().times(0);
+        mock_system
+            .expect_install_cplusplus()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_exercism()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_gradle()
             .times(1)

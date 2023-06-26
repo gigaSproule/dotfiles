@@ -152,6 +152,7 @@ dependencies = [
  "serial_test",
  "tar",
  "tokio",
+ "utfx",
  "uuid",
  "walkdir",
  "whoami",

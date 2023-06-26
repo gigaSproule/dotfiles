@@ -84,6 +84,8 @@ pub(crate) trait System: Send + Sync {
 
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_cplusplus(&self) -> Result<(), Box<dyn Error>>;
+
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_curl(&self) -> Result<(), Box<dyn Error>>;
@@ -101,6 +103,8 @@ pub(crate) trait System: Send + Sync {
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>>;
+
+    async fn install_exercism(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_firefox(&self) -> Result<(), Box<dyn Error>>;
 

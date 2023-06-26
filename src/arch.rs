@@ -179,6 +179,19 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_cplusplus(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gcc")? {
+            self.install_application("gcc")?;
+        }
+        if !self.is_installed("make")? {
+            self.install_application("make")?;
+        }
+        if !self.is_installed("cmake")? {
+            self.install_application("cmake")?;
+        }
+        Ok(())
+    }
+
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         // Required as a dependency for cryptomator
         self.install_jdk()?;
@@ -260,6 +273,13 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("exercism-bin")? {
+            self.install_application("exercism-bin")?;
+        }
         Ok(())
     }
 

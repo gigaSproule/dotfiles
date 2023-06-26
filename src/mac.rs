@@ -178,6 +178,19 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_cplusplus(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("gcc")? {
+            self.install_application("gcc")?;
+        }
+        if !self.is_installed("make")? {
+            self.install_application("make")?;
+        }
+        if !self.is_installed("cmake")? {
+            self.install_application("cmake")?;
+        }
+        Ok(())
+    }
+
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("cryptomator")? {
             self.cask_install_application("cryptomator")?;
@@ -226,6 +239,13 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("exercism")? {
+            self.install_application("exercism")?;
+        }
         Ok(())
     }
 
