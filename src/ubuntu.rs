@@ -320,16 +320,17 @@ impl<'s> System for Ubuntu<'s> {
 
     async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("exercism")? {
-            self.download_file("https://github.com/exercism/cli/releases/download/v3.1.0/exercism-3.1.0-linux-x86_64.tar.gz", "exercism.tar.gz").await?;
+            system::download_file("https://github.com/exercism/cli/releases/download/v3.1.0/exercism-3.1.0-linux-x86_64.tar.gz", "exercism.tar.gz").await?;
             let exercism_path = format!("{}/bin/exercism", self.get_home_dir());
-            linux::untar_rename_root("exercism.tar.gz", exercism_path)?;
+            linux::untar_rename_root("exercism.tar.gz", &exercism_path)?;
             let user_id = unix::get_user_id();
             let group_id = unix::get_group_id();
             unix::recursively_chown("exercism", &user_id, &group_id)?;
             let exercism_bin_path = format!("{}/exercism", exercism_path);
-            unix::recursively_chmod(exercism_bin_path);
-            unix::add_to_path(exercism_bin_path);
-            fs::remove_file("exercism.tar.gz");
+            unix::recursively_chmod(&exercism_bin_path, &0o755, &0o755)?;
+            unix::add_to_path(self, ".zshrc", &exercism_bin_path)?;
+            unix::add_to_path(self, ".bashrc", &exercism_bin_path)?;
+            fs::remove_file("exercism.tar.gz")?;
         }
         Ok(())
     }
