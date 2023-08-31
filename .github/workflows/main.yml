@@ -94,7 +94,7 @@ jobs:
       - name: Rename binary
         run: mv target/release/dotfiles target/release/dotfiles-linux
       - name: Temporarily save linux binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dotfiles-linux
           path: target/release/dotfiles-linux
@@ -116,7 +116,7 @@ jobs:
       - name: Rename binary
         run: mv target\release\dotfiles.exe target\release\dotfiles-windows.exe
       - name: Temporarily save windows binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dotfiles-windows
           path: target\release\dotfiles-windows.exe
@@ -138,7 +138,7 @@ jobs:
       - name: Rename binary
         run: mv target/release/dotfiles target/release/dotfiles-macos
       - name: Temporarily save mac os binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dotfiles-macos
           path: target/release/dotfiles-macos
