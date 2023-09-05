@@ -26,7 +26,7 @@ whoami = "1.4.1"
 
 [target.'cfg(unix)'.dependencies]
 nix = { version = "0.27.1", features = ["fs", "user"] }
-walkdir = "2.3.3"
+walkdir = "2.4.0"
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
