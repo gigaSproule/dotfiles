@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:lunar-20231004
 
 ENV TZ=Europe/London
 RUN apt-get update && apt-get install -y build-essential curl libssl-dev locales pkg-config sudo
