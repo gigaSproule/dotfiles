@@ -1,4 +1,4 @@
-FROM ubuntu:lunar-20231004
+FROM ubuntu:mantic-20231011
 
 ENV TZ=Europe/London
 RUN apt-get update && apt-get install -y build-essential curl libssl-dev locales pkg-config sudo
