@@ -10,7 +10,7 @@ repository = "https://github.com/gigaSproule/dotfiles"
 async-trait = "0.1.74"
 dirs = "5.0.1"
 reqwest = "0.11.22"
-tokio = { version = "1.34.0", features = ["full"] }
+tokio = { version = "1.35.0", features = ["full"] }
 open = "5.0.1"
 
 [dev-dependencies]
