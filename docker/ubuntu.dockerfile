@@ -1,4 +1,4 @@
-FROM ubuntu:mantic-20240122
+FROM ubuntu:mantic-20240216
 
 ENV TZ=Europe/London
 RUN apt-get update && apt-get install -y build-essential curl libssl-dev locales pkg-config sudo
