@@ -19,7 +19,7 @@ mockall_double = "0.3.1"
 serial_test = "3.1.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-flate2 = "1.0.28"
+flate2 = "1.0.29"
 tar = "0.4.40"
 uuid = { version = "1.8.0", features = ["v4"] }
 whoami = "1.5.1"
