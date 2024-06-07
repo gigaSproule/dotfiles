@@ -368,6 +368,22 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    async fn install_godot(&self) -> Result<(), Box<dyn Error>> {
+        if !Path::new("/opt/godot-mono").exists() {
+            system::download_file(
+                "https://github.com/godotengine/godot/releases/download/4.2.2-stable/Godot_v4.2.2-stable_mono_linux_x86_64.zip",
+                "godot-mono.zip",
+            )
+            .await?;
+            system::extract_zip(
+                Path::new("godot-mono.zip"),
+                Path::new("/opt/godot-mono"),
+                true,
+            )?;
+        }
+        Ok(())
+    }
+
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }

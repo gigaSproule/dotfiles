@@ -377,6 +377,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    async fn install_godot(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("GodotEngine.GodotEngine.Mono")? {
+            self.install_application("GodotEngine.GodotEngine.Mono")?;
+        }
+        Ok(())
+    }
+
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("GOG.Galaxy")? {
             self.install_application("GOG.Galaxy")?;

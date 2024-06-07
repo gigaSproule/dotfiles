@@ -1,8 +1,8 @@
 use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
-use std::io::Write;
-use std::path::Path;
+use std::io::{Cursor, Write};
+use std::path::{Path, PathBuf};
 
 use async_trait::async_trait;
 
@@ -271,6 +271,13 @@ impl<'s> System for Mac<'s> {
     fn install_gimp(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("gimp")? {
             self.cask_install_application("gimp")?;
+        }
+        Ok(())
+    }
+
+    async fn install_godot(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("godot-mono")? {
+            self.cask_install_application("godot-mono")?;
         }
         Ok(())
     }

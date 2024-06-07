@@ -1,10 +1,11 @@
 use std::error::Error;
 use std::ffi::OsStr;
-use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
+use std::path::Path;
 use std::process::Command;
 use std::process::Stdio;
+use std::{fs, io};
 
 use async_trait::async_trait;
 #[cfg(test)]
@@ -113,6 +114,8 @@ pub(crate) trait System: Send + Sync {
     fn install_git(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_gimp(&self) -> Result<(), Box<dyn Error>>;
+
+    async fn install_godot(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>>;
 
@@ -341,7 +344,7 @@ pub(crate) trait System: Send + Sync {
 /// system::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will add to the file
 /// system::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will not do anything
 /// ```
-pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), std::io::Error> {
+pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), io::Error> {
     if !file_contains(file, content) {
         let mut actual_file = OpenOptions::new().create(true).append(true).open(file)?;
         writeln!(actual_file, "{}", content)?;
@@ -369,6 +372,78 @@ pub(crate) async fn download_file(url: &str, downloaded_file: &str) -> Result<()
     };
     let content = response.bytes().await?;
     file.write_all(&content)?;
+    Ok(())
+}
+
+/// Extracts all the contents of the given zip file into the desired directory.
+///
+/// TODO: Implement removing the top level directory in the zip file.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use system;
+///
+/// system::extract_zip("path/to/file.zip", "path/to/destination", false)?;
+/// ```
+pub(crate) fn extract_zip(
+    zip_file: &Path,
+    target_dir: &Path,
+    remove_top_level: bool,
+) -> Result<(), Box<dyn Error>> {
+    if !target_dir.exists() {
+        fs::create_dir_all(&target_dir)?;
+    }
+
+    let file = fs::File::open(zip_file)?;
+
+    let mut archive = zip::ZipArchive::new(file)?;
+
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let outpath = match file.enclosed_name() {
+            Some(path) => target_dir.join(path),
+            None => continue,
+        };
+
+        {
+            let comment = file.comment();
+            if !comment.is_empty() {
+                println!("File {i} comment: {comment}");
+            }
+        }
+
+        if file.is_dir() {
+            println!("File {} extracted to \"{}\"", i, outpath.display());
+            fs::create_dir_all(&outpath)?;
+        } else {
+            println!(
+                "File {} extracted to \"{}\" ({} bytes)",
+                i,
+                outpath.display(),
+                file.size()
+            );
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    fs::create_dir_all(p)?;
+                }
+            }
+            let mut outfile = fs::File::create(&outpath)?;
+            io::copy(&mut file, &mut outfile)?;
+        }
+
+        // Get and Set permissions
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            if let Some(mode) = file.unix_mode() {
+                fs::set_permissions(&outpath, fs::Permissions::from_mode(mode))?;
+            }
+        }
+    }
     Ok(())
 }
 
@@ -621,5 +696,40 @@ mod tests {
 
         let delete_result = fs::remove_file(path);
         delete_result.expect("Failed to delete file");
+    }
+
+    #[test]
+    #[serial]
+    fn test_extract_zip_produces_correct_directory() {
+        let zip_file = Path::new("tests/test-file.zip");
+        let target_dir = Path::new("tmp/zip-test-dir");
+
+        let extract_result = extract_zip(&zip_file, &target_dir, false);
+        extract_result.expect("Failed to extract the zip file");
+
+        assert!(Path::new("tmp/zip-test-dir/top-level").exists());
+        assert!(Path::new("tmp/zip-test-dir/top-level/sub-directory").exists());
+        assert!(Path::new("tmp/zip-test-dir/top-level/sub-directory/file.txt").exists());
+
+        let delete_result = fs::remove_dir_all(target_dir);
+        delete_result.expect("Failed to delete the target directory");
+    }
+
+    #[ignore = "Needs to be implemented"]
+    #[test]
+    #[serial]
+    fn test_extract_zip_produces_correct_directory_removing_top_level() {
+        let zip_file = Path::new("tests/test-file.zip");
+        let target_dir = Path::new("tmp/zip-test-dir");
+
+        let extract_result = extract_zip(&zip_file, &target_dir, true);
+        extract_result.expect("Failed to extract the zip file");
+
+        assert!(!Path::new("tmp/zip-test-dir/top-level").exists());
+        assert!(Path::new("tmp/zip-test-dir/sub-directory").exists());
+        assert!(Path::new("tmp/zip-test-dir/sub-directory/file.txt").exists());
+
+        let delete_result = fs::remove_dir_all(target_dir);
+        delete_result.expect("Failed to delete the target directory");
     }
 }

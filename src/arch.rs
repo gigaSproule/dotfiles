@@ -317,6 +317,13 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    async fn install_godot(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("godot-mono")? {
+            self.aur_install_application("godot-mono")?;
+        }
+        Ok(())
+    }
+
     fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
