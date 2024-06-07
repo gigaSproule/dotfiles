@@ -60,6 +60,8 @@ pub(crate) async fn install<'s>(
         system.install_gradle()?;
         println!("Installing Git");
         system.install_git()?;
+        println!("Installing Godot");
+        system.install_godot().await?;
         println!("Installing Groovy");
         system.install_groovy()?;
         println!("Installing Java");
@@ -340,6 +342,10 @@ mod tests {
             .expect_install_git()
             .times(1)
             .returning(|| Ok(()));
+        mock_system
+            .expect_install_godot()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_groovy()
             .times(1)
@@ -1141,6 +1147,10 @@ mod tests {
             .expect_install_git()
             .times(1)
             .returning(|| Ok(()));
+        mock_system
+            .expect_install_godot()
+            .times(1)
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_groovy()
             .times(1)
