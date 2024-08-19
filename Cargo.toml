@@ -9,7 +9,7 @@ repository = "https://github.com/gigaSproule/dotfiles"
 [dependencies]
 async-trait = "0.1.80"
 dirs = "5.0.1"
-reqwest = "0.12.5"
+reqwest = "0.12.6"
 tokio = { version = "1.37.0", features = [ "full" ] }
 open = "5.1.2"
 "zip" = "2.1.3"
