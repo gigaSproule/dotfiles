@@ -115,6 +115,13 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("bambustudio-bin")? {
+            self.aur_install_application("bambustudio-bin")?;
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         Ok(())

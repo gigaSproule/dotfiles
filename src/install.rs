@@ -173,6 +173,8 @@ pub(crate) async fn install<'s>(
     if config.modelling && !config.cli_only {
         println!("Installing Blender");
         system.install_blender()?;
+        println!("Installing Bambu Studio");
+        system.install_bambu_studio()?;
     }
 
     if config.personal {
@@ -731,6 +733,10 @@ mod tests {
         let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_blender()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_bambu_studio()
             .times(1)
             .returning(|| Ok(()));
 
