@@ -162,6 +162,11 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
+        todo!("Implement this");
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         Ok(())

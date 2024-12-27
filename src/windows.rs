@@ -183,6 +183,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("Bambulab.Bambustudio")? {
+            self.install_application("Bambulab.Bambustudio")?;
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }

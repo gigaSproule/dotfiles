@@ -75,6 +75,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_authy(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_blender(&self) -> Result<(), Box<dyn Error>>;

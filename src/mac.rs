@@ -131,6 +131,13 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("bambu-studio")? {
+            self.cask_install_application("bambu-studio")?;
+        }
+        Ok(())
+    }
+
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
         unix::setup_bash(self)?;
         let bashrc = format!("{}/.bashrc", self.get_home_dir());
