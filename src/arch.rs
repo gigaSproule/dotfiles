@@ -283,6 +283,13 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_exact_audio_copy(&self) -> Result<(), Box<dyn Error>> {
+        // Ensure Wine is installed
+        // Ensure dotnet20 and dotnet40 in Wine
+        // Install EAC into Wine
+        Ok(())
+    }
+
     async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("exercism-bin")? {
             self.install_application("exercism-bin")?;
@@ -699,6 +706,13 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("rustup")? {
             self.install_application("rustup")?;
             self.execute("rustup default stable", true)?;
+        }
+        Ok(())
+    }
+
+    fn install_rust_rover(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("rustrover")? {
+            self.aur_install_application("rustrover")?;
         }
         Ok(())
     }

@@ -323,6 +323,13 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_exact_audio_copy(&self) -> Result<(), Box<dyn Error>> {
+        // Ensure Wine is installed
+        // Ensure dotnet20 and dotnet40 in Wine
+        // Install EAC into Wine
+        Ok(())
+    }
+
     async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("exercism")? {
             system::download_file("https://github.com/exercism/cli/releases/download/v3.1.0/exercism-3.1.0-linux-x86_64.tar.gz", "exercism.tar.gz").await?;
@@ -764,6 +771,13 @@ impl<'s> System for Ubuntu<'s> {
             &format!("{}/.cargo/bin", self.get_home_dir()),
         )?;
         self.execute("rustup default stable", true)?;
+        Ok(())
+    }
+
+    fn install_rust_rover(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("rustrover")? {
+            self.snap_install_application("rustrover", true)?;
+        }
         Ok(())
     }
 

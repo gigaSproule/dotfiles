@@ -86,6 +86,8 @@ pub(crate) async fn install<'s>(
             // system.install_eclipse().await?;
             println!("Installing IntelliJ");
             system.install_intellij()?;
+            println!("Installing Rust Rover");
+            system.install_rust_rover()?;
             println!("Installing Slack");
             system.install_slack()?;
             println!("Installing VSCode");
@@ -215,6 +217,8 @@ pub(crate) async fn install<'s>(
     }
 
     if config.ripping && !config.cli_only {
+        println!("Installing Exact Audio Copy");
+        system.install_exact_audio_copy()?;
         println!("Installing Handbrake");
         system.install_handbrake()?;
         println!("Installing MakeMKV");
@@ -376,6 +380,10 @@ mod tests {
             .expect_install_rust()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
+        mock_system
+            .expect_install_rust_rover()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_slack()
             .times(1)
@@ -895,6 +903,10 @@ mod tests {
         };
         let mut mock_system = get_mock_system(&config);
         mock_system
+            .expect_install_exact_audio_copy()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
             .expect_install_handbrake()
             .times(1)
             .returning(|| Ok(()));
@@ -1182,6 +1194,7 @@ mod tests {
             .expect_install_rust()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
+        mock_system.expect_install_rust_rover().times(0);
         mock_system.expect_install_slack().times(0);
         mock_system.expect_install_vscode().times(0);
         mock_system.expect_install_xcode().times(0);
@@ -1275,6 +1288,7 @@ mod tests {
         mock_system.expect_install_whatsapp().times(0);
         mock_system.expect_install_audacity().times(0);
         mock_system.expect_install_obs_studio().times(0);
+        mock_system.expect_install_exact_audio_copy().times(0);
         mock_system.expect_install_handbrake().times(0);
         mock_system.expect_install_makemkv().times(0);
         mock_system.expect_install_mkvtoolnix().times(0);
