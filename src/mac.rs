@@ -249,6 +249,13 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_exact_audio_copy(&self) -> Result<(), Box<dyn Error>> {
+        // Ensure Wine is installed
+        // Ensure dotnet20 and dotnet40 in Wine
+        // Install EAC into Wine
+        Ok(())
+    }
+
     async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("exercism")? {
             self.install_application("exercism")?;
@@ -613,6 +620,13 @@ impl<'s> System for Mac<'s> {
         system::add_to_file(&format!("{}/.zshrc", self.get_home_dir()), content)?;
         system::add_to_file(&format!("{}/.bashrc", self.get_home_dir()), content)?;
 
+        Ok(())
+    }
+
+    fn install_rust_rover(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("rustrover")? {
+            self.cask_install_application("rustrover")?;
+        }
         Ok(())
     }
 

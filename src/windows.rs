@@ -246,7 +246,13 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
-        system::setup_codecs(self).await
+        system::setup_codecs(self).await?;
+        fs::create_dir_all("C:\\Program Data\\aacs")?;
+        fs::copy(
+            format!("{}/.config/aacs/keydb.cfg", self.get_home_dir()).as_str(),
+            "C:\\Program Data\\aacs",
+        )?;
+        Ok(())
     }
 
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
@@ -319,6 +325,13 @@ impl<'s> System for Windows<'s> {
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("EpicGames.EpicGamesLauncher")? {
             self.install_application("EpicGames.EpicGamesLauncher")?;
+        }
+        Ok(())
+    }
+
+    fn install_exact_audio_copy(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("AndreWiethoff.ExactAudioCopy")? {
+            self.install_application("AndreWiethoff.ExactAudioCopy")?;
         }
         Ok(())
     }
@@ -734,6 +747,13 @@ impl<'s> System for Windows<'s> {
         // Required for compilation
         if !self.is_installed("Microsoft.VisualStudio.2022.BuildTools")? {
             self.install_application("Microsoft.VisualStudio.2022.BuildTools --silent --override \"--wait --quiet --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended\"")?;
+        }
+        Ok(())
+    }
+
+    fn install_rust_rover(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed(" JetBrains.RustRover")? {
+            self.install_application(" JetBrains.RustRover")?;
         }
         Ok(())
     }

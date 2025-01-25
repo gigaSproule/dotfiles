@@ -107,6 +107,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_epic_games(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_exact_audio_copy(&self) -> Result<(), Box<dyn Error>>;
+
     async fn install_exercism(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_firefox(&self) -> Result<(), Box<dyn Error>>;
@@ -198,6 +200,8 @@ pub(crate) trait System: Send + Sync {
     fn install_python(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_rust(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_rust_rover(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_slack(&self) -> Result<(), Box<dyn Error>>;
 
@@ -387,8 +391,9 @@ pub(crate) async fn download_file(url: &str, downloaded_file: &str) -> Result<()
 ///
 /// ```no_run
 /// use system;
+/// use std::path::Path;
 ///
-/// system::extract_zip("path/to/file.zip", "path/to/destination", false)?;
+/// system::extract_zip(Path::new("path/to/file.zip"), Path::new("path/to/destination"), false)?;
 /// ```
 pub(crate) fn extract_zip(
     zip_file: &Path,
@@ -580,10 +585,15 @@ pub(crate) fn run_command(
 pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(format!("{}/.config/aacs", system.get_home_dir()).as_str())?;
     download_file(
-        "http://vlc-bluray.whoknowsmy.name/files/KEYDB.cfg",
-        format!("{}/.config/aacs/KEYDB.cfg", system.get_home_dir()).as_str(),
+        "http://fvonline-db.bplaced.net/fv_download.php?lang=eng",
+        "keydb_eng.zip",
     )
     .await?;
+    extract_zip(
+        Path::new("keydb_eng.zip"),
+        Path::new(format!("{}/.config/aacs/", system.get_home_dir()).as_str()),
+        false,
+    )?;
     Ok(())
 }
 
