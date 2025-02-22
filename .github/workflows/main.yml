@@ -154,7 +154,7 @@ jobs:
   release:
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
-    if: github.ref_type == 'tags'
+    if: github.ref_type == 'tag'
     needs:
       - build-linux
       - build-windows
