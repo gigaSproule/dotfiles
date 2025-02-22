@@ -175,7 +175,7 @@ jobs:
       - name: Create Release
         uses: ncipollo/release-action@v1.16.0
         with:
-          artifacts: dotfiles/dotfiles-linux,dotfiles/dotfiles-mac,dotfiles/dotfiles-windows.exe
+          artifacts: dotfiles-linux,dotfiles-mac,dotfiles-windows.exe
           generateReleaseNotes: true
           makeLatest: true
 
