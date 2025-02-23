@@ -93,6 +93,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+
     fn install_audacity(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("audacity")? {
             self.install_application("audacity")?;
@@ -991,8 +992,8 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
                 self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
             }
-            open::that("https://extensions.gnome.org/extension/3960/transparent-top-bar-adjustable-transparency/")?;
             self.enable_service("gdm")?;
+            open::that("https://extensions.gnome.org/extension/3960/transparent-top-bar-adjustable-transparency/")?;
         }
         if self.config.kde {
             if !self.is_installed("plasma")? {

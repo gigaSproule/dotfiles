@@ -351,6 +351,14 @@ pub(crate) trait System: Send + Sync {
 /// system::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will not do anything
 /// ```
 pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), io::Error> {
+    let path = Path::new(file);
+    let mut components = path.components();
+    components.next_back();
+    let directory = components.as_path();
+    let directory_exists = fs::exists(directory);
+    if directory_exists.is_err() || directory_exists.unwrap() {
+        fs::create_dir_all(directory)?
+    }
     if !file_contains(file, content) {
         let mut actual_file = OpenOptions::new().create(true).append(true).open(file)?;
         writeln!(actual_file, "{}", content)?;
