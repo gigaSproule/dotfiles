@@ -33,7 +33,7 @@ impl<'s> Arch<'s> {
     }
 
     fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
-        self.execute(&format!("systemctl enable service {}", service), true)
+        self.execute(&format!("systemctl enable {}", service), true)
     }
 
     fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
