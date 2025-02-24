@@ -351,6 +351,7 @@ pub(crate) trait System: Send + Sync {
 /// system::add_to_file(".zshrc", "export MY_VAR=\"my value\""); // Will not do anything
 /// ```
 pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), io::Error> {
+    println!("Checking if {} exists.", file);
     let path = Path::new(file);
     let mut components = path.components();
     components.next_back();
