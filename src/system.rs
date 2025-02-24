@@ -356,8 +356,9 @@ pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), io::Error> {
     let mut components = path.components();
     components.next_back();
     let directory = components.as_path();
-    let directory_exists = fs::exists(directory);
-    if directory_exists.is_err() || directory_exists? {
+    let fs_exists = fs::exists(directory);
+    let directory_exists = fs_exists.is_ok();
+    if !directory_exists {
         println!("Creating {}", directory.display());
         fs::create_dir_all(directory)?
     }
