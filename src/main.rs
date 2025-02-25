@@ -1,6 +1,5 @@
-use std::env;
-
 use crate::{config::parse, install::install};
+use std::env;
 
 #[cfg(all(not(test), target_os = "linux"))]
 use whoami;
@@ -91,7 +90,6 @@ fn print_help() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serial_test::serial;
 
     const CONFIG: config::Config = config::Config {
         browsers: false,

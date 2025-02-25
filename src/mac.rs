@@ -339,10 +339,6 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
     fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
@@ -369,6 +365,10 @@ impl<'s> System for Mac<'s> {
     }
 
     fn install_insync(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn install_intel_gpu_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 

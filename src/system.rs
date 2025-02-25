@@ -7,9 +7,17 @@ use std::process::Command;
 use std::process::Stdio;
 use std::{fs, io};
 
+use crate::system;
 use async_trait::async_trait;
 #[cfg(test)]
 use mockall::automock;
+use wgpu::{Adapter, Backends};
+
+#[cfg(any(target_os = "linux", target_os = "windows"))]
+static BACKENDS: Backends = Backends::VULKAN;
+
+#[cfg(target_os = "macos")]
+static BACKENDS: Backends = Backends::METAL;
 
 #[async_trait]
 #[cfg_attr(test, automock)]
@@ -135,9 +143,24 @@ pub(crate) trait System: Send + Sync {
 
     fn install_gramps(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>>;
+    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
+        let gpus = system::get_gpus();
+        if gpus.iter().any(|gpu| gpu.to_lowercase().contains("nvidia")) {
+            self.install_nvidia_tools()?;
+        }
+        Ok(())
+    }
 
-    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>>;
+    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
+        let gpus = system::get_gpus();
+        if gpus.iter().any(|gpu| gpu.to_lowercase().contains("nvidia")) {
+            self.install_nvidia_laptop_tools()?;
+        }
+        if gpus.iter().any(|gpu| gpu.to_lowercase().contains("intel")) {
+            self.install_intel_gpu_laptop_tools()?;
+        }
+        Ok(())
+    }
 
     fn install_groovy(&self) -> Result<(), Box<dyn Error>>;
 
@@ -146,6 +169,8 @@ pub(crate) trait System: Send + Sync {
     fn install_inkscape(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_insync(&self) -> Result<(), Box<dyn Error>>;
+
+    fn install_intel_gpu_laptop_tools(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_intellij(&self) -> Result<(), Box<dyn Error>>;
 
@@ -485,6 +510,30 @@ pub(crate) fn file_contains(file: &str, contains: &str) -> bool {
         return false;
     }
     buff.contains(contains)
+}
+
+/// Returns a list of GPUs.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use system;
+///
+/// system::get_gpus();
+/// ```
+pub(crate) fn get_gpus() -> Vec<String> {
+    let instance = wgpu::Instance::default();
+    let adapters: Vec<Adapter> = instance.enumerate_adapters(BACKENDS);
+
+    let mut names: Vec<String> = Vec::new();
+
+    for adapter in adapters {
+        names.push(adapter.get_info().name.to_string());
+    }
+
+    names
 }
 
 /// Returns the users home directory _without_ the trailing slash.

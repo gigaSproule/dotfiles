@@ -451,21 +451,6 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
-        // if nvidia
-        self.install_nvidia_tools()?;
-        // else
-        Ok(())
-    }
-
-    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("xf86-video-intel")? {
-            self.install_application("xf86-video-intel")?;
-        }
-        self.install_nvidia_laptop_tools()?;
-        Ok(())
-    }
-
     fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("groovy")? {
             self.install_application("groovy")?;
@@ -490,6 +475,13 @@ impl<'s> System for Ubuntu<'s> {
     fn install_insync(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("insync-nautilus")? {
             self.install_application("insync-nautilus")?;
+        }
+        Ok(())
+    }
+
+    fn install_intel_gpu_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("xf86-video-intel")? {
+            self.install_application("xf86-video-intel")?;
         }
         Ok(())
     }

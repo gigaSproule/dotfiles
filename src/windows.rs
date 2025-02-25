@@ -460,16 +460,6 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_nvidia_tools()?;
-        Ok(())
-    }
-
-    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
-        self.install_nvidia_laptop_tools()?;
-        Ok(())
-    }
-
     fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
         if self.config.wsl && !self.is_installed_wsl("groovy")? {
             self.install_wsl("groovy")?;
@@ -495,6 +485,10 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_insync(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn install_intel_gpu_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
