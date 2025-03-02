@@ -90,6 +90,7 @@ fn print_help() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const CONFIG: config::Config = config::Config {
         browsers: false,
