@@ -113,7 +113,7 @@ impl<'s> Windows<'s> {
 }
 
 #[async_trait]
-impl<'s> System for Windows<'s> {
+impl System for Windows<'_> {
     fn execute(&self, command: &str, _super_user: bool) -> Result<String, Box<dyn Error>> {
         let mut cmd = Command::new("cmd");
         let child = cmd.args(vec!["/c", command]);
@@ -227,7 +227,7 @@ impl<'s> System for Windows<'s> {
                     opened.set_data(Data::String(
                         U16CString::from_str(format!(
                             "{};C:\\Program Files (x86)\\GnuWin32\\bin",
-                            opened.data().to_string()
+                            opened.data()
                         ))
                         .unwrap(),
                     ))?;
@@ -856,7 +856,9 @@ impl<'s> System for Windows<'s> {
         }
         system::download_file(
             "https://vlc-bluray.whoknowsmy.name/files/win64/libaacs.dll",
-            format!("C:\\Program Files\\VideoLAN\\VLC\\libaacs.dll").as_str(),
+            "C:\\Program Files\\VideoLAN\\VLC\\libaacs.dll"
+                .to_string()
+                .as_str(),
         )
         .await?;
         Ok(())

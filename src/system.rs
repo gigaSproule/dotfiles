@@ -68,10 +68,7 @@ pub(crate) trait System: Send + Sync {
     /// let system: System = ...
     /// system.install_applications(vec!["application1", "application2"]);
     /// ```
-    fn install_applications<'a>(
-        &self,
-        applications: Vec<&'a str>,
-    ) -> Result<String, Box<dyn Error>>;
+    fn install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>>;
 
     fn install_affinity_suite(&self) -> Result<(), Box<dyn Error>>;
 
@@ -431,7 +428,7 @@ pub(crate) fn extract_zip(
     remove_top_level: bool,
 ) -> Result<(), Box<dyn Error>> {
     if !target_dir.exists() {
-        fs::create_dir_all(&target_dir)?;
+        fs::create_dir_all(target_dir)?;
     }
 
     let file = fs::File::open(zip_file)?;
