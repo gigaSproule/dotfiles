@@ -185,21 +185,29 @@ pub(crate) async fn install<'s>(
 
         if !config.cli_only {
             println!("Installing Authy");
-            system.install_authy()?;
+            // system.install_authy()?;
+            println!("Installing Calibre");
+            system.install_calibre()?;
+            println!("Installing Disk Usage Analyser");
+            system.install_disk_usage_analyser()?;
             println!("Installing Google Drive");
             system.install_google_drive()?;
+            println!("Installing Gramps");
+            system.install_gramps()?;
             println!("Installing Insync");
             system.install_insync()?;
             println!("Installing LaTeX");
             system.install_latex()?;
             println!("Installing Nextcloud Client");
-            system.install_nextcloud_client()?;
+            // system.install_nextcloud_client()?;
             println!("Installing Office");
             system.install_office()?;
             println!("Installing OneDrive");
             system.install_onedrive()?;
             println!("Installing Spotify");
-            system.install_spotify()?;
+            // system.install_spotify()?;
+            println!("Installing Strawberry Music Player");
+            system.install_strawberry_music_player()?;
             println!("Installing SweetHome3D");
             system.install_sweet_home_3d()?;
             println!("Installing themes");
@@ -782,10 +790,22 @@ mod tests {
         let mut mock_system = get_mock_system(&config);
         mock_system
             .expect_install_authy()
+            .times(0)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_calibre()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_disk_usage_analyser()
             .times(1)
             .returning(|| Ok(()));
         mock_system
             .expect_install_google_drive()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_gramps()
             .times(1)
             .returning(|| Ok(()));
         mock_system
@@ -802,7 +822,7 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_nextcloud_client()
-            .times(1)
+            .times(0)
             .returning(|| Ok(()));
         mock_system
             .expect_install_office()
@@ -814,6 +834,10 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_spotify()
+            .times(0)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_strawberry_music_player()
             .times(1)
             .returning(|| Ok(()));
         mock_system
@@ -1272,17 +1296,22 @@ mod tests {
             .returning(|| Ok(()));
         mock_system.expect_install_blender().times(0);
         mock_system.expect_install_authy().times(0);
+        mock_system.expect_install_calibre().times(0);
         mock_system.expect_install_google_drive().times(0);
         mock_system
             .expect_install_gpg()
             .times(1)
             .returning(|| Ok(()));
+        mock_system.expect_install_gramps().times(0);
         mock_system.expect_install_insync().times(0);
         mock_system.expect_install_latex().times(0);
         mock_system.expect_install_nextcloud_client().times(0);
         mock_system.expect_install_office().times(0);
         mock_system.expect_install_onedrive().times(0);
         mock_system.expect_install_spotify().times(0);
+        mock_system
+            .expect_install_strawberry_music_player()
+            .times(0);
         mock_system.expect_install_sweet_home_3d().times(0);
         mock_system.expect_install_themes().times(0);
         mock_system.expect_install_whatsapp().times(0);

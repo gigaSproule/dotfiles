@@ -156,24 +156,47 @@ impl<'s> System for Arch<'s> {
     }
 
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
-        // TOOD: Break this down
-        if !self.is_installed("bluez")? {
-            self.install_applications(vec![
-                "libdvdread",
-                "libdvdcss",
-                "libdvdnav",
-                "libbluray",
-                "libaacs",
-                "x264",
-                "x265",
-                "xvidcore",
-                "libmpeg2",
-                "svt-av1",
-                "libvpx",
-                "libtheora",
-                "gst-plugins-ugly",
-                "gst-libav",
-            ])?;
+        if !self.is_installed("libdvdread")? {
+            self.install_application("libdvdread")?;
+        }
+        if !self.is_installed("libdvdcss")? {
+            self.install_application("libdvdcss")?;
+        }
+        if !self.is_installed("libdvdnav")? {
+            self.install_application("libdvdnav")?;
+        }
+        if !self.is_installed("libbluray")? {
+            self.install_application("libbluray")?;
+        }
+        if !self.is_installed("libaacs")? {
+            self.install_application("libaacs")?;
+        }
+        if !self.is_installed("x264")? {
+            self.install_application("x264")?;
+        }
+        if !self.is_installed("x265")? {
+            self.install_application("x265")?;
+        }
+        if !self.is_installed("xvidcore")? {
+            self.install_application("xvidcore")?;
+        }
+        if !self.is_installed("libmpeg2")? {
+            self.install_application("libmpeg2")?;
+        }
+        if !self.is_installed("svt-av1")? {
+            self.install_application("svt-av1")?;
+        }
+        if !self.is_installed("libvpx")? {
+            self.install_application("libvpx")?;
+        }
+        if !self.is_installed("libtheora")? {
+            self.install_application("libtheora")?;
+        }
+        if !self.is_installed("gst-plugins-ugly")? {
+            self.install_application("gst-plugins-ugly")?;
+        }
+        if !self.is_installed("gst-libav")? {
+            self.install_application("gst-libav")?;
         }
         system::setup_codecs(self).await?;
         let user_id = unix::get_user_id();
@@ -933,9 +956,12 @@ impl<'s> System for Arch<'s> {
         let dictionary_config = &format!("{}/Code/Dictionaries", self.get_home_dir());
         let dictionaries_path = Path::new(dictionary_config);
         if !dictionaries_path.exists() {
-            fs::create_dir_all(dictionaries_path)?;
+            fs::create_dir_all(&dictionaries_path)?;
         }
         unix::symlink(self, "/usr/share/hunspell/*", dictionary_config)?;
+        let user_id = unix::get_user_id();
+        let group_id = unix::get_group_id();
+        unix::recursively_chown(&dictionary_config, &user_id, &group_id)?;
         Ok(())
     }
 
@@ -1075,8 +1101,8 @@ impl<'s> System for Arch<'s> {
     }
 
     async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("xbox-xcloud")? {
-            self.aur_install_application("xbox-xcloud")?;
+        if !self.is_installed("greenlight-bin")? {
+            self.aur_install_application("greenlight-bin")?;
         }
         Ok(())
     }
@@ -1108,6 +1134,11 @@ impl<'s> System for Arch<'s> {
 
     fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
         linux::setup_power_saving_tweaks()?;
+        Ok(())
+    }
+
+    fn setup_user_bin(&self) -> Result<(), Box<dyn Error>> {
+        unix::setup_user_bin(self)?;
         Ok(())
     }
 

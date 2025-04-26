@@ -328,11 +328,7 @@ pub(crate) trait System: Send + Sync {
     /// let system: System = ...
     /// system.setup_user_bin();
     /// ```
-    fn setup_user_bin(&self) -> Result<(), Box<dyn Error>> {
-        fs::create_dir_all(format!("{}/bin", self.get_home_dir()).as_str())?;
-        fs::create_dir_all(format!("{}/.local/bin", self.get_home_dir()).as_str())?;
-        Ok(())
-    }
+    fn setup_user_bin(&self) -> Result<(), Box<dyn Error>>;
 
     /// Updates all of the OS's software.
     ///
@@ -428,7 +424,7 @@ pub(crate) async fn download_file(url: &str, downloaded_file: &str) -> Result<()
 pub(crate) fn extract_zip(
     zip_file: &Path,
     target_dir: &Path,
-    remove_top_level: bool,
+    _remove_top_level: bool,
 ) -> Result<(), Box<dyn Error>> {
     if !target_dir.exists() {
         fs::create_dir_all(&target_dir)?;
@@ -648,6 +644,7 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Err
         Path::new(format!("{}/.config/aacs/", system.get_home_dir()).as_str()),
         false,
     )?;
+    fs::remove_file("keydb_eng.zip")?;
     Ok(())
 }
 

@@ -164,7 +164,6 @@ impl<'s> System for Ubuntu<'s> {
 
     fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
         todo!("Implement this");
-        Ok(())
     }
 
     fn install_bash(&self) -> Result<(), Box<dyn Error>> {
@@ -1078,7 +1077,7 @@ impl<'s> System for Ubuntu<'s> {
 
     async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
         system::download_file(
-            "https://github.com/unknownskl/xbox-xcloud-client/releases/download/v2.0.0-beta3/greenlight_2.0.0-beta3_amd64.deb",
+            "https://github.com/unknownskl/greenlight/releases/download/v2.3.2/greenlight_2.3.2_amd64.deb",
             "greenlight.deb",
         ).await?;
         self.execute("dpkg -i greenlight.deb", true)?;
@@ -1112,6 +1111,11 @@ impl<'s> System for Ubuntu<'s> {
 
     fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
         linux::setup_power_saving_tweaks()?;
+        Ok(())
+    }
+
+    fn setup_user_bin(&self) -> Result<(), Box<dyn Error>> {
+        unix::setup_user_bin(self)?;
         Ok(())
     }
 

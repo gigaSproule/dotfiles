@@ -933,6 +933,12 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn setup_user_bin(&self) -> Result<(), Box<dyn Error>> {
+        fs::create_dir_all(format!("{}/bin", self.get_home_dir()).as_str())?;
+        fs::create_dir_all(format!("{}/.local/bin", self.get_home_dir()).as_str())?;
+        Ok(())
+    }
+
     fn update_os(&self) -> Result<(), Box<dyn Error>> {
         self.execute("winget upgrade --all", true)?;
         Ok(())

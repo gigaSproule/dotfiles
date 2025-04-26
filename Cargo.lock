@@ -431,6 +431,7 @@ dependencies = [
  "dirs",
  "flate2",
  "is_elevated",
+ "libc",
  "mockall",
  "mockall_double",
  "nix",
