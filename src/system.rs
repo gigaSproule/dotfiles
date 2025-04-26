@@ -427,7 +427,7 @@ pub(crate) fn extract_zip(
     _remove_top_level: bool,
 ) -> Result<(), Box<dyn Error>> {
     if !target_dir.exists() {
-        fs::create_dir_all(&target_dir)?;
+        fs::create_dir_all(target_dir)?;
     }
 
     let file = fs::File::open(zip_file)?;
@@ -767,7 +767,7 @@ mod tests {
         let zip_file = Path::new("tests/test-file.zip");
         let target_dir = Path::new("tmp/zip-test-dir");
 
-        let extract_result = extract_zip(&zip_file, &target_dir, false);
+        let extract_result = extract_zip(zip_file, target_dir, false);
         extract_result.expect("Failed to extract the zip file");
 
         assert!(Path::new("tmp/zip-test-dir/top-level").exists());
@@ -785,7 +785,7 @@ mod tests {
         let zip_file = Path::new("tests/test-file.zip");
         let target_dir = Path::new("tmp/zip-test-dir");
 
-        let extract_result = extract_zip(&zip_file, &target_dir, true);
+        let extract_result = extract_zip(zip_file, target_dir, true);
         extract_result.expect("Failed to extract the zip file");
 
         assert!(!Path::new("tmp/zip-test-dir/top-level").exists());
