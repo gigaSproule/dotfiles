@@ -260,7 +260,11 @@ pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn Error>> {
     let home_dir = system.get_home_dir();
     let bashrc = format!("{}/.bashrc", home_dir);
     println!("Creating bashrc at {}", &bashrc);
-    let mut bashrc_file = OpenOptions::new().create(true).write(true).open(&bashrc)?;
+    let mut bashrc_file = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(&bashrc)?;
     writeln!(
         bashrc_file,
         "export PATH=$PATH:${{HOME}}/bin:${{HOME}}/.local/bin"
@@ -277,6 +281,7 @@ pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn Error>> {
         println!("Creating bashrc custom at {}", bashrc_custom);
         let mut bashrc_custom_file = OpenOptions::new()
             .create(true)
+            .truncate(false)
             .write(true)
             .open(bashrc_custom_path)?;
         writeln!(
@@ -418,6 +423,7 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
         println!("Creating tmux custom conf at {}", tmux_conf_custom);
         let mut tmux_conf_custom_file = OpenOptions::new()
             .create(true)
+            .truncate(false)
             .write(true)
             .open(tmux_conf_custom_path)?;
         writeln!(
@@ -579,6 +585,7 @@ pub(crate) async fn setup_zsh(
         println!("Creating zshrc custom at {}", zshrc_custom);
         let mut zshrc_custom_file = OpenOptions::new()
             .create(true)
+            .truncate(false)
             .write(true)
             .open(zshrc_custom_path)?;
         writeln!(
@@ -607,7 +614,6 @@ mod tests {
     use crate::unix;
     use serial_test::serial;
     use std::{env, fs};
-    use uuid;
     use uuid::Uuid;
 
     #[test]
@@ -692,16 +698,14 @@ mod tests {
     fn test_add_variable_to_file_file_does_not_exist() {
         let filename = Uuid::new_v4().to_string();
         let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
-        assert_eq!(
+        assert!(
             added_to_file.is_ok(),
-            true,
             "Unable to add variable to file: {}",
             added_to_file.unwrap_err()
         );
         let file_contents = fs::read_to_string(&filename);
-        assert_eq!(
+        assert!(
             file_contents.is_ok(),
-            true,
             "Unable to read file contents: {}",
             added_to_file.unwrap_err()
         );
@@ -713,23 +717,20 @@ mod tests {
     fn test_add_variable_to_file_file_exists() {
         let filename = Uuid::new_v4().to_string();
         let create_file = fs::write(&filename, "");
-        assert_eq!(
+        assert!(
             create_file.is_ok(),
-            true,
             "Unable to create file: {}",
             create_file.unwrap_err()
         );
         let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
-        assert_eq!(
+        assert!(
             added_to_file.is_ok(),
-            true,
             "Unable to add variable to file: {}",
             added_to_file.unwrap_err()
         );
         let file_contents = fs::read_to_string(&filename);
-        assert_eq!(
+        assert!(
             file_contents.is_ok(),
-            true,
             "Unable to read file contents: {}",
             added_to_file.unwrap_err()
         );
@@ -741,30 +742,20 @@ mod tests {
     fn test_add_variable_to_file_file_contains_variable() {
         let filename = Uuid::new_v4().to_string();
         let create_file = fs::write(&filename, "export MY_VAR=my value\n");
-        assert_eq!(
+        assert!(
             create_file.is_ok(),
-            true,
             "Unable to create file: {}",
             create_file.unwrap_err()
         );
         let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
-        assert_eq!(
-            create_file.is_ok(),
-            true,
-            "Unable to create file: {}",
-            create_file.unwrap_err()
-        );
-        let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
-        assert_eq!(
+        assert!(
             added_to_file.is_ok(),
-            true,
             "Unable to add variable to file: {}",
             added_to_file.unwrap_err()
         );
         let file_contents = fs::read_to_string(&filename);
-        assert_eq!(
+        assert!(
             file_contents.is_ok(),
-            true,
             "Unable to read file contents: {}",
             added_to_file.unwrap_err()
         );

@@ -222,6 +222,7 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::
     if !Path::new(&smb_credentials).exists() {
         let mut smb_credentials_file = OpenOptions::new()
             .create(true)
+            .truncate(false)
             .write(true)
             .open(smb_credentials)?;
 

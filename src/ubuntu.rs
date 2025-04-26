@@ -818,7 +818,7 @@ impl<'s> System for Ubuntu<'s> {
             .create(true)
             .write(true)
             .truncate(true)
-            .open(&sweet_home_3d_desktop)?;
+            .open(sweet_home_3d_desktop)?;
 
         let content = "[Desktop Entry]\n\
             Version=1.0\n\
@@ -886,7 +886,7 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     async fn install_themes(&self) -> Result<(), Box<dyn Error>> {
-        fs::create_dir_all(&format!("{}/.themes", self.get_home_dir()))?;
+        fs::create_dir_all(format!("{}/.themes", self.get_home_dir()))?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
         unix::recursively_chown(
