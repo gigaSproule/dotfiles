@@ -1,4 +1,6 @@
 use std::env;
+use std::error::Error;
+use std::ffi::CString;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
@@ -13,15 +15,50 @@ use crate::system;
 use crate::system::System;
 
 pub(crate) fn get_group_id() -> u32 {
-    env::var("SUDO_GID").unwrap().parse::<u32>().unwrap()
+    let env_group_id = env::var("SUDO_GID");
+    if env_group_id.is_err() {
+        panic!("Unable to get group ID");
+    }
+    let group_id = env_group_id.unwrap();
+    if group_id.is_empty() {
+        panic!("Unable to get group ID");
+    }
+    group_id.parse::<u32>().unwrap()
+}
+
+pub(crate) fn get_group_id_by_name(group_name: &str) -> u32 {
+    let group_name_c = CString::new(group_name).unwrap();
+    unsafe {
+        let group = libc::getgrnam(group_name_c.as_ptr());
+        if group.is_null() {
+            panic!("Group not found");
+        }
+        (*group).gr_gid
+    }
 }
 
 pub(crate) fn get_user_id() -> u32 {
-    env::var("SUDO_UID").unwrap().parse::<u32>().unwrap()
+    let env_user_id = env::var("SUDO_UID");
+    if env_user_id.is_err() {
+        panic!("Unable to get user ID");
+    }
+    let user_id = env_user_id.unwrap();
+    if user_id.is_empty() {
+        panic!("Unable to get user ID");
+    }
+    user_id.parse::<u32>().unwrap()
 }
 
 pub(crate) fn get_username() -> String {
-    env::var("SUDO_USER").unwrap()
+    let env_username = env::var("SUDO_USER");
+    if env_username.is_err() {
+        panic!("Unable to get username");
+    }
+    let username = env_username.unwrap();
+    if username.is_empty() {
+        panic!("Unable to get username");
+    }
+    username
 }
 
 /// Adds the path to the PATH environment variable in the file, only if it doesn't already exist within the file.
@@ -41,7 +78,7 @@ pub(crate) fn add_to_path(
     system: &impl System,
     file: &str,
     path: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn Error>> {
     if system::file_contains(file, "export PATH") {
         let original_file = File::open(file)?;
         let original_lines = BufReader::new(original_file).lines();
@@ -68,7 +105,7 @@ pub(crate) fn add_to_path(
                 .open(format!("{}/{}", system.get_home_dir(), file))?;
         writeln!(append_file, "export PATH=$PATH:{}\n", path)?;
     }
-    std::env::set_var("PATH", format!("{}:{}", std::env::var("PATH")?, path));
+    env::set_var("PATH", format!("{}:{}", env::var("PATH")?, path));
     Ok(())
 }
 
@@ -88,7 +125,7 @@ pub(crate) fn add_variable_to_file(
     value: &str,
 ) -> Result<(), std::io::Error> {
     if !system::file_contains(file, key) {
-        let mut actual_file = OpenOptions::new().append(true).open(file)?;
+        let mut actual_file = OpenOptions::new().create(true).append(true).open(file)?;
         writeln!(actual_file, "export {}={}", key, value)?;
     }
     Ok(())
@@ -99,7 +136,7 @@ pub(crate) fn execute(
     super_user: bool,
     print_output: bool,
     dry_run: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String, Box<dyn Error>> {
     execute_path(
         command,
         super_user,
@@ -119,7 +156,7 @@ pub(crate) fn execute_path(
     path: &str,
     print_output: bool,
     dry_run: bool,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String, Box<dyn Error>> {
     let mut actual_command = if !super_user {
         let split = command.split_whitespace().collect::<Vec<&str>>();
         let sudo_user = get_username();
@@ -203,7 +240,7 @@ pub(crate) fn set_java_home(
     let path = format!("{}/{}", system.get_home_dir(), file);
     println!("Appending JAVA_HOME as {} to {}", jdk_path, &path);
     add_variable_to_file(&path, "JAVA_HOME", jdk_path)?;
-    std::env::set_var("JAVA_HOME", jdk_path);
+    env::set_var("JAVA_HOME", jdk_path);
     Ok(())
 }
 
@@ -219,7 +256,7 @@ pub(crate) fn set_java_home(
 ///
 /// unix::setup_bash(&system); // Will add to the file
 /// ```
-pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn Error>> {
     let home_dir = system.get_home_dir();
     let bashrc = format!("{}/.bashrc", home_dir);
     println!("Creating bashrc at {}", &bashrc);
@@ -397,6 +434,32 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     Ok(())
 }
 
+/// Creates a bin directory under the users home and home/.local to be used to put bin files.
+///
+/// # Example
+///
+/// ```no_run
+/// use system;
+/// use unix;
+///
+/// let system = ...
+///
+/// unix::setup_user_bin(&system); // Will create the bin directories
+/// ```
+pub(crate) fn setup_user_bin(system: &impl System) -> Result<(), Box<dyn Error>> {
+    let user_id = get_user_id();
+    let group_id = get_group_id();
+
+    let home_bin = format!("{}/bin", system.get_home_dir());
+    fs::create_dir_all(&home_bin)?;
+    recursively_chown(&home_bin, &user_id, &group_id)?;
+
+    let home_local_bin = format!("{}/.local/bin", system.get_home_dir());
+    fs::create_dir_all(&home_local_bin)?;
+    recursively_chown(&home_local_bin, &user_id, &group_id)?;
+    Ok(())
+}
+
 /// Creates the .zshrc file, or overwrites it if it already exists, and creates a .zshrc.custom file if it does not exist, to put in custom setup.
 ///
 /// # Example
@@ -412,7 +475,7 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
 pub(crate) async fn setup_zsh(
     system: &impl System,
     zsh_bin: Option<&str>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn Error>> {
     let zsh = zsh_bin.unwrap_or("/usr/bin/zsh");
     system::download_file(
         "https://raw.githubusercontent.com/loket/oh-my-zsh/feature/batch-mode/tools/install.sh",
@@ -535,6 +598,177 @@ pub(crate) fn symlink(
     system: &impl System,
     source: &str,
     destination: &str,
-) -> Result<String, Box<dyn std::error::Error>> {
+) -> Result<String, Box<dyn Error>> {
     system.execute(&format!("ln -sfn {} {}", source, destination), true)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::unix;
+    use serial_test::serial;
+    use std::{env, fs};
+    use uuid;
+    use uuid::Uuid;
+
+    #[test]
+    #[serial]
+    #[should_panic(expected = "Unable to get group ID")]
+    fn test_get_group_id_with_no_sudo_gid() {
+        env::remove_var("SUDO_GID");
+        unix::get_group_id();
+    }
+
+    #[test]
+    #[serial]
+    #[should_panic(expected = "Unable to get group ID")]
+    fn test_get_group_id_with_empty_sudo_gid() {
+        env::set_var("SUDO_GID", "");
+        unix::get_group_id();
+    }
+
+    #[test]
+    #[serial]
+    fn test_get_group_id() {
+        env::set_var("SUDO_GID", "1000");
+        let group_id = unix::get_group_id();
+        assert_eq!(group_id, 1000);
+    }
+
+    // #[test]
+    // fn test_get_group_id_by_name() {
+    //     let group_id = unix::get_group_id_by_name("bin");
+    //     assert_eq!(group_id, 1);
+    // }
+
+    #[test]
+    #[serial]
+    #[should_panic(expected = "Unable to get user ID")]
+    fn test_get_user_id_with_no_sudo_uid() {
+        env::remove_var("SUDO_UID");
+        unix::get_user_id();
+    }
+
+    #[test]
+    #[serial]
+    #[should_panic(expected = "Unable to get user ID")]
+    fn test_get_user_id_with_empty_sudo_uid() {
+        env::set_var("SUDO_UID", "");
+        unix::get_user_id();
+    }
+
+    #[test]
+    #[serial]
+    fn test_get_user_id() {
+        env::set_var("SUDO_UID", "1000");
+        let user_id = unix::get_user_id();
+        assert_eq!(user_id, 1000);
+    }
+
+    #[test]
+    #[serial]
+    #[should_panic(expected = "Unable to get username")]
+    fn test_get_username_with_no_sudo_user() {
+        env::remove_var("SUDO_USER");
+        unix::get_username();
+    }
+
+    #[test]
+    #[serial]
+    #[should_panic(expected = "Unable to get username")]
+    fn test_get_username_with_empty_sudo_user() {
+        env::set_var("SUDO_USER", "");
+        unix::get_username();
+    }
+
+    #[test]
+    #[serial]
+    fn test_get_username() {
+        env::set_var("SUDO_USER", "myuser");
+        let username = unix::get_username();
+        assert_eq!(username, "myuser");
+    }
+
+    #[test]
+    fn test_add_variable_to_file_file_does_not_exist() {
+        let filename = Uuid::new_v4().to_string();
+        let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
+        assert_eq!(
+            added_to_file.is_ok(),
+            true,
+            "Unable to add variable to file: {}",
+            added_to_file.unwrap_err()
+        );
+        let file_contents = fs::read_to_string(&filename);
+        assert_eq!(
+            file_contents.is_ok(),
+            true,
+            "Unable to read file contents: {}",
+            added_to_file.unwrap_err()
+        );
+        assert_eq!(file_contents.unwrap(), "export MY_VAR=my value\n");
+        fs::remove_file(&filename).unwrap();
+    }
+
+    #[test]
+    fn test_add_variable_to_file_file_exists() {
+        let filename = Uuid::new_v4().to_string();
+        let create_file = fs::write(&filename, "");
+        assert_eq!(
+            create_file.is_ok(),
+            true,
+            "Unable to create file: {}",
+            create_file.unwrap_err()
+        );
+        let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
+        assert_eq!(
+            added_to_file.is_ok(),
+            true,
+            "Unable to add variable to file: {}",
+            added_to_file.unwrap_err()
+        );
+        let file_contents = fs::read_to_string(&filename);
+        assert_eq!(
+            file_contents.is_ok(),
+            true,
+            "Unable to read file contents: {}",
+            added_to_file.unwrap_err()
+        );
+        assert_eq!(file_contents.unwrap(), "export MY_VAR=my value\n");
+        fs::remove_file(&filename).unwrap();
+    }
+
+    #[test]
+    fn test_add_variable_to_file_file_contains_variable() {
+        let filename = Uuid::new_v4().to_string();
+        let create_file = fs::write(&filename, "export MY_VAR=my value\n");
+        assert_eq!(
+            create_file.is_ok(),
+            true,
+            "Unable to create file: {}",
+            create_file.unwrap_err()
+        );
+        let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
+        assert_eq!(
+            create_file.is_ok(),
+            true,
+            "Unable to create file: {}",
+            create_file.unwrap_err()
+        );
+        let added_to_file = unix::add_variable_to_file(&filename, "MY_VAR", "my value");
+        assert_eq!(
+            added_to_file.is_ok(),
+            true,
+            "Unable to add variable to file: {}",
+            added_to_file.unwrap_err()
+        );
+        let file_contents = fs::read_to_string(&filename);
+        assert_eq!(
+            file_contents.is_ok(),
+            true,
+            "Unable to read file contents: {}",
+            added_to_file.unwrap_err()
+        );
+        assert_eq!(file_contents.unwrap(), "export MY_VAR=my value\n");
+        fs::remove_file(&filename).unwrap();
+    }
 }

@@ -1,8 +1,8 @@
 use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
-use std::io::{Cursor, Write};
-use std::path::{Path, PathBuf};
+use std::io::Write;
+use std::path::Path;
 
 use async_trait::async_trait;
 
@@ -822,6 +822,11 @@ impl<'s> System for Mac<'s> {
     }
 
     fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn setup_user_bin(&self) -> Result<(), Box<dyn Error>> {
+        unix::setup_user_bin(self)?;
         Ok(())
     }
 

@@ -1,3 +1,4 @@
+use std::ffi::CStr;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -9,7 +10,6 @@ use tar::Archive;
 use crate::system::System;
 use crate::system::{self, file_contains};
 use crate::unix;
-use crate::unix::get_username;
 
 /// Returns the vendor ID of the CPU for the machine.
 ///
@@ -55,14 +55,17 @@ pub(crate) fn get_cpu_name() -> Option<String> {
 /// let home_dir = linux::get_home_dir();
 /// ```
 pub(crate) fn get_home_dir() -> String {
-    let passwd_entry = unix::execute(
-        &format!("getent passwd {}", get_username()),
-        true,
-        false,
-        false,
-    )
-    .unwrap();
-    passwd_entry.split(':').nth(5).unwrap().to_string()
+    unsafe {
+        let passwd = libc::getpwuid(unix::get_user_id());
+        if passwd.is_null() {
+            panic!("User not found not found");
+        }
+        let pwd_dir = (*passwd).pw_dir;
+        if pwd_dir.is_null() {
+            panic!("User doesn't have a home directory");
+        }
+        CStr::from_ptr(pwd_dir).to_str().unwrap().to_string()
+    }
 }
 
 pub(crate) fn gnome_development_shortcuts(
@@ -203,13 +206,17 @@ done
 
 pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
     system.execute(
-        format!("usermod -a -G docker {}", get_username()).as_str(),
+        format!("usermod -a -G docker {}", unix::get_username()).as_str(),
         true,
     )?;
     Ok(())
 }
 
-pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
+pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Creating NAS group");
+    system.execute("groupadd nas", true)?;
+    system.execute(&format!("usermod -a -G nas {}", unix::get_username()), true)?;
+
     println!("Setting up NAS scripts");
     let smb_credentials = format!("{}/.smbcredentials", system.get_home_dir());
     if !Path::new(&smb_credentials).exists() {
@@ -224,17 +231,32 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
     }
 
     let user_id = unix::get_user_id();
-    let group_id = unix::get_group_id();
+    let group_id = unix::get_group_id_by_name("name");
 
     let benjamin_mount = "/mnt/benjamin";
     if !Path::new(benjamin_mount).exists() {
         fs::create_dir_all(benjamin_mount)?;
         unix::recursively_chown(benjamin_mount, &user_id, &group_id)?;
     }
+    let music_mount = "/mnt/music";
+    if !Path::new(music_mount).exists() {
+        fs::create_dir_all(music_mount)?;
+        unix::recursively_chown(music_mount, &user_id, &group_id)?;
+    }
+    let photo_mount = "/mnt/photo";
+    if !Path::new(photo_mount).exists() {
+        fs::create_dir_all(photo_mount)?;
+        unix::recursively_chown(photo_mount, &user_id, &group_id)?;
+    }
     let shared_mount = "/mnt/shared";
     if !Path::new(shared_mount).exists() {
         fs::create_dir_all(shared_mount)?;
         unix::recursively_chown(shared_mount, &user_id, &group_id)?;
+    }
+    let videos_mount = "/mnt/videos";
+    if !Path::new(videos_mount).exists() {
+        fs::create_dir_all(videos_mount)?;
+        unix::recursively_chown(videos_mount, &user_id, &group_id)?;
     }
 
     let mount_nas = format!("{}/bin/mount-nas", system.get_home_dir());
@@ -245,8 +267,11 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
         .open(&mount_nas)?;
 
     writeln!(mount_nas_file, "#!/usr/bin/env bash")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/benjamin {}", benjamin_mount)?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=1.0 //192.168.1.200/shared {}", shared_mount)?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/homes/benjamin {}", benjamin_mount)?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/music {}", music_mount)?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/photo {}", photo_mount)?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/shared {}", shared_mount)?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/video {}", videos_mount)?;
     writeln!(mount_nas_file)?;
     unix::recursively_chmod(&mount_nas, &0o755, &0o755)?;
 
@@ -259,7 +284,10 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), std::io::Error> {
 
     writeln!(unmount_nas_file, "#!/usr/bin/env bash")?;
     writeln!(unmount_nas_file, "sudo umount {}", benjamin_mount)?;
+    writeln!(unmount_nas_file, "sudo umount {}", music_mount)?;
+    writeln!(unmount_nas_file, "sudo umount {}", photo_mount)?;
     writeln!(unmount_nas_file, "sudo umount {}", shared_mount)?;
+    writeln!(unmount_nas_file, "sudo umount {}", videos_mount)?;
     writeln!(unmount_nas_file)?;
     unix::recursively_chmod(&unmount_nas, &0o755, &0o755)?;
 
