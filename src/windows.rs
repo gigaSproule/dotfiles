@@ -386,7 +386,10 @@ impl<'s> System for Windows<'s> {
                 self.execute_powershell("Import-Module -Name posh-git", true)?;
                 // TODO: Append if needed instead of blindly re-creating file
                 fs::write(
-                    "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1",
+                    format!(
+                        "{}\\Documents\\PowerShell\\profile.ps1",
+                        system::get_home_dir()
+                    ),
                     "Import-Module posh-git\r\n".as_bytes(),
                 )?;
             }
