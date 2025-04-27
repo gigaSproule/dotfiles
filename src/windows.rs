@@ -374,6 +374,10 @@ impl<'s> System for Windows<'s> {
             }
             system::setup_git_config(self)?;
             self.execute("git config --system core.longpaths true", true)?;
+            self.execute(
+                "git config --global gpg.program \"C:\\Program Files (x86)\\GnuPG\\bin\\gpg.exe\"",
+                true,
+            )?;
             if !self.is_installed("posh-git")? {
                 self.execute_powershell(
                     "Install-Module -Name posh-git -Force -Confirm:$False",
@@ -429,8 +433,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_google_drive(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("Google.Drive")? {
-            self.install_application("Google.Drive")?;
+        if !self.is_installed("Google.GoogleDrive")? {
+            self.install_application("Google.GoogleDrive")?;
         }
         Ok(())
     }
@@ -500,11 +504,11 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        if self.config.wsl && !self.is_installed_wsl("openjdk-19-jdk")? {
-            self.install_wsl("openjdk-19-jdk")?;
+        if self.config.wsl && !self.is_installed_wsl("openjdk-24-jdk")? {
+            self.install_wsl("openjdk-24-jdk")?;
         }
-        if !self.config.wsl && !self.is_installed("EclipseAdoptium.Temurin.19.JDK")? {
-            self.install_application("EclipseAdoptium.Temurin.19.JDK")?;
+        if !self.config.wsl && !self.is_installed("EclipseAdoptium.Temurin.24.JDK")? {
+            self.install_application("EclipseAdoptium.Temurin.24.JDK")?;
         }
         Ok(())
     }
@@ -532,8 +536,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("ChristianSchenk.MiKTeX")? {
-            self.install_application("ChristianSchenk.MiKTeX")?;
+        if !self.is_installed("MiKTeX.MiKTeX")? {
+            self.install_application("MiKTeX.MiKTeX")?;
         }
         if !self.is_installed("TeXstudio.TeXstudio")? {
             self.install_application("TeXstudio.TeXstudio")?;
@@ -672,15 +676,15 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("NordVPN.NordVPN")? {
-            self.install_application("NordVPN.NordVPN")?;
+        if !self.is_installed("NordSecurity.NordVPN")? {
+            self.install_application("NordSecurity.NordVPN")?;
         }
         Ok(())
     }
 
     fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("Nvidia.GeForceExperience")? {
-            self.install_application("Nvidia.GeForceExperience")?;
+        if !self.is_installed("NvApp")? {
+            open::that("https://www.nvidia.com/en-gb/software/nvidia-app/")?;
         }
         Ok(())
     }
@@ -715,8 +719,8 @@ impl<'s> System for Windows<'s> {
         if self.config.wsl && !self.is_installed_wsl("python3")? {
             self.install_wsl("python3")?;
         }
-        if !self.config.wsl && !self.is_installed("Python.Python.3.11")? {
-            self.install_application("Python.Python.3.11")?;
+        if !self.config.wsl && !self.is_installed("Python.Python.3.13")? {
+            self.install_application("Python.Python.3.13")?;
         }
         Ok(())
     }

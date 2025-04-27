@@ -677,6 +677,7 @@ pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn Error
         ),
         false,
     )?;
+    open::that("https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key")?;
     Ok(())
 }
 
