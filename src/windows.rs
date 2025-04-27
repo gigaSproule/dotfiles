@@ -136,18 +136,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_affinity_suite(&self) -> Result<(), Box<dyn Error>> {
-        // Affinity Photo 2
-        if !self.is_installed("9P8DVF1XW02V")? {
-            self.install_application("9P8DVF1XW02V")?;
-        }
-        // Affinity Publisher 2
-        if !self.is_installed("9NTV2DZ11KD9")? {
-            self.install_application("9NTV2DZ11KD9")?;
-        }
-        // Affinity Designer 2
-        if !self.is_installed("9N2D0P16C80H")? {
-            self.install_application("9N2D0P16C80H")?;
-        }
+        // The affinity available in winget is msstore only, so is only installed per user
+        open::that("https://store.serif.com/en-gb/update/universal-licence/")?;
         Ok(())
     }
 
@@ -753,8 +743,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_rust_rover(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed(" JetBrains.RustRover")? {
-            self.install_application(" JetBrains.RustRover")?;
+        if !self.is_installed("JetBrains.RustRover")? {
+            self.install_application("JetBrains.RustRover")?;
         }
         Ok(())
     }
