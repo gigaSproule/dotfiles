@@ -305,9 +305,8 @@ impl<'s> System for Windows<'s> {
     }
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>> {
-        // TODO: Should this just be removed?
-        if !self.is_installed("eclipse")? {
-            self.install_application("eclipse")?;
+        if !self.is_installed("EclipseFoundation.EclipseIDEforJavaDevelopers")? {
+            self.install_application("EclipseFoundation.EclipseIDEforJavaDevelopers")?;
         }
         Ok(())
     }
@@ -778,8 +777,8 @@ impl<'s> System for Windows<'s> {
     }
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("eTeks.SweetHome3D")? {
-            self.install_application("eTeks.SweetHome3D")?;
+        if !self.is_installed("9NBLGGH2SMTQ")? {
+            self.install_application("9NBLGGH2SMTQ")?;
         }
         Ok(())
     }
