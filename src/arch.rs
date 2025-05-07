@@ -519,6 +519,13 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_openscad(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("openscad-git")? {
+            self.aur_install_application("openscad-git")?;
+        }
+        Ok(())
+    }
+
     fn install_lutris(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("lutris")? {
             self.install_application("lutris")?;

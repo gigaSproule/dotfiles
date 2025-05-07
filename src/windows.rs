@@ -544,6 +544,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_openscad(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("OpenSCAD.OpenSCAD.Nightly")? {
+            self.install_application("OpenSCAD.OpenSCAD.Nightly")?;
+        }
+        Ok(())
+    }
+
     fn install_lutris(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }

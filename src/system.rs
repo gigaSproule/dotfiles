@@ -186,6 +186,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_office(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_openscad(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_lutris(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_maven(&self) -> Result<(), Box<dyn Error>>;

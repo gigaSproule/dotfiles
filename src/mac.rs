@@ -432,6 +432,13 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_openscad(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("openscad@snapshot")? {
+            self.cask_install_application("openscad@snapshot");
+        }
+        Ok(())
+    }
+
     fn install_lutris(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
