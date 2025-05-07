@@ -493,18 +493,18 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("openjdk-16-jdk")? {
-            self.install_applications(vec!["openjdk-16-jdk"])?;
+        if !self.is_installed("openjdk-24-jdk")? {
+            self.install_applications(vec!["openjdk-24-jdk"])?;
         }
         unix::set_java_home(
             self,
             ".zshrc",
-            &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
+            &format!("/usr/lib/jvm/java-24-openjdk-{}", std::env::consts::ARCH),
         )?;
         unix::set_java_home(
             self,
             ".bashrc",
-            &format!("/usr/lib/jvm/java-16-openjdk-{}", std::env::consts::ARCH),
+            &format!("/usr/lib/jvm/java-24-openjdk-{}", std::env::consts::ARCH),
         )?;
         Ok(())
     }
@@ -559,6 +559,18 @@ impl<'s> System for Ubuntu<'s> {
             self.install_application("hyphen-en-gb")?;
         }
         self.install_hunspell()?;
+        Ok(())
+    }
+
+    fn install_openscad(&self) -> Result<(), Box<dyn Error>> {
+        // todo!("Need to prove this woks");
+        if !self.is_installed("openscad-git")? {
+            self.add_apt_key("https://files.openscad.org/OBS-Repository-Key.pub")?;
+            self.add_apt_repo(
+                "openscad-nightly",
+                vec!["deb [arch=amd64] https://download.opensuse.org/repositories/home:/t-paul/xUbuntu_24.10/ stable main"],
+            )?;
+        }
         Ok(())
     }
 

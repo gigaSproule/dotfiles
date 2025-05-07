@@ -177,6 +177,8 @@ pub(crate) async fn install<'s>(
         system.install_blender()?;
         println!("Installing Bambu Studio");
         system.install_bambu_studio()?;
+        println!("Installing OpenSCAD");
+        system.install_openscad()?;
     }
 
     if config.personal {
@@ -755,6 +757,10 @@ mod tests {
             .expect_install_bambu_studio()
             .times(1)
             .returning(|| Ok(()));
+        mock_system
+            .expect_install_openscad()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
@@ -1294,8 +1300,9 @@ mod tests {
             .expect_setup_power_saving_tweaks()
             .times(1)
             .returning(|| Ok(()));
-        mock_system.expect_install_blender().times(0);
         mock_system.expect_install_authy().times(0);
+        mock_system.expect_install_blender().times(0);
+        mock_system.expect_install_bambu_studio().times(0);
         mock_system.expect_install_calibre().times(0);
         mock_system.expect_install_google_drive().times(0);
         mock_system
@@ -1308,6 +1315,7 @@ mod tests {
         mock_system.expect_install_nextcloud_client().times(0);
         mock_system.expect_install_office().times(0);
         mock_system.expect_install_onedrive().times(0);
+        mock_system.expect_install_openscad().times(0);
         mock_system.expect_install_spotify().times(0);
         mock_system
             .expect_install_strawberry_music_player()
