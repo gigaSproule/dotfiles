@@ -315,7 +315,7 @@ impl<'s> System for Arch<'s> {
 
     async fn install_exercism(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("exercism-bin")? {
-            self.install_application("exercism-bin")?;
+            self.aur_install_application("exercism-bin")?;
         }
         Ok(())
     }
