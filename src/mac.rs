@@ -614,6 +614,10 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_quicklook(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }

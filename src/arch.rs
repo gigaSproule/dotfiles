@@ -690,6 +690,14 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_quicklook(&self) -> Result<(), Box<dyn Error>> {
+        // Gnome already has sushi
+        if self.config.kde {
+            println!("Install Kiview?");
+        }
+        Ok(())
+    }
+
     fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("retroarch")? {
             self.install_application("retroarch")?;

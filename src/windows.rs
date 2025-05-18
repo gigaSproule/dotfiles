@@ -724,6 +724,14 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_quicklook(&self) -> Result<(), Box<dyn Error>> {
+        if self.is_installed("QL-Win.QuickLook")? {
+            // Sometimes Windows Defender will pick up this as a trojan https://github.com/QL-Win/QuickLook/issues/561
+            self.install_application("QL-Win.QuickLook")?;
+        }
+        Ok(())
+    }
+
     fn install_retroarch(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("Libretro.RetroArch")? {
             self.install_application("Libretro.RetroArch")?;
