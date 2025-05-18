@@ -220,6 +220,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_origin(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_quicklook(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_retroarch(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_powertop(&self) -> Result<(), Box<dyn Error>>;

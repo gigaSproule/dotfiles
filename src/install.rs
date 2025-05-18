@@ -40,6 +40,8 @@ pub(crate) async fn install<'s>(
         system.install_cryptomator().await?;
         println!("Installing KeepassXC");
         system.install_keepassxc()?;
+        println!("Installing QuickLook");
+        system.install_quicklook()?;
     }
 
     if config.browsers && !config.cli_only {
@@ -1156,6 +1158,7 @@ mod tests {
             .times(1)
             .returning(|| Ok(()));
         mock_system.expect_install_keepassxc().times(0);
+        mock_system.expect_install_quicklook().times(0);
         mock_system
             .expect_install_networking_tools()
             .times(1)
@@ -1376,6 +1379,10 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_keepassxc()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_quicklook()
             .times(1)
             .returning(|| Ok(()));
         mock_system
