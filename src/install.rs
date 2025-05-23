@@ -82,9 +82,9 @@ pub(crate) async fn install<'s>(
         system.set_development_environment_settings()?;
 
         if !config.cli_only {
-            println!("Installing Android Studio");
+            // println!("Installing Android Studio");
             // system.install_android_studio();
-            println!("Installing Eclipse");
+            // println!("Installing Eclipse");
             // system.install_eclipse().await?;
             println!("Installing IntelliJ");
             system.install_intellij()?;
@@ -108,7 +108,7 @@ pub(crate) async fn install<'s>(
         system.install_kubectl().await?;
         println!("Installing Helm");
         system.install_helm().await?;
-        println!("Installing Minikube");
+        // println!("Installing Minikube");
         // system.install_minikube();
     }
 
@@ -188,7 +188,7 @@ pub(crate) async fn install<'s>(
         system.install_gpg()?;
 
         if !config.cli_only {
-            println!("Installing Authy");
+            // println!("Installing Authy");
             // system.install_authy()?;
             println!("Installing Calibre");
             system.install_calibre()?;
@@ -202,13 +202,13 @@ pub(crate) async fn install<'s>(
             system.install_insync()?;
             println!("Installing LaTeX");
             system.install_latex()?;
-            println!("Installing Nextcloud Client");
+            // println!("Installing Nextcloud Client");
             // system.install_nextcloud_client()?;
             println!("Installing Office");
             system.install_office()?;
             println!("Installing OneDrive");
             system.install_onedrive()?;
-            println!("Installing Spotify");
+            // println!("Installing Spotify");
             // system.install_spotify()?;
             println!("Installing Strawberry Music Player");
             system.install_strawberry_music_player()?;
