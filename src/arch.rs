@@ -198,6 +198,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("gst-libav")? {
             self.install_application("gst-libav")?;
         }
+        if !self.is_installed("flac")? {
+            self.install_application("flac")?;
+        }
         system::setup_codecs(self).await?;
         let user_id = unix::get_user_id();
         let group_id = unix::get_group_id();
@@ -735,7 +738,7 @@ impl<'s> System for Arch<'s> {
     async fn install_rust(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("rustup")? {
             self.install_application("rustup")?;
-            self.execute("rustup default stable", true)?;
+            self.execute("rustup default stable", false)?;
         }
         Ok(())
     }
@@ -974,6 +977,7 @@ impl<'s> System for Arch<'s> {
             self.install_application("code")?;
         }
         self.install_hunspell()?;
+        // TODO: Need to fix this as it creates a `*` file under `~/Code/Dictionaries`
         let dictionary_config = &format!("{}/Code/Dictionaries", self.get_home_dir());
         let dictionaries_path = Path::new(dictionary_config);
         if !dictionaries_path.exists() {
