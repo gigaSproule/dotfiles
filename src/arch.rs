@@ -894,6 +894,12 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("wireplumber")? {
             self.install_application("wireplumber")?;
         }
+        if !self.is_installed("exfat-utils")? {
+            self.install_application("exfat-utils")?;
+        }
+        if !self.is_installed("ntfs-3g")? {
+            self.install_application("ntfs-3g")?;
+        }
         linux::setup_nas(self)?;
         Ok(())
     }
