@@ -148,6 +148,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    // TODO: Create `CALIBRE_OVERRIDE_DATABASE_PATH=~/calibre` setup, so books can be added from a network share
     fn install_calibre(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("calibre")? {
             self.install_application("calibre")?;
@@ -973,8 +974,8 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_vscode(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("code")? {
-            self.install_application("code")?;
+        if !self.is_installed("visual-studio-code-bin")? {
+            self.aur_install_application("visual-studio-code-bin")?;
         }
         self.install_hunspell()?;
         // TODO: Need to fix this as it creates a `*` file under `~/Code/Dictionaries`
