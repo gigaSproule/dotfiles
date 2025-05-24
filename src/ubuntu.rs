@@ -609,7 +609,7 @@ impl<'s> System for Ubuntu<'s> {
         let cpu_name = linux::get_cpu_name();
 
         match cpu_name.as_deref() {
-            Some("GeniuneIntel") => {
+            Some("GenuineIntel") => {
                 if !self.is_installed("intel-microcode")? {
                     self.install_application("intel-microcode")?;
                 }
