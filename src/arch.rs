@@ -558,7 +558,7 @@ impl<'s> System for Arch<'s> {
         let cpu_name = linux::get_cpu_name();
 
         match cpu_name.as_deref() {
-            Some("GeniuneIntel") => {
+            Some("GenuineIntel") => {
                 if !self.is_installed("intel-ucode")? {
                     self.install_application("intel-ucode")?;
                 }
