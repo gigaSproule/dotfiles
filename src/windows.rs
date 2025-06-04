@@ -801,19 +801,30 @@ impl<'s> System for Windows<'s> {
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         // Needed to install powershell modules
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
-        let regkey = Hive::LocalMachine.open(
-            r"SYSTEM\CurrentControlSet\Control\FileSystem",
-            Security::Read | Security::Write,
-        )?;
-        for value in regkey.values() {
-            let mut opened = value.unwrap();
-            let name = opened.name();
-            if name.to_string().unwrap() == "LongPathsEnabled" {
-                println!("{:?}", name);
-                opened.set_data(Data::U32(1))?;
-                break;
-            }
-        }
+        Hive::LocalMachine
+            .open(
+                r"SYSTEM\CurrentControlSet\Control\FileSystem",
+                Security::Read | Security::Write,
+            )
+            .or_else(|error| {
+                Hive::LocalMachine.create(
+                    r"SYSTEM\CurrentControlSet\Control\FileSystem",
+                    Security::Read | Security::Write,
+                )
+            })?
+            .set_value("LongPathsEnabled", &Data::U32(1))?;
+        Hive::CurrentUser
+            .open(
+                r"Software\Policies\Microsoft\Windows\Explorer",
+                Security::Read | Security::Write,
+            )
+            .or_else(|error| {
+                Hive::CurrentUser.create(
+                    r"Software\Policies\Microsoft\Windows\Explorer",
+                    Security::Read | Security::Write,
+                )
+            })?
+            .set_value("DisableSearchBoxSuggestions", &Data::U32(1))?;
         if !self.is_installed("Microsoft.PowerShell")? {
             self.install_application("Microsoft.PowerShell")?;
         }
