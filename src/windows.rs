@@ -127,7 +127,7 @@ impl<'s> System for Windows<'s> {
     fn install_applications(&self, applications: Vec<&str>) -> Result<String, Box<dyn Error>> {
         self.execute(
             format!(
-                "winget install --accept-source-agreements --accept-package-agreements --id {}",
+                "winget install --accept-source-agreements --accept-package-agreements --scope machine --id {}",
                 applications.join(" ")
             )
             .as_str(),
