@@ -82,8 +82,8 @@ pub(crate) async fn install<'s>(
         system.set_development_environment_settings()?;
 
         if !config.cli_only {
-            // println!("Installing Android Studio");
-            // system.install_android_studio();
+            println!("Installing Android Studio");
+            system.install_android_studio()?;
             // println!("Installing Eclipse");
             // system.install_eclipse().await?;
             println!("Installing IntelliJ");
@@ -366,6 +366,10 @@ mod tests {
             .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_groovy()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_android_studio()
             .times(1)
             .returning(|| Ok(()));
         mock_system
@@ -1206,6 +1210,7 @@ mod tests {
             .expect_install_groovy()
             .times(1)
             .returning(|| Ok(()));
+        mock_system.expect_install_android_studio().times(0);
         mock_system.expect_install_intellij().times(0);
         mock_system
             .expect_install_jdk()
