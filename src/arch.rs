@@ -905,6 +905,36 @@ impl<'s> System for Arch<'s> {
             self.install_application("ntfs-3g")?;
         }
         linux::setup_nas(self)?;
+        if !self.is_installed("system-config-printer")? {
+            self.install_application("system-config-printer")?;
+        }
+        if !self.is_installed("cups")? {
+            self.install_application("cups")?;
+        }
+        self.enable_service("cups")?;
+        if !self.is_installed("avahi")? {
+            self.install_application("avahi")?;
+        }
+        if !self.is_installed("nss-mdns")? {
+            self.install_application("nss-mdns")?;
+        }
+        self.enable_service("avahi")?;
+        let contents = fs::read_to_string("/etc/nsswitch.conf")?;
+        let new_contents: String = contents.lines().map(|s| {
+            if s.starts_with("hosts:") {
+                return "hosts: mymachines mdns_minimal resolve [!UNAVAIL=return] files myhostname dns mdns";
+            }
+            s
+        }).collect::<String>();
+        let mut file = OpenOptions::new()
+            .create(false)
+            .write(true)
+            .truncate(true)
+            .open("/etc/nsswitch.conf")?;
+        file.write_all(new_contents.as_bytes())?;
+        if !self.is_installed("epson-inkjet-printer-escpr")? {
+            self.aur_install_application("epson-inkjet-printer-escpr")?;
+        }
         Ok(())
     }
 
@@ -978,8 +1008,8 @@ impl<'s> System for Arch<'s> {
             self.aur_install_application("visual-studio-code-bin")?;
         }
         self.install_hunspell()?;
-        // TODO: Need to fix this as it creates a `*` file under `~/Code/Dictionaries`
-        let dictionary_config = &format!("{}/Code/Dictionaries", self.get_home_dir());
+        // TODO: Need to fix this as it creates a `*` file under `~/vscode/dictionaries`
+        let dictionary_config = &format!("{}/vscode/dictionaries", self.get_home_dir());
         let dictionaries_path = Path::new(dictionary_config);
         if !dictionaries_path.exists() {
             fs::create_dir_all(dictionaries_path)?;
