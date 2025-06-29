@@ -173,7 +173,7 @@ jobs:
         with:
           name: dotfiles-macos
       - name: Create Release
-        uses: ncipollo/release-action@v1.16.0
+        uses: ncipollo/release-action@v1.17.0
         with:
           artifacts: dotfiles-linux,dotfiles-macos,dotfiles-windows.exe
           generateReleaseNotes: true
