@@ -783,9 +783,9 @@ impl<'s> System for Mac<'s> {
 
     async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
         // if !self.is_installed("9MV0B5HZVK9Z")? {
-        let version = "2.0.0-beta3";
+        let version = "2.3.2";
         system::download_file(
-            format!("https://github.com/unknownskl/xbox-xcloud-client/releases/download/v2.0.0-beta3/Greenlight-{}-universal.dmg", &version).as_str(),
+            format!("https://github.com/unknownskl/greenlight/releases/download/v{0}/Greenlight-{0}-universal.dmg", &version).as_str(),
             "greenlight.dmg",
         ).await?;
         self.execute("hdiutil attach greenlight.dmg", true)?;
