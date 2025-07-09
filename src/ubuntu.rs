@@ -889,6 +889,9 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("wireplumber")? {
             self.install_application("wireplumber")?;
         }
+        if !self.is_installed("speech-dispatcher")? {
+            self.install_application("speech-dispatcher")?;
+        }
         linux::setup_nas(self)?;
         Ok(())
     }

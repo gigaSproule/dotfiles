@@ -935,6 +935,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("epson-inkjet-printer-escpr")? {
             self.aur_install_application("epson-inkjet-printer-escpr")?;
         }
+        if !self.is_installed("speech-dispatcher")? {
+            self.install_application("speech-dispatcher")?;
+        }
         Ok(())
     }
 
