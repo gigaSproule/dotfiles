@@ -268,11 +268,11 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::
         .open(&mount_nas)?;
 
     writeln!(mount_nas_file, "#!/usr/bin/env bash")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/homes/benjamin {}", benjamin_mount)?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/music {}", music_mount)?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/photo {}", photo_mount)?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/shared {}", shared_mount)?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/video {}", videos_mount)?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/homes/benjamin {benjamin_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/music {music_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/photo {photo_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/shared {shared_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/video {videos_mount}")?;
     writeln!(mount_nas_file)?;
     unix::recursively_chmod(&mount_nas, &0o755, &0o755)?;
 
@@ -284,11 +284,11 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::
         .open(&unmount_nas)?;
 
     writeln!(unmount_nas_file, "#!/usr/bin/env bash")?;
-    writeln!(unmount_nas_file, "sudo umount {}", benjamin_mount)?;
-    writeln!(unmount_nas_file, "sudo umount {}", music_mount)?;
-    writeln!(unmount_nas_file, "sudo umount {}", photo_mount)?;
-    writeln!(unmount_nas_file, "sudo umount {}", shared_mount)?;
-    writeln!(unmount_nas_file, "sudo umount {}", videos_mount)?;
+    writeln!(unmount_nas_file, "sudo umount {benjamin_mount}")?;
+    writeln!(unmount_nas_file, "sudo umount {music_mount}")?;
+    writeln!(unmount_nas_file, "sudo umount {photo_mount}")?;
+    writeln!(unmount_nas_file, "sudo umount {shared_mount}")?;
+    writeln!(unmount_nas_file, "sudo umount {videos_mount}")?;
     writeln!(unmount_nas_file)?;
     unix::recursively_chmod(&unmount_nas, &0o755, &0o755)?;
 
@@ -394,7 +394,7 @@ pub(crate) fn setup_power_saving_tweaks() -> Result<(), std::io::Error> {
                     let unwrapped_next_split = split_line.next().unwrap();
                     let mut value = unwrapped_next_split.replace('\"', "");
                     value += "mem_sleep_default = deep";
-                    format!("GRUB_CMDLINE_LINUX_DEFAULT=\"{}\"", value)
+                    format!("GRUB_CMDLINE_LINUX_DEFAULT=\"{value}\"")
                 } else {
                     unwrapped_line
                 }

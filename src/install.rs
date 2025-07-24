@@ -116,9 +116,9 @@ pub(crate) async fn install<'s>(
         println!("Installing Discord");
         system.install_discord()?;
         println!("Installing Epic Games");
-        system.install_epic_games()?;
+        system.install_epic_games().await?;
         println!("Installing GOG Galaxy");
-        system.install_gog_galaxy()?;
+        system.install_gog_galaxy().await?;
         println!("Installing Lutris");
         system.install_lutris()?;
         println!("Installing Origin");
@@ -509,11 +509,11 @@ mod tests {
         mock_system
             .expect_install_epic_games()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_gog_galaxy()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_lutris()
             .times(1)
