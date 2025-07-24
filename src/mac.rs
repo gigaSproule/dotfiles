@@ -245,7 +245,7 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 
@@ -296,7 +296,7 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 

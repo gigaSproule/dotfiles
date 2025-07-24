@@ -22,7 +22,7 @@ impl<'s> Ubuntu<'s> {
     }
 
     fn add_apt_key(&self, url: &str) -> Result<(), Box<dyn Error>> {
-        self.execute(&format!("apt-key adv --fetch-keys {}", url), true)?;
+        self.execute(&format!("apt-key adv --fetch-keys {url}"), true)?;
         Ok(())
     }
 
@@ -31,20 +31,20 @@ impl<'s> Ubuntu<'s> {
             .create(true)
             .write(true)
             .truncate(true)
-            .open(format!("/etc/apt/sources.list.d/{}.list", file_name))?;
+            .open(format!("/etc/apt/sources.list.d/{file_name}.list"))?;
         for url in urls {
-            writeln!(file, "{}", url)?;
+            writeln!(file, "{url}")?;
         }
         Ok(())
     }
 
     fn add_ppa(&self, ppa: &str) -> Result<(), Box<dyn Error>> {
-        self.execute(&format!("add-apt-repository -y ppa:{}", ppa), true)?;
+        self.execute(&format!("add-apt-repository -y ppa:{ppa}"), true)?;
         Ok(())
     }
 
     fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
-        self.execute(&format!("systemctl enable service {}", service), true)
+        self.execute(&format!("systemctl enable service {service}"), true)
     }
 
     fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
@@ -58,15 +58,15 @@ impl<'s> Ubuntu<'s> {
     }
 
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
-        let dpkg_output = unix::execute(&format!("dpkg -l {}", app), true, false, false)?;
+        let dpkg_output = unix::execute(&format!("dpkg -l {app}"), true, false, false)?;
         if !dpkg_output.starts_with("dpkg-query: no packages found matching") {
             return Ok(true);
         }
-        let which_output = unix::execute(&format!("which {}", app), true, false, false)?;
+        let which_output = unix::execute(&format!("which {app}"), true, false, false)?;
         if !which_output.ends_with("not found") {
             return Ok(true);
         }
-        let snap_output = unix::execute(&format!("snap list | grep {}", app), false, false, false)?;
+        let snap_output = unix::execute(&format!("snap list | grep {app}"), false, false, false)?;
         if !snap_output.is_empty() {
             return Ok(true);
         }
@@ -79,9 +79,9 @@ impl<'s> Ubuntu<'s> {
         classic: bool,
     ) -> Result<(), Box<dyn Error>> {
         if classic {
-            self.execute(&format!("snap install --classic {}", application), true)?;
+            self.execute(&format!("snap install --classic {application}"), true)?;
         } else {
-            self.execute(&format!("snap install {}", application), true)?;
+            self.execute(&format!("snap install {application}"), true)?;
         }
         Ok(())
     }
@@ -92,8 +92,8 @@ impl<'s> Ubuntu<'s> {
             .create(true)
             .append(true)
             .open(&debconf_file)?;
-        writeln!(file, "{} {} select {}", installer, conf, value)?;
-        writeln!(file, "{} {} seen {}", installer, conf, value)?;
+        writeln!(file, "{installer} {conf} select {value}")?;
+        writeln!(file, "{installer} {conf} seen {value}")?;
         self.execute(&format!("debconf-set-selections {}", &debconf_file), true)?;
         fs::remove_file(debconf_file)?;
         Ok(())
@@ -318,7 +318,21 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("heroic")? {
+            let heroic_version = "2.18.0";
+            system::download_file(
+                &format!("https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v{heroic_version}/Heroic-{heroic_version}-linux-amd64.deb"),
+                "heroic-launcher.deb",
+            )
+            .await?;
+            unix::execute(
+                "dpkg -i heroic-launcher.deb",
+                true,
+                false,
+                self.config.dry_run,
+            )?;
+        }
         Ok(())
     }
 
@@ -337,7 +351,7 @@ impl<'s> System for Ubuntu<'s> {
             let user_id = unix::get_user_id();
             let group_id = unix::get_group_id();
             unix::recursively_chown("exercism", &user_id, &group_id)?;
-            let exercism_bin_path = format!("{}/exercism", exercism_path);
+            let exercism_bin_path = format!("{exercism_path}/exercism");
             unix::recursively_chmod(&exercism_bin_path, &0o755, &0o755)?;
             unix::add_to_path(self, ".zshrc", &exercism_bin_path)?;
             unix::add_to_path(self, ".bashrc", &exercism_bin_path)?;
@@ -395,7 +409,8 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
+        self.install_epic_games().await?;
         Ok(())
     }
 
@@ -528,7 +543,7 @@ impl<'s> System for Ubuntu<'s> {
             .await?
             .replace('\n', "");
             system::download_file(
-                &format!("https://storage.googleapis.com/kubernetes-release/release/{}/bin/linux/amd64/kubectl", kubectl_version), "/usr/local/bin/kubectl").await?;
+                &format!("https://storage.googleapis.com/kubernetes-release/release/{kubectl_version}/bin/linux/amd64/kubectl"), "/usr/local/bin/kubectl").await?;
             unix::recursively_chmod("/usr/local/bin/kubectl", &0o755, &0o755)?;
         }
         Ok(())
@@ -851,7 +866,7 @@ impl<'s> System for Ubuntu<'s> {
             Categories=Office;Java;\n\
             StartupWMClass=com-eteks-sweethome3d-SweetHome3D\n\
             MimeType=application/x-sweethome3d\n";
-        write!(sweet_home_3d_desktop_file, "{}", content)?;
+        write!(sweet_home_3d_desktop_file, "{content}")?;
 
         Ok(())
     }

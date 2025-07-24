@@ -311,7 +311,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("EpicGames.EpicGamesLauncher")? {
             self.install_application("EpicGames.EpicGamesLauncher")?;
         }
@@ -400,7 +400,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("GOG.Galaxy")? {
             self.install_application("GOG.Galaxy")?;
         }

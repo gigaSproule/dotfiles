@@ -61,7 +61,7 @@ fn get_system<'s>(config: &'s config::Config) -> Box<dyn system::System + 's> {
     match distro_str {
         distro if distro == "Arch Linux" => Box::new(arch::Arch::new(config)),
         distro if distro.starts_with("Ubuntu") => Box::new(ubuntu::Ubuntu::new(config)),
-        _ => panic!("Unable to determine the distro {}.", distro_str),
+        _ => panic!("Unable to determine the distro {distro_str}."),
     }
 }
 

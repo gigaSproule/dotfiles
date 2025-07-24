@@ -113,7 +113,7 @@ pub(crate) trait System: Send + Sync {
 
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_epic_games(&self) -> Result<(), Box<dyn Error>>;
+    async fn install_epic_games(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_exact_audio_copy(&self) -> Result<(), Box<dyn Error>>;
 
@@ -129,7 +129,7 @@ pub(crate) trait System: Send + Sync {
 
     async fn install_godot(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>>;
+    async fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>>;
 
@@ -383,7 +383,7 @@ pub(crate) fn add_to_file(file: &str, content: &str) -> Result<(), io::Error> {
     fs::create_dir_all(directory)?;
     if !file_contains(file, content) {
         let mut actual_file = OpenOptions::new().create(true).append(true).open(file)?;
-        writeln!(actual_file, "{}", content)?;
+        writeln!(actual_file, "{content}")?;
     }
     Ok(())
 }
@@ -403,7 +403,7 @@ pub(crate) async fn download_file(url: &str, downloaded_file: &str) -> Result<()
     let response = reqwest::get(url).await?;
 
     let mut file = match File::create(downloaded_file) {
-        Err(why) => panic!("Couldn't create {}: {}", downloaded_file, why),
+        Err(why) => panic!("Couldn't create {downloaded_file}: {why}"),
         Ok(file) => file,
     };
     let content = response.bytes().await?;

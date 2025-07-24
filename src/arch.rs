@@ -33,7 +33,7 @@ impl<'s> Arch<'s> {
     }
 
     fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
-        self.execute(&format!("systemctl enable {}", service), true)
+        self.execute(&format!("systemctl enable {service}"), true)
     }
 
     fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
@@ -47,7 +47,7 @@ impl<'s> Arch<'s> {
     }
 
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
-        let output = unix::execute(&format!("pacman -Qi {}", app), false, false, false);
+        let output = unix::execute(&format!("pacman -Qi {app}"), false, false, false);
         if !output?.ends_with("was not found") {
             return Ok(true);
         }
@@ -306,7 +306,10 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_epic_games(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("heroic-games-launcher-bin")? {
+            self.aur_install_application("heroic-games-launcher-bin")?;
+        }
         Ok(())
     }
 
@@ -365,7 +368,8 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_gog_galaxy(&self) -> Result<(), Box<dyn Error>> {
+        self.install_epic_games().await?;
         Ok(())
     }
 
@@ -802,7 +806,7 @@ impl<'s> System for Arch<'s> {
             Categories=Office;Java;\n\
             StartupWMClass=com-eteks-sweethome3d-SweetHome3D\n\
             MimeType=application/x-sweethome3d\n";
-        write!(sweet_home_3d_desktop_file, "{}", content)?;
+        write!(sweet_home_3d_desktop_file, "{content}")?;
 
         Ok(())
     }
