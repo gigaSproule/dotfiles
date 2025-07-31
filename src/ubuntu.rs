@@ -713,8 +713,17 @@ impl<'s> System for Ubuntu<'s> {
             self.update_os_repo()?;
             self.install_application("nordvpn")?;
         }
+        if self.config.gnome {
+            open::that("https://extensions.gnome.org/extension/1595/nordvpn-connect/")?;
+        }
         if self.config.kde {
-            open::that("https://store.kde.org/p/1689651")?;
+            // if !self.is_installed("plasma6-runners-nordvpn")? {
+            //     self.install_application("plasma6-runners-nordvpn")?;
+            // }
+            // if !self.is_installed("ocs-url")? {
+            //     self.install_application("ocs-url")?;
+            // }
+            open::that("https://store.kde.org/p/2118492/")?;
         }
         Ok(())
     }

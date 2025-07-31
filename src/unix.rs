@@ -11,6 +11,7 @@ use std::process::Command;
 use nix::unistd::{chown, Gid, Uid};
 use walkdir::WalkDir;
 
+use crate::error;
 use crate::system;
 use crate::system::System;
 
@@ -26,14 +27,14 @@ pub(crate) fn get_group_id() -> u32 {
     group_id.parse::<u32>().unwrap()
 }
 
-pub(crate) fn get_group_id_by_name(group_name: &str) -> u32 {
+pub(crate) fn get_group_id_by_name(group_name: &str) -> Result<u32, Box<dyn Error>> {
     let group_name_c = CString::new(group_name).unwrap();
     unsafe {
         let group = libc::getgrnam(group_name_c.as_ptr());
         if group.is_null() {
-            panic!("Group not found");
+            return Err(Box::from(error::Error::new("Group not found")));
         }
-        (*group).gr_gid
+        Ok((*group).gr_gid)
     }
 }
 
@@ -59,6 +60,24 @@ pub(crate) fn get_username() -> String {
         panic!("Unable to get username");
     }
     username
+}
+
+pub(crate) fn create_group(group_name: &str, dry_run: bool) -> Result<(), Box<dyn Error>> {
+    let group = get_group_id_by_name(group_name);
+    if group.is_err() {
+        execute(&format!("groupadd {group_name}"), true, false, dry_run)?;
+    }
+    Ok(())
+}
+
+pub(crate) fn add_user_to_group(group_name: &str, dry_run: bool) -> Result<(), Box<dyn Error>> {
+    execute(
+        &format!("usermod -aG {group_name} {}", get_username()),
+        true,
+        false,
+        dry_run,
+    )?;
+    Ok(())
 }
 
 /// Adds the path to the PATH environment variable in the file, only if it doesn't already exist within the file.

@@ -18,6 +18,7 @@ pub mod whoami {
 #[cfg(target_os = "linux")]
 mod arch;
 mod config;
+mod error;
 mod install;
 #[cfg(target_os = "linux")]
 mod linux;

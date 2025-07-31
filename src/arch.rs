@@ -627,9 +627,22 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("nordvpn-bin")? {
             self.aur_install_application("nordvpn-bin")?;
         }
-        if self.config.kde {
-            open::that("https://store.kde.org/p/1689651")?;
+        if self.config.gnome {
+            if !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
+                self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
+            }
         }
+        if self.config.kde {
+            if !self.is_installed("plasma6-runners-nordvpn")? {
+                self.aur_install_application("plasma6-runners-nordvpn")?;
+            }
+            if !self.is_installed("ocs-url")? {
+                self.aur_install_application("ocs-url")?;
+            }
+            open::that("https://store.kde.org/p/2118492/")?;
+        }
+        unix::create_group("nordvpn", self.config.dry_run)?;
+        unix::add_user_to_group("nordvpn", self.config.dry_run)?;
         self.enable_service("nordvpnd")?;
         Ok(())
     }
@@ -1069,9 +1082,6 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("gnome-shell-extension-sound-output-device-chooser")? {
                 self.aur_install_application("gnome-shell-extension-sound-output-device-chooser")?;
             }
-            if !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
-                self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
-            }
             self.enable_service("gdm")?;
             open::that("https://extensions.gnome.org/extension/3960/transparent-top-bar-adjustable-transparency/")?;
         }
@@ -1126,9 +1136,6 @@ impl<'s> System for Arch<'s> {
             }
             if !self.is_installed("xdg-desktop-portal-kde")? {
                 self.install_application("xdg-desktop-portal-kde")?;
-            }
-            if !self.is_installed("plasma5-runners-nordvpn")? {
-                self.aur_install_application("plasma5-runners-nordvpn")?;
             }
             self.enable_service("sddm")?;
             let mut file = OpenOptions::new()
