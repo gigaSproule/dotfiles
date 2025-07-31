@@ -667,7 +667,7 @@ pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Err
 pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn Error>> {
     system.execute("git config --global user.name \"Benjamin Sproule\"", false)?;
     system.execute(
-        "git config --global user.email benjamin@benjaminsproule.com",
+        "git config --global user.email dev@benjaminsproule.com",
         false,
     )?;
     system.execute(

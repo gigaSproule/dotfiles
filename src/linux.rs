@@ -232,7 +232,7 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::
     }
 
     let user_id = unix::get_user_id();
-    let group_id = unix::get_group_id_by_name("name");
+    let group_id = unix::get_group_id_by_name("name")?;
 
     let benjamin_mount = "/mnt/benjamin";
     if !Path::new(benjamin_mount).exists() {

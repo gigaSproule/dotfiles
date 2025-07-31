@@ -348,7 +348,7 @@ impl<'s> System for Windows<'s> {
             self.install_wsl("git")?;
             self.execute_wsl("git config --global user.name \"Benjamin Sproule\"", false)?;
             self.execute_wsl(
-                "git config --global user.email benjamin@benjaminsproule.com",
+                "git config --global user.email dev@benjaminsproule.com",
                 false,
             )?;
             self.execute_wsl(
