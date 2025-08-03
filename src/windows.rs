@@ -296,9 +296,12 @@ impl<'s> System for Windows<'s> {
             self.execute_powershell("Install-Module -Name DockerCompletion -Force", true)?;
             self.execute_powershell("Import-Module -Name DockerCompletion", true)?;
             // TODO: Append if needed instead of blindly re-creating file
-            fs::write(
-                "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1",
-                "Import-Module DockerCompletion\r\n".as_bytes(),
+            system::add_to_file(
+                &format!(
+                    r"{}\Documents\PowerShell\profile.ps1",
+                    self.get_home_dir()
+                ),
+                &"Import-Module DockerCompletion\r\n",
             )?;
         }
         self.execute_powershell("dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart", true)?;
@@ -376,13 +379,12 @@ impl<'s> System for Windows<'s> {
                     true,
                 )?;
                 self.execute_powershell("Import-Module -Name posh-git", true)?;
-                // TODO: Append if needed instead of blindly re-creating file
-                fs::write(
-                    format!(
-                        "{}\\Documents\\PowerShell\\profile.ps1",
-                        system::get_home_dir()
+                system::add_to_file(
+                    &format!(
+                        r"{}\Documents\PowerShell\profile.ps1",
+                        self.get_home_dir()
                     ),
-                    "Import-Module posh-git\r\n".as_bytes(),
+                    &"Import-Module posh-git\r\n",
                 )?;
             }
         }
@@ -663,7 +665,7 @@ impl<'s> System for Windows<'s> {
        Set-Alias nvmu -value \"callnvm\"";
             system::add_to_file(
                 &format!(
-                    r"{}\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1",
+                    r"{}\Documents\PowerShell\profile.ps1",
                     self.get_home_dir()
                 ),
                 nvm_script,
