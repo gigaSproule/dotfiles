@@ -301,6 +301,9 @@ impl<'s> System for Windows<'s> {
                 "Import-Module DockerCompletion\r\n".as_bytes(),
             )?;
         }
+        self.execute_powershell("dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart", true)?;
+        self.execute_powershell("dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart", true)?;
+        self.execute_powershell("dism.exe /online /enable-feature /featurename:HypervisorPlatform /all /norestart", true)?;
         Ok(())
     }
 
