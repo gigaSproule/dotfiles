@@ -217,7 +217,7 @@ impl<'s> System for Windows<'s> {
                     opened.set_data(Data::String(
                         U16CString::from_str(format!(
                             "{};C:\\Program Files (x86)\\GnuWin32\\bin",
-                            opened.data().to_string()
+                            opened.data()
                         ))
                         .unwrap(),
                     ))?;
@@ -296,11 +296,20 @@ impl<'s> System for Windows<'s> {
             self.execute_powershell("Install-Module -Name DockerCompletion -Force", true)?;
             self.execute_powershell("Import-Module -Name DockerCompletion", true)?;
             // TODO: Append if needed instead of blindly re-creating file
-            fs::write(
-                "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\profile.ps1",
-                "Import-Module DockerCompletion\r\n".as_bytes(),
+            system::add_to_file(
+                &format!(r"{}\Documents\PowerShell\profile.ps1", self.get_home_dir()),
+                "Import-Module DockerCompletion\r\n",
             )?;
         }
+        self.execute_powershell("dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart", true)?;
+        self.execute_powershell(
+            "dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart",
+            true,
+        )?;
+        self.execute_powershell(
+            "dism.exe /online /enable-feature /featurename:HypervisorPlatform /all /norestart",
+            true,
+        )?;
         Ok(())
     }
 
@@ -373,13 +382,9 @@ impl<'s> System for Windows<'s> {
                     true,
                 )?;
                 self.execute_powershell("Import-Module -Name posh-git", true)?;
-                // TODO: Append if needed instead of blindly re-creating file
-                fs::write(
-                    format!(
-                        "{}\\Documents\\PowerShell\\profile.ps1",
-                        system::get_home_dir()
-                    ),
-                    "Import-Module posh-git\r\n".as_bytes(),
+                system::add_to_file(
+                    &format!(r"{}\Documents\PowerShell\profile.ps1", self.get_home_dir()),
+                    "Import-Module posh-git\r\n",
                 )?;
             }
         }
@@ -659,10 +664,7 @@ impl<'s> System for Windows<'s> {
        }}\n\
        Set-Alias nvmu -value \"callnvm\"";
             system::add_to_file(
-                &format!(
-                    r"{}\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1",
-                    self.get_home_dir()
-                ),
+                &format!(r"{}\Documents\PowerShell\profile.ps1", self.get_home_dir()),
                 nvm_script,
             )?;
             self.refreshenv()?;
@@ -806,7 +808,7 @@ impl<'s> System for Windows<'s> {
                 r"SYSTEM\CurrentControlSet\Control\FileSystem",
                 Security::Read | Security::Write,
             )
-            .or_else(|error| {
+            .or_else(|_error| {
                 Hive::LocalMachine.create(
                     r"SYSTEM\CurrentControlSet\Control\FileSystem",
                     Security::Read | Security::Write,
@@ -818,7 +820,7 @@ impl<'s> System for Windows<'s> {
                 r"Software\Policies\Microsoft\Windows\Explorer",
                 Security::Read | Security::Write,
             )
-            .or_else(|error| {
+            .or_else(|_error| {
                 Hive::CurrentUser.create(
                     r"Software\Policies\Microsoft\Windows\Explorer",
                     Security::Read | Security::Write,
@@ -878,7 +880,7 @@ impl<'s> System for Windows<'s> {
         }
         system::download_file(
             "https://vlc-bluray.whoknowsmy.name/files/win64/libaacs.dll",
-            format!("C:\\Program Files\\VideoLAN\\VLC\\libaacs.dll").as_str(),
+            r"C:\Program Files\VideoLAN\VLC\libaacs.dll",
         )
         .await?;
         Ok(())
