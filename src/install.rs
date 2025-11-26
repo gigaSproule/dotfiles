@@ -210,8 +210,8 @@ pub(crate) async fn install<'s>(
             system.install_onedrive()?;
             // println!("Installing Spotify");
             // system.install_spotify()?;
-            println!("Installing Strawberry Music Player");
-            system.install_strawberry_music_player()?;
+            println!("Installing Tauon Music Box");
+            system.install_tauon_music_box().await?;
             println!("Installing SweetHome3D");
             system.install_sweet_home_3d()?;
             println!("Installing themes");
@@ -849,9 +849,9 @@ mod tests {
             .times(0)
             .returning(|| Ok(()));
         mock_system
-            .expect_install_strawberry_music_player()
+            .expect_install_tauon_music_box()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_sweet_home_3d()
             .times(1)
@@ -1325,9 +1325,7 @@ mod tests {
         mock_system.expect_install_onedrive().times(0);
         mock_system.expect_install_openscad().times(0);
         mock_system.expect_install_spotify().times(0);
-        mock_system
-            .expect_install_strawberry_music_player()
-            .times(0);
+        mock_system.expect_install_tauon_music_box().times(0);
         mock_system.expect_install_sweet_home_3d().times(0);
         mock_system.expect_install_themes().times(0);
         mock_system.expect_install_whatsapp().times(0);

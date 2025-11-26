@@ -662,13 +662,6 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("strawberry")? {
-            self.cask_install_application("strawberry")?;
-        }
-        Ok(())
-    }
-
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("Sweet Home 3D")? {
             self.cask_install_application("sweet-home3d")?;
@@ -709,6 +702,31 @@ impl<'s> System for Mac<'s> {
         if cfg!(target_arch = "aarch64") {
             self.execute("softwareupdate --install-rosetta --agree-to-license", true)?;
         }
+        Ok(())
+    }
+
+    // TODO: This hasn't been tested on a Mac, so this may not extract properly
+    async fn install_tauon_music_box(&self) -> Result<(), Box<dyn Error>> {
+        let version = "8.2.2";
+        system::download_file(
+            format!(
+                "https://github.com/Taiko2k/Tauon/releases/download/v{0}/TauonMusicBox.dmg",
+                &version
+            )
+            .as_str(),
+            "tauon-music-box.dmg",
+        )
+        .await?;
+        self.execute("hdiutil attach tauon-music-box.dmg", true)?;
+        fs::copy(
+            format!("/Volumes/TauonMusicBox {}/TauonMusicBox.app", &version),
+            "/Applications",
+        )?;
+        self.execute(
+            format!("hdiutil detach /Volumes/TauonMusicBox {}", &version).as_str(),
+            true,
+        )?;
+        fs::remove_file("tauon-music-box.dmg")?;
         Ok(())
     }
 
@@ -783,7 +801,7 @@ impl<'s> System for Mac<'s> {
 
     async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
         // if !self.is_installed("9MV0B5HZVK9Z")? {
-        let version = "2.3.2";
+        let version = "2.3.3";
         system::download_file(
             format!("https://github.com/unknownskl/greenlight/releases/download/v{0}/Greenlight-{0}-universal.dmg", &version).as_str(),
             "greenlight.dmg",

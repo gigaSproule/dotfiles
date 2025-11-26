@@ -238,11 +238,11 @@ pub(crate) trait System: Send + Sync {
 
     fn install_steam(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>>;
-
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>>;
+
+    async fn install_tauon_music_box(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_terraform(&self) -> Result<(), Box<dyn Error>>;
 
