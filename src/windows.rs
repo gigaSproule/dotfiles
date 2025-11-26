@@ -786,13 +786,6 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("StrawberryMusicPlayer.Strawberry")? {
-            self.install_application("StrawberryMusicPlayer.Strawberry")?;
-        }
-        Ok(())
-    }
-
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("9NBLGGH2SMTQ")? {
             self.install_application("9NBLGGH2SMTQ")?;
@@ -844,6 +837,13 @@ impl<'s> System for Windows<'s> {
                 self.install_application("dorssel.usbipd-win")?;
             }
             // TODO: Download Linux binary, copy into Ubuntu WSL and run with development only flag
+        }
+        Ok(())
+    }
+
+    async fn install_tauon_music_box(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("Taiko2k.TauonMusicBox")? {
+            self.install_application("Taiko2k.TauonMusicBox")?;
         }
         Ok(())
     }

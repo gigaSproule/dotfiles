@@ -47,6 +47,11 @@ impl<'s> Ubuntu<'s> {
         self.execute(&format!("systemctl enable service {service}"), true)
     }
 
+    fn flatpak_install_application(&self, application: &str) -> Result<(), Box<dyn Error>> {
+        self.execute(&format!("flatpak install flathub {application}"), true)?;
+        Ok(())
+    }
+
     fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("hunspell")? {
             self.install_application("hunspell")?;
@@ -68,6 +73,11 @@ impl<'s> Ubuntu<'s> {
         }
         let snap_output = unix::execute(&format!("snap list | grep {app}"), false, false, false)?;
         if !snap_output.is_empty() {
+            return Ok(true);
+        }
+        let flatpak_output =
+            unix::execute(&format!("flatpak list | grep {app}"), false, false, false)?;
+        if !flatpak_output.is_empty() {
             return Ok(true);
         }
         Ok(false)
@@ -462,6 +472,9 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("gramps")? {
             self.install_application("gramps")?;
         }
+
+        // osm-gps-map graphviz python-pyicu gtkspell3 rcs python-pillow libgexiv2 geocode-glib goocanvas
+
         Ok(())
     }
 
@@ -843,15 +856,6 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("strawberry")? {
-            self.add_ppa("jonaski/strawberry")?;
-            self.update_os_repo()?;
-            self.install_application("strawberry")?;
-        }
-        Ok(())
-    }
-
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("sweethome3d")? {
             self.install_application("sweethome3d")?;
@@ -916,7 +920,18 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("speech-dispatcher")? {
             self.install_application("speech-dispatcher")?;
         }
+        if !self.is_installed("flatpak")? {
+            self.install_application("flatpak")?;
+            self.execute("flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo", false)?;
+        }
         linux::setup_nas(self)?;
+        Ok(())
+    }
+
+    async fn install_tauon_music_box(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("com.github.taiko2k.tauonmb")? {
+            self.flatpak_install_application("com.github.taiko2k.tauonmb")?;
+        }
         Ok(())
     }
 
@@ -1123,8 +1138,12 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>> {
+        let version = "2.3.3";
         system::download_file(
-            "https://github.com/unknownskl/greenlight/releases/download/v2.3.2/greenlight_2.3.2_amd64.deb",
+            format!(
+                "https://github.com/unknownskl/greenlight/releases/download/v{0}/greenlight_{0}_amd64.deb",
+                &version
+            ).as_str(),
             "greenlight.deb",
         ).await?;
         self.execute("dpkg -i greenlight.deb", true)?;

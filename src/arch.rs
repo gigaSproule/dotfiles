@@ -789,13 +789,6 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_strawberry_music_player(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("strawberry")? {
-            self.install_application("strawberry")?;
-        }
-        Ok(())
-    }
-
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("sweethome3d")? {
             self.install_application("sweethome3d")?;
@@ -955,6 +948,18 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("speech-dispatcher")? {
             self.install_application("speech-dispatcher")?;
         }
+        Ok(())
+    }
+
+    async fn install_tauon_music_box(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("tauon-music-box")? {
+            self.aur_install_application("tauon-music-box")?;
+        }
+
+        if !self.is_installed("python-lynxpresence")? {
+            self.aur_install_application("python-lynxpresence")?;
+        }
+
         Ok(())
     }
 
