@@ -214,7 +214,9 @@ pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error
 
 pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating NAS group");
-    system.execute("groupadd nas", true)?;
+    if unix::get_group_id_by_name("nas").is_err() {
+        system.execute("groupadd nas", true)?;
+    }
     system.execute(&format!("usermod -a -G nas {}", unix::get_username()), true)?;
 
     println!("Setting up NAS scripts");
@@ -232,7 +234,7 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::
     }
 
     let user_id = unix::get_user_id();
-    let group_id = unix::get_group_id_by_name("name")?;
+    let group_id = unix::get_group_id_by_name("nas")?;
 
     let benjamin_mount = "/mnt/benjamin";
     if !Path::new(benjamin_mount).exists() {
