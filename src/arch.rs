@@ -1,15 +1,16 @@
+use async_trait::async_trait;
+use log::{debug, info};
 use std::error::Error;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 
-use async_trait::async_trait;
-
 use crate::config::Config;
 use crate::system::System;
 use crate::{linux, system, unix};
 
+#[derive(Debug)]
 pub(crate) struct Arch<'s> {
     config: &'s Config,
 }
@@ -158,48 +159,63 @@ impl<'s> System for Arch<'s> {
 
     async fn install_codecs(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("libdvdread")? {
+            debug!("Installing libdvdread");
             self.install_application("libdvdread")?;
         }
         if !self.is_installed("libdvdcss")? {
+            debug!("Installing libdvdcss");
             self.install_application("libdvdcss")?;
         }
         if !self.is_installed("libdvdnav")? {
+            debug!("Installing libdvdnav");
             self.install_application("libdvdnav")?;
         }
         if !self.is_installed("libbluray")? {
+            debug!("Installing libbluray");
             self.install_application("libbluray")?;
         }
         if !self.is_installed("libaacs")? {
+            debug!("Installing libaacs");
             self.install_application("libaacs")?;
         }
         if !self.is_installed("x264")? {
+            debug!("Installing x264");
             self.install_application("x264")?;
         }
         if !self.is_installed("x265")? {
+            debug!("Installing x265");
             self.install_application("x265")?;
         }
         if !self.is_installed("xvidcore")? {
+            debug!("Installing xvidcore");
             self.install_application("xvidcore")?;
         }
         if !self.is_installed("libmpeg2")? {
+            debug!("Installing libmpeg2");
             self.install_application("libmpeg2")?;
         }
         if !self.is_installed("svt-av1")? {
+            debug!("Installing svt-av1");
             self.install_application("svt-av1")?;
         }
         if !self.is_installed("libvpx")? {
+            debug!("Installing libvpx");
             self.install_application("libvpx")?;
         }
         if !self.is_installed("libtheora")? {
+            debug!("Installing libtheora");
             self.install_application("libtheora")?;
         }
         if !self.is_installed("gst-plugins-ugly")? {
+            debug!("Installing gst-plugins-ugly");
             self.install_application("gst-plugins-ugly")?;
         }
         if !self.is_installed("gst-libav")? {
+            debug!("Installing gst-libav");
             self.install_application("gst-libav")?;
         }
         if !self.is_installed("flac")? {
+            debug!("Installing flac");
             self.install_application("flac")?;
         }
         system::setup_codecs(self).await?;
@@ -373,7 +389,7 @@ impl<'s> System for Arch<'s> {
     async fn install_google_chrome(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("google-chrome")? {
             self.aur_install_application("google-chrome")?;
-            println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
+            info!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
         }
         Ok(())
     }
@@ -711,7 +727,7 @@ impl<'s> System for Arch<'s> {
     fn install_quicklook(&self) -> Result<(), Box<dyn Error>> {
         // Gnome already has sushi
         if self.config.kde {
-            println!("Install Kiview?");
+            info!("Install Kiview?");
         }
         Ok(())
     }
@@ -791,7 +807,7 @@ impl<'s> System for Arch<'s> {
             self.install_application("sweethome3d")?;
         }
 
-        let sweet_home_3d_desktop = "/usr/share/applictaions/sweethome3d.desktop";
+        let sweet_home_3d_desktop = "/usr/share/applications/sweethome3d.desktop";
         let mut sweet_home_3d_desktop_file = OpenOptions::new()
             .create(true)
             .write(true)

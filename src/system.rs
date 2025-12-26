@@ -1,16 +1,17 @@
+use crate::system;
+use async_trait::async_trait;
+use log::{debug, info};
+#[cfg(test)]
+use mockall::automock;
 use std::error::Error;
 use std::ffi::OsStr;
+use std::fmt::Debug;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
 use std::process::Command;
 use std::process::Stdio;
 use std::{fs, io};
-
-use crate::system;
-use async_trait::async_trait;
-#[cfg(test)]
-use mockall::automock;
 use wgpu::{Adapter, Backends};
 
 #[cfg(any(target_os = "linux", target_os = "windows"))]
@@ -21,7 +22,7 @@ static BACKENDS: Backends = Backends::METAL;
 
 #[async_trait]
 #[cfg_attr(test, automock)]
-pub(crate) trait System: Send + Sync {
+pub(crate) trait System: Send + Sync + Debug {
     /// Executes the given command. It will run it as a super user if `super_user` is `true`.
     ///
     /// The returned Result contains the output of the command.
@@ -450,15 +451,15 @@ pub(crate) fn extract_zip(
         {
             let comment = file.comment();
             if !comment.is_empty() {
-                println!("File {i} comment: {comment}");
+                info!("File {i} comment: {comment}");
             }
         }
 
         if file.is_dir() {
-            println!("File {} extracted to \"{}\"", i, outpath.display());
+            info!("File {} extracted to \"{}\"", i, outpath.display());
             fs::create_dir_all(&outpath)?;
         } else {
-            println!(
+            info!(
                 "File {} extracted to \"{}\" ({} bytes)",
                 i,
                 outpath.display(),
@@ -607,7 +608,7 @@ pub(crate) fn run_command(
         for line in stdout_lines {
             let string_line = line.unwrap();
             if print_output {
-                println!("{}", &string_line);
+                info!("{}", &string_line);
             }
             output.push(string_line);
         }
@@ -616,7 +617,7 @@ pub(crate) fn run_command(
         for line in stderr_lines {
             let string_line = line.unwrap();
             if print_output {
-                println!("{}", &string_line);
+                info!("{}", &string_line);
             }
             output.push(string_line);
         }
@@ -639,6 +640,7 @@ pub(crate) fn run_command(
 /// system::setup_codecs();
 /// ```
 pub(crate) async fn setup_codecs(system: &impl System) -> Result<(), Box<dyn Error>> {
+    debug!("Setting up the codecs");
     fs::create_dir_all(format!("{}/.config/aacs", system.get_home_dir()).as_str())?;
     download_file(
         "http://fvonline-db.bplaced.net/fv_download.php?lang=eng",
@@ -679,7 +681,7 @@ pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn Error
     system.execute(
         &format!(
             "git config --global core.excludesfile {}/.gitignore",
-            get_home_dir()
+            system.get_home_dir()
         ),
         false,
     )?;

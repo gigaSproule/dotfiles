@@ -1,17 +1,17 @@
+use async_trait::async_trait;
+use log::info;
 use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
-
-use async_trait::async_trait;
-
 use uuid::Uuid;
 
 use crate::config::Config;
 use crate::system::System;
 use crate::{linux, system, unix};
 
+#[derive(Debug)]
 pub(crate) struct Ubuntu<'s> {
     config: &'s Config,
 }
@@ -433,7 +433,7 @@ impl<'s> System for Ubuntu<'s> {
             .await?;
             self.execute("dpkg -i google-chrome.deb", true)?;
             fs::remove_file("google-chrome.deb")?;
-            println!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
+            info!("To enable screen sharing, you will need to enable `enable-webrtc-pipewire-catpturer` chrome://flags/#enable-webrtc-pipewire-capturer")
         }
         Ok(())
     }
@@ -792,7 +792,7 @@ impl<'s> System for Ubuntu<'s> {
     fn install_quicklook(&self) -> Result<(), Box<dyn Error>> {
         // Gnome already has sushi
         if self.config.kde {
-            println!("Install Kiview?");
+            info!("Install Kiview?");
         }
         Ok(())
     }
@@ -861,7 +861,7 @@ impl<'s> System for Ubuntu<'s> {
             self.install_application("sweethome3d")?;
         }
 
-        let sweet_home_3d_desktop = "/usr/share/applictaions/sweethome3d.desktop";
+        let sweet_home_3d_desktop = "/usr/share/applications/sweethome3d.desktop";
         let mut sweet_home_3d_desktop_file = OpenOptions::new()
             .create(true)
             .write(true)

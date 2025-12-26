@@ -1,3 +1,5 @@
+use log::{debug, info};
+use nix::unistd::{chown, Gid, Uid};
 use std::env;
 use std::error::Error;
 use std::ffi::CString;
@@ -7,8 +9,6 @@ use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::Command;
-
-use nix::unistd::{chown, Gid, Uid};
 use walkdir::WalkDir;
 
 use crate::error;
@@ -24,7 +24,9 @@ pub(crate) fn get_group_id() -> u32 {
     if group_id.is_empty() {
         panic!("Unable to get group ID");
     }
-    group_id.parse::<u32>().unwrap()
+    let parsed = group_id.parse::<u32>().unwrap();
+    debug!("group_id {}", &parsed);
+    parsed
 }
 
 pub(crate) fn get_group_id_by_name(group_name: &str) -> Result<u32, Box<dyn Error>> {
@@ -47,7 +49,9 @@ pub(crate) fn get_user_id() -> u32 {
     if user_id.is_empty() {
         panic!("Unable to get user ID");
     }
-    user_id.parse::<u32>().unwrap()
+    let parsed = user_id.parse::<u32>().unwrap();
+    debug!("user_id {}", &parsed);
+    parsed
 }
 
 pub(crate) fn get_username() -> String {
@@ -257,7 +261,7 @@ pub(crate) fn set_java_home(
     jdk_path: &str,
 ) -> Result<(), std::io::Error> {
     let path = format!("{}/{}", system.get_home_dir(), file);
-    println!("Appending JAVA_HOME as {} to {}", jdk_path, &path);
+    info!("Appending JAVA_HOME as {} to {}", jdk_path, &path);
     add_variable_to_file(&path, "JAVA_HOME", jdk_path)?;
     env::set_var("JAVA_HOME", jdk_path);
     Ok(())
@@ -278,7 +282,7 @@ pub(crate) fn set_java_home(
 pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn Error>> {
     let home_dir = system.get_home_dir();
     let bashrc = format!("{home_dir}/.bashrc");
-    println!("Creating bashrc at {}", &bashrc);
+    info!("Creating bashrc at {}", &bashrc);
     let mut bashrc_file = OpenOptions::new()
         .create(true)
         .truncate(false)
@@ -297,7 +301,7 @@ pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn Error>> {
     let bashrc_custom = format!("{home_dir}/.bashrc.custom");
     let bashrc_custom_path = Path::new(&bashrc_custom);
     if !bashrc_custom_path.exists() {
-        println!("Creating bashrc custom at {bashrc_custom}");
+        info!("Creating bashrc custom at {bashrc_custom}");
         let mut bashrc_custom_file = OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -330,7 +334,7 @@ pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn Error>> {
 /// ```
 pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     let tmux_conf = format!("{}/.tmux.conf", system.get_home_dir());
-    println!("Creating tmux conf at {tmux_conf}");
+    info!("Creating tmux conf at {tmux_conf}");
     let mut tmux_conf_file = OpenOptions::new()
         .create(true)
         .write(true)
@@ -439,7 +443,7 @@ pub(crate) fn setup_tmux(system: &impl System) -> Result<(), std::io::Error> {
     let tmux_conf_custom = format!("{}/.tmux.custom.conf", system.get_home_dir());
     let tmux_conf_custom_path = Path::new(&tmux_conf_custom);
     if !tmux_conf_custom_path.exists() {
-        println!("Creating tmux custom conf at {tmux_conf_custom}");
+        info!("Creating tmux custom conf at {tmux_conf_custom}");
         let mut tmux_conf_custom_file = OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -513,7 +517,7 @@ pub(crate) async fn setup_zsh(
     system.execute(&format!("chsh -s {} {}", zsh, get_username()), true)?;
     fs::remove_file("oh-my-zsh.sh")?;
     let zshrc = format!("{}/.zshrc", system.get_home_dir());
-    println!("Creating zshrc at {zshrc}");
+    info!("Creating zshrc at {zshrc}");
     let mut zshrc_file = OpenOptions::new()
         .create(true)
         .write(true)
@@ -601,7 +605,7 @@ pub(crate) async fn setup_zsh(
     let zshrc_custom = format!("{}/.zshrc.custom", system.get_home_dir());
     let zshrc_custom_path = Path::new(&zshrc_custom);
     if !zshrc_custom_path.exists() {
-        println!("Creating zshrc custom at {zshrc_custom}");
+        info!("Creating zshrc custom at {zshrc_custom}");
         let mut zshrc_custom_file = OpenOptions::new()
             .create(true)
             .truncate(false)

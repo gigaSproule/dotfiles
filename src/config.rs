@@ -2,6 +2,7 @@
 pub(crate) struct Config {
     pub browsers: bool,
     pub cli_only: bool,
+    pub debug: bool,
     pub development: bool,
     pub docker: bool,
     pub dry_run: bool,
@@ -28,6 +29,7 @@ pub(crate) fn parse(args: Vec<String>) -> Config {
     Config {
         browsers: args.contains(&"--browsers".to_string()),
         cli_only: args.contains(&"--cli-only".to_string()),
+        debug: args.contains(&"--debug".to_string()),
         development: args.contains(&"--development".to_string()),
         docker: args.contains(&"--docker".to_string()),
         dry_run: args.contains(&"--dry-run".to_string()),
