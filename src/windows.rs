@@ -926,6 +926,10 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_whipper(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn install_wine(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }

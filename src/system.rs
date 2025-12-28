@@ -268,6 +268,8 @@ pub(crate) trait System: Send + Sync {
 
     fn install_whatsapp(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_whipper(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_wine(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_xbox_streaming(&self) -> Result<(), Box<dyn Error>>;
