@@ -237,6 +237,8 @@ pub(crate) async fn install<'s>(
         system.install_makemkv()?;
         println!("Installing MKVToolNix");
         system.install_mkvtoolnix()?;
+        println!("Installing Whipper");
+        system.install_whipper()?
     }
 
     if config.video && !config.cli_only {
@@ -954,6 +956,10 @@ mod tests {
             .expect_install_mkvtoolnix()
             .times(1)
             .returning(|| Ok(()));
+        mock_system
+            .expect_install_whipper()
+            .times(1)
+            .returning(|| Ok(()));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
@@ -1335,6 +1341,7 @@ mod tests {
         mock_system.expect_install_handbrake().times(0);
         mock_system.expect_install_makemkv().times(0);
         mock_system.expect_install_mkvtoolnix().times(0);
+        mock_system.expect_install_whipper().times(0);
         mock_system.expect_install_codecs().times(0);
         mock_system.expect_install_vlc().times(0);
         mock_system.expect_install_davinci_resolve().times(0);

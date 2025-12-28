@@ -1130,6 +1130,26 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_whipper(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("whipper")? {
+            self.install_application("whipper")?;
+        }
+        let mut file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(format!(
+                "{}/.config/whipper/whipper.conf",
+                self.get_home_dir()
+            ))?;
+        writeln!(file, "[whipper.cd.rip]")?;
+        writeln!(file, "output_directory = ~/Music")?;
+        writeln!(file, "track_template = %%A/%%d/%%t %%n")?;
+        writeln!(file, "disc_template = %%A/%%d/%%d")?;
+        writeln!(file, "cover_art = file")?;
+        Ok(())
+    }
+
     fn install_wine(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("wine")? {
             self.install_application("wine")?;

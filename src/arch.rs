@@ -314,9 +314,6 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_exact_audio_copy(&self) -> Result<(), Box<dyn Error>> {
-        // Ensure Wine is installed
-        // Ensure dotnet20 and dotnet40 in Wine
-        // Install EAC into Wine
         Ok(())
     }
 
@@ -1165,6 +1162,29 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_whatsapp(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn install_whipper(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("whipper")? {
+            self.install_application("whipper")?;
+        }
+        if !self.is_installed("python-pillow")? {
+            self.install_application("python-pillow")?;
+        }
+        let mut file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(format!(
+                "{}/.config/whipper/whipper.conf",
+                self.get_home_dir()
+            ))?;
+        writeln!(file, "[whipper.cd.rip]")?;
+        writeln!(file, "output_directory = ~/Music")?;
+        writeln!(file, "track_template = %%A/%%d/%%t %%n")?;
+        writeln!(file, "disc_template = %%A/%%d/%%d")?;
+        writeln!(file, "cover_art = file")?;
         Ok(())
     }
 
