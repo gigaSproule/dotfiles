@@ -716,6 +716,10 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
         if self.config.wsl && !self.is_installed_wsl("python3")? {
             self.install_wsl("python3")?;

@@ -717,6 +717,13 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("epson-inkjet-printer-escpr")? {
+            self.aur_install_application("epson-inkjet-printer-escpr")?;
+        }
+        Ok(())
+    }
+
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("python")? {
             self.install_application("python")?;
@@ -955,9 +962,6 @@ impl<'s> System for Arch<'s> {
             .truncate(true)
             .open("/etc/nsswitch.conf")?;
         file.write_all(new_contents.as_bytes())?;
-        if !self.is_installed("epson-inkjet-printer-escpr")? {
-            self.aur_install_application("epson-inkjet-printer-escpr")?;
-        }
         if !self.is_installed("speech-dispatcher")? {
             self.install_application("speech-dispatcher")?;
         }

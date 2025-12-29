@@ -16,6 +16,7 @@ pub(crate) struct Config {
     pub laptop: bool,
     pub modelling: bool,
     pub personal: bool,
+    pub printer: bool,
     pub recording: bool,
     pub ripping: bool,
     pub video: bool,
@@ -43,6 +44,7 @@ pub(crate) fn parse(args: Vec<String>) -> Config {
         laptop: args.contains(&"--laptop".to_string()),
         modelling: args.contains(&"--modelling".to_string()),
         personal: args.contains(&"--personal".to_string()),
+        printer: args.contains(&"--printer".to_string()),
         recording: args.contains(&"--recording".to_string()),
         ripping: args.contains(&"--ripping".to_string()),
         video: args.contains(&"--video".to_string()),
@@ -231,6 +233,7 @@ mod tests {
             "--laptop".to_string(),
             "--modelling".to_string(),
             "--personal".to_string(),
+            "--printer".to_string(),
             "--recording".to_string(),
             "--ripping".to_string(),
             "--video".to_string(),
@@ -251,6 +254,7 @@ mod tests {
         assert!(config.laptop);
         assert!(config.modelling);
         assert!(config.personal);
+        assert!(config.printer);
         assert!(config.recording);
         assert!(config.ripping);
         assert!(config.video);

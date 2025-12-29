@@ -782,6 +782,10 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("python3")? {
             self.install_application("python3")?;

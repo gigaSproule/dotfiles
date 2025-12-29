@@ -90,8 +90,11 @@ fn get_system<'s>(config: &'s config::Config) -> Box<dyn system::System + 's> {
 }
 
 fn print_help() {
-    println!("install [--browsers] [--development] [--docker] [--gaming] [--gcp] [--images] [--laptop] [--modelling] [--personal] [--recording] \
-        [--ripping] [--video] [--video-editing] [--vm] [--vpn] [--debug]");
+    println!(
+        "install [--browsers] [--development] [--docker] [--gaming] [--gcp] [--images] \
+        [--laptop] [--modelling] [--personal] [--printer] [--recording] [--ripping] [--video] \
+        [--video-editing] [--vm] [--vpn] [--debug]"
+    );
 }
 
 fn configure_logging(config: &config::Config) {
@@ -134,6 +137,7 @@ mod tests {
         laptop: false,
         modelling: false,
         personal: false,
+        printer: false,
         recording: false,
         ripping: false,
         video: false,
