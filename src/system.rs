@@ -227,6 +227,8 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_powertop(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>>;
+
     fn install_python(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_rust(&self) -> Result<(), Box<dyn Error>>;

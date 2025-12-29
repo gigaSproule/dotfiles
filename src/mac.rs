@@ -597,6 +597,10 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
+    fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn install_python(&self) -> Result<(), Box<dyn Error>> {
         if !Path::new(&format!(
             "{}/opt/python/libexec/bin",

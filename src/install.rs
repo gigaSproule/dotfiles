@@ -222,6 +222,11 @@ pub(crate) async fn install<'s>(
         }
     }
 
+    if config.printer {
+        info!("Installing printer drivers");
+        system.install_printer_drivers()?;
+    }
+
     if config.recording && !config.cli_only {
         info!("Installing Audacity");
         system.install_audacity()?;
@@ -294,6 +299,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -340,6 +346,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -454,6 +461,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -500,6 +508,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -570,6 +579,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -608,6 +618,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -654,6 +665,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -692,6 +704,7 @@ mod tests {
             laptop: true,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -758,6 +771,7 @@ mod tests {
             laptop: false,
             modelling: true,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -804,6 +818,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: true,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -881,6 +896,44 @@ mod tests {
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
+    fn test_install_printer() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+
+        let config = Config {
+            browsers: false,
+            cli_only: false,
+            debug: false,
+            development: false,
+            docker: false,
+            dry_run: false,
+            gaming: false,
+            gcp: false,
+            gnome: false,
+            help: false,
+            images: false,
+            infrastructure: false,
+            kde: false,
+            laptop: false,
+            modelling: false,
+            personal: false,
+            printer: true,
+            recording: false,
+            ripping: false,
+            video: false,
+            video_editing: false,
+            vm: false,
+            vpn: false,
+            wsl: false,
+        };
+        let mut mock_system = get_mock_system(&config);
+        mock_system
+            .expect_install_printer_drivers()
+            .times(1)
+            .returning(|| Ok(()));
+
+        assert!(rt.block_on(install(&config, &mock_system)).is_ok());
+    }
+
     #[test]
     fn test_install_recording() {
         let rt = tokio::runtime::Runtime::new().unwrap();
@@ -902,6 +955,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: true,
             ripping: false,
             video: false,
@@ -944,6 +998,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: true,
             video: false,
@@ -998,6 +1053,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: true,
@@ -1040,6 +1096,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -1078,6 +1135,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -1116,6 +1174,7 @@ mod tests {
             laptop: false,
             modelling: false,
             personal: false,
+            printer: false,
             recording: false,
             ripping: false,
             video: false,
@@ -1154,6 +1213,7 @@ mod tests {
             laptop: true,
             modelling: true,
             personal: true,
+            printer: true,
             recording: true,
             ripping: true,
             video: true,
@@ -1248,6 +1308,10 @@ mod tests {
             .expect_install_nodejs()
             .times(1)
             .returning(|| Box::pin(async { Ok(()) }));
+        mock_system
+            .expect_install_printer_drivers()
+            .times(1)
+            .returning(|| Ok(()));
         mock_system
             .expect_install_python()
             .times(1)
