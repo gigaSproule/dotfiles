@@ -1,4 +1,3 @@
-* Add debugging logs
 * Install KDE and applications
   * Dolphin
   * Kleopatra
@@ -13,8 +12,6 @@ Typo in /usr/share/applictaions/sweethome3d.desktop
 
 # install_system_extras
 Move setup_nas to personal
-Move printer installation to its own section
-Printer installation seems to hang
 
 # install_tauon_music_box
 Installation seems to hang

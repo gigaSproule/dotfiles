@@ -961,6 +961,10 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
     fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
         Ok(())
     }

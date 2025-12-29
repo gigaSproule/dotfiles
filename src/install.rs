@@ -187,6 +187,8 @@ pub(crate) async fn install<'s>(
     if config.personal {
         info!("Installing GPG");
         system.install_gpg()?;
+        info!("Setup NAS");
+        system.setup_nas()?;
 
         if !config.cli_only {
             // info!("Installing Authy");
@@ -892,10 +894,12 @@ mod tests {
             .expect_install_whatsapp()
             .times(1)
             .returning(|| Ok(()));
+        mock_system.expect_setup_nas().times(1).returning(|| Ok(()));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }
 
+    #[test]
     fn test_install_printer() {
         let rt = tokio::runtime::Runtime::new().unwrap();
 
@@ -1417,6 +1421,7 @@ mod tests {
         mock_system.expect_install_sweet_home_3d().times(0);
         mock_system.expect_install_themes().times(0);
         mock_system.expect_install_whatsapp().times(0);
+        mock_system.expect_setup_nas().times(1).returning(|| Ok(()));
         mock_system.expect_install_audacity().times(0);
         mock_system.expect_install_obs_studio().times(0);
         mock_system.expect_install_exact_audio_copy().times(0);

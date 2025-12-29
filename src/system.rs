@@ -309,6 +309,8 @@ pub(crate) trait System: Send + Sync + Debug {
     /// ```
     fn set_development_environment_settings(&self) -> Result<(), Box<dyn Error>>;
 
+    fn setup_nas(&self) -> Result<(), Box<dyn Error>>;
+
     /// Sets the environment configuration to enable the best possible power savings.
     ///
     /// # Examples

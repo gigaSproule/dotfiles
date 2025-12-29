@@ -718,6 +718,13 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("system-config-printer")? {
+            self.install_application("system-config-printer")?;
+        }
+        if !self.is_installed("cups")? {
+            self.install_application("cups")?;
+        }
+        self.enable_service("cups")?;
         if !self.is_installed("epson-inkjet-printer-escpr")? {
             self.aur_install_application("epson-inkjet-printer-escpr")?;
         }
@@ -934,21 +941,13 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("ntfs-3g")? {
             self.install_application("ntfs-3g")?;
         }
-        linux::setup_nas(self)?;
-        if !self.is_installed("system-config-printer")? {
-            self.install_application("system-config-printer")?;
-        }
-        if !self.is_installed("cups")? {
-            self.install_application("cups")?;
-        }
-        self.enable_service("cups")?;
         if !self.is_installed("avahi")? {
             self.install_application("avahi")?;
         }
+        self.enable_service("avahi")?;
         if !self.is_installed("nss-mdns")? {
             self.install_application("nss-mdns")?;
         }
-        self.enable_service("avahi")?;
         let contents = fs::read_to_string("/etc/nsswitch.conf")?;
         let new_contents: String = contents.lines().map(|s| {
             if s.starts_with("hosts:") {
@@ -1247,6 +1246,11 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
+    fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
+        linux::setup_nas(self)?;
+        Ok(())
+    }
+    
     fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
         linux::setup_power_saving_tweaks()?;
         Ok(())
