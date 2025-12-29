@@ -1,6 +1,9 @@
 use crate::{config::parse, install::install};
+use log::{debug, LevelFilter};
+use log4rs::append::console::ConsoleAppender;
+use log4rs::config::{Appender, Logger, Root};
+use log4rs::Config;
 use std::env;
-
 #[cfg(all(not(test), target_os = "linux"))]
 use whoami;
 
@@ -43,12 +46,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = parse(args);
 
+    configure_logging(&config);
+
     if config.help {
         print_help();
         return Ok(());
     }
 
     let system = get_system(&config);
+    debug!("System: {:?}", system);
     install(&config, &*system).await
 }
 
@@ -85,7 +91,25 @@ fn get_system<'s>(config: &'s config::Config) -> Box<dyn system::System + 's> {
 
 fn print_help() {
     println!("install [--browsers] [--development] [--docker] [--gaming] [--gcp] [--images] [--laptop] [--modelling] [--personal] [--recording] \
-        [--ripping] [--video] [--video-editing] [--vm] [--vpn]");
+        [--ripping] [--video] [--video-editing] [--vm] [--vpn] [--debug]");
+}
+
+fn configure_logging(config: &config::Config) {
+    let stdout = ConsoleAppender::builder().build();
+
+    let level = if config.debug {
+        LevelFilter::Debug
+    } else {
+        LevelFilter::Info
+    };
+
+    let log_config = Config::builder()
+        .appender(Appender::builder().build("stdout", Box::new(stdout)))
+        .logger(Logger::builder().build("dotfiles", level))
+        .build(Root::builder().appender("stdout").build(LevelFilter::Error))
+        .unwrap();
+
+    log4rs::init_config(log_config).unwrap();
 }
 
 #[cfg(test)]
@@ -96,6 +120,7 @@ mod tests {
     const CONFIG: config::Config = config::Config {
         browsers: false,
         cli_only: false,
+        debug: false,
         development: false,
         docker: false,
         dry_run: false,

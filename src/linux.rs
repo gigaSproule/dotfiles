@@ -5,6 +5,7 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
 use flate2::read::GzDecoder;
+use log::info;
 use tar::Archive;
 
 use crate::system::System;
@@ -96,13 +97,13 @@ pub(crate) fn gnome_development_shortcuts(
 }
 
 pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Error> {
-    println!("Setting mmapfs limit for Elasticsearch");
+    info!("Setting mmapfs limit for Elasticsearch");
     system::add_to_file("/etc/sysctl.conf", "vm.max_map_count=262144")?;
     Ok(())
 }
 
 pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::Error> {
-    println!("Setting up DaVinci Resolve helper scripts");
+    info!("Setting up DaVinci Resolve helper scripts");
 
     let convert_audio = format!("{}/bin/convert_audio", system.get_home_dir());
     let mut convert_audio_file = OpenOptions::new()
@@ -213,13 +214,13 @@ pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error
 }
 
 pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Creating NAS group");
+    info!("Creating NAS group");
     if unix::get_group_id_by_name("nas").is_err() {
         system.execute("groupadd nas", true)?;
     }
     system.execute(&format!("usermod -a -G nas {}", unix::get_username()), true)?;
 
-    println!("Setting up NAS scripts");
+    info!("Setting up NAS scripts");
     let smb_credentials = format!("{}/.smbcredentials", system.get_home_dir());
     if !Path::new(&smb_credentials).exists() {
         let mut smb_credentials_file = OpenOptions::new()
@@ -443,7 +444,7 @@ pub(crate) fn untar_rename_root(src: &str, dest: &str) -> Result<(), std::io::Er
             Ok(path)
         })
         .filter_map(|e| e.ok())
-        .for_each(|x| println!("> {}", x.display()));
+        .for_each(|x| info!("> {}", x.display()));
     Ok(())
 }
 

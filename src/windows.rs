@@ -1,16 +1,16 @@
+use async_trait::async_trait;
+use log::info;
+use registry::{Data, Hive, Security};
 use std::error::Error;
 use std::fs;
 use std::process::Command;
-
-use async_trait::async_trait;
-
-use registry::{Data, Hive, Security};
 use utfx::U16CString;
 
 use crate::config::Config;
 use crate::system;
 use crate::system::System;
 
+#[derive(Debug)]
 pub(crate) struct Windows<'s> {
     config: &'s Config,
 }
@@ -213,7 +213,7 @@ impl<'s> System for Windows<'s> {
                 let mut opened = value.unwrap();
                 let name = opened.name();
                 if name.to_string().unwrap() == "Path" {
-                    println!("{:?}", name);
+                    info!("{:?}", name);
                     opened.set_data(Data::String(
                         U16CString::from_str(format!(
                             "{};C:\\Program Files (x86)\\GnuWin32\\bin",

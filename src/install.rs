@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::system::System;
+use log::info;
 
 pub(crate) async fn install<'s>(
     config: &'s Config,
@@ -7,259 +8,259 @@ pub(crate) async fn install<'s>(
 ) -> Result<(), Box<dyn std::error::Error>> {
     system.setup_user_bin()?;
 
-    println!("Installing Distro Specific Extras");
+    info!("Installing Distro Specific Extras");
     system.install_system_extras().await?;
     system.update_os()?;
 
     if !config.cli_only {
-        println!("Installing Window Manager");
+        info!("Installing Window Manager");
         system.install_window_manager()?;
-        println!("Installing Graphic Card Tools");
+        info!("Installing Graphic Card Tools");
         system.install_graphic_card_tools()?;
     }
 
-    println!("Installing Bash");
+    info!("Installing Bash");
     system.install_bash()?;
-    println!("Installing Curl");
+    info!("Installing Curl");
     system.install_curl()?;
-    println!("Install Networking Tools");
+    info!("Install Networking Tools");
     system.install_networking_tools()?;
-    println!("Installing tmux");
+    info!("Installing tmux");
     system.install_tmux()?;
-    println!("Installing Vim");
+    info!("Installing Vim");
     system.install_vim()?;
-    println!("Installing Wget");
+    info!("Installing Wget");
     system.install_wget()?;
-    println!("Installing ZSH");
+    info!("Installing ZSH");
     system.install_zsh().await?;
 
     if !config.cli_only {
-        println!("Installing archiver");
+        info!("Installing archiver");
         system.install_archiver()?;
-        println!("Installing Cryptomator");
+        info!("Installing Cryptomator");
         system.install_cryptomator().await?;
-        println!("Installing KeepassXC");
+        info!("Installing KeepassXC");
         system.install_keepassxc()?;
-        println!("Installing QuickLook");
+        info!("Installing QuickLook");
         system.install_quicklook()?;
     }
 
     if config.browsers && !config.cli_only {
-        println!("Installing Firefox");
+        info!("Installing Firefox");
         system.install_firefox()?;
-        println!("Installing Google Chrome");
+        info!("Installing Google Chrome");
         system.install_google_chrome().await?;
-        println!("Installing Microsoft Edge");
+        info!("Installing Microsoft Edge");
         system.install_microsoft_edge()?;
     }
 
     if config.development {
-        println!("Installing C++");
+        info!("Installing C++");
         system.install_cplusplus()?;
-        println!("Installing exercism");
+        info!("Installing exercism");
         system.install_exercism().await?;
-        println!("Installing Gradle");
+        info!("Installing Gradle");
         system.install_gradle()?;
-        println!("Installing Git");
+        info!("Installing Git");
         system.install_git()?;
-        println!("Installing Godot");
+        info!("Installing Godot");
         system.install_godot().await?;
-        println!("Installing Groovy");
+        info!("Installing Groovy");
         system.install_groovy()?;
-        println!("Installing Java");
+        info!("Installing Java");
         system.install_jdk()?;
-        println!("Installing Maven");
+        info!("Installing Maven");
         system.install_maven()?;
-        println!("Installing NodeJS");
+        info!("Installing NodeJS");
         system.install_nodejs().await?;
-        println!("Installing Python");
+        info!("Installing Python");
         system.install_python()?;
-        println!("Installing Rust");
+        info!("Installing Rust");
         system.install_rust().await?;
-        println!("Install development specific extras");
+        info!("Install development specific extras");
         system.install_development_extras()?;
-        println!("Setting development environment settings");
+        info!("Setting development environment settings");
         system.set_development_environment_settings()?;
 
         if !config.cli_only {
-            println!("Installing Android Studio");
+            info!("Installing Android Studio");
             system.install_android_studio()?;
-            // println!("Installing Eclipse");
+            // info!("Installing Eclipse");
             // system.install_eclipse().await?;
-            println!("Installing IntelliJ");
+            info!("Installing IntelliJ");
             system.install_intellij()?;
-            println!("Installing Rust Rover");
+            info!("Installing Rust Rover");
             system.install_rust_rover()?;
-            println!("Installing Slack");
+            info!("Installing Slack");
             system.install_slack()?;
-            println!("Installing VSCode");
+            info!("Installing VSCode");
             system.install_vscode()?;
-            println!("Installing Xcode");
+            info!("Installing Xcode");
             system.install_xcode()?;
-            println!("Setting development specific shortcuts");
+            info!("Setting development specific shortcuts");
             system.set_development_shortcuts()?;
         }
     }
 
     if config.docker {
-        println!("Installing Docker");
+        info!("Installing Docker");
         system.install_docker()?;
-        println!("Installing Kubectl");
+        info!("Installing Kubectl");
         system.install_kubectl().await?;
-        println!("Installing Helm");
+        info!("Installing Helm");
         system.install_helm().await?;
-        // println!("Installing Minikube");
+        // info!("Installing Minikube");
         // system.install_minikube();
     }
 
     if config.gaming && !config.cli_only {
-        println!("Installing Discord");
+        info!("Installing Discord");
         system.install_discord()?;
-        println!("Installing Epic Games");
+        info!("Installing Epic Games");
         system.install_epic_games().await?;
-        println!("Installing GOG Galaxy");
+        info!("Installing GOG Galaxy");
         system.install_gog_galaxy().await?;
-        println!("Installing Lutris");
+        info!("Installing Lutris");
         system.install_lutris()?;
-        println!("Installing Origin");
+        info!("Installing Origin");
         system.install_origin()?;
-        println!("Installing RetroArch");
+        info!("Installing RetroArch");
         system.install_retroarch()?;
-        println!("Installing Steam");
+        info!("Installing Steam");
         system.install_steam()?;
-        println!("Installing Wine");
+        info!("Installing Wine");
         system.install_wine()?;
-        println!("Installing Xbox streaming");
+        info!("Installing Xbox streaming");
         system.install_xbox_streaming().await?;
     }
 
     if config.gcp {
-        println!("Installing Google Cloud SDK");
+        info!("Installing Google Cloud SDK");
         system.install_google_cloud_sdk()?;
     }
 
     if config.images && !config.cli_only {
-        println!("Installing Affinity Suite");
+        info!("Installing Affinity Suite");
         system.install_affinity_suite()?;
-        println!("Installing Gimp");
+        info!("Installing Gimp");
         system.install_gimp()?;
-        println!("Installing Inkscape");
+        info!("Installing Inkscape");
         system.install_inkscape()?;
     }
 
     if config.infrastructure {
-        println!("Installing Terraform");
+        info!("Installing Terraform");
         system.install_terraform()?;
     }
 
     if config.laptop {
-        println!("Installing Bluetooth");
+        info!("Installing Bluetooth");
         system.install_bluetooth()?;
-        println!("Installing FWUPD");
+        info!("Installing FWUPD");
         system.install_firmware_updater()?;
-        println!("Installing Microcode");
+        info!("Installing Microcode");
         system.install_microcode()?;
-        println!("Installing Powertop");
+        info!("Installing Powertop");
         system.install_powertop()?;
-        println!("Installing TLP");
+        info!("Installing TLP");
         system.install_tlp()?;
-        println!("Install WiFi");
+        info!("Install WiFi");
         system.install_wifi().await?;
-        println!("Setup power saving tweaks");
+        info!("Setup power saving tweaks");
         system.setup_power_saving_tweaks()?;
 
         if !config.cli_only {
-            println!("Installing Graphics Card Tools for Laptop");
+            info!("Installing Graphics Card Tools for Laptop");
             system.install_graphic_card_laptop_tools()?;
         }
     }
 
     if config.modelling && !config.cli_only {
-        println!("Installing Blender");
+        info!("Installing Blender");
         system.install_blender()?;
-        println!("Installing Bambu Studio");
+        info!("Installing Bambu Studio");
         system.install_bambu_studio()?;
-        println!("Installing OpenSCAD");
+        info!("Installing OpenSCAD");
         system.install_openscad()?;
     }
 
     if config.personal {
-        println!("Installing GPG");
+        info!("Installing GPG");
         system.install_gpg()?;
 
         if !config.cli_only {
-            // println!("Installing Authy");
+            // info!("Installing Authy");
             // system.install_authy()?;
-            println!("Installing Calibre");
+            info!("Installing Calibre");
             system.install_calibre()?;
-            println!("Installing Disk Usage Analyser");
+            info!("Installing Disk Usage Analyser");
             system.install_disk_usage_analyser()?;
-            println!("Installing Google Drive");
+            info!("Installing Google Drive");
             system.install_google_drive()?;
-            println!("Installing Gramps");
+            info!("Installing Gramps");
             system.install_gramps()?;
-            println!("Installing Insync");
+            info!("Installing Insync");
             system.install_insync()?;
-            println!("Installing LaTeX");
+            info!("Installing LaTeX");
             system.install_latex()?;
-            // println!("Installing Nextcloud Client");
+            // info!("Installing Nextcloud Client");
             // system.install_nextcloud_client()?;
-            println!("Installing Office");
+            info!("Installing Office");
             system.install_office()?;
-            println!("Installing OneDrive");
+            info!("Installing OneDrive");
             system.install_onedrive()?;
-            // println!("Installing Spotify");
+            // info!("Installing Spotify");
             // system.install_spotify()?;
-            println!("Installing Tauon Music Box");
+            info!("Installing Tauon Music Box");
             system.install_tauon_music_box().await?;
-            println!("Installing SweetHome3D");
+            info!("Installing SweetHome3D");
             system.install_sweet_home_3d()?;
-            println!("Installing themes");
+            info!("Installing themes");
             system.install_themes().await?;
-            println!("Installing WhatsApp");
+            info!("Installing WhatsApp");
             system.install_whatsapp()?;
         }
     }
 
     if config.recording && !config.cli_only {
-        println!("Installing Audacity");
+        info!("Installing Audacity");
         system.install_audacity()?;
-        println!("Installing OBS Studio");
+        info!("Installing OBS Studio");
         system.install_obs_studio()?;
     }
 
     if config.ripping && !config.cli_only {
-        println!("Installing Exact Audio Copy");
+        info!("Installing Exact Audio Copy");
         system.install_exact_audio_copy()?;
-        println!("Installing Handbrake");
+        info!("Installing Handbrake");
         system.install_handbrake()?;
-        println!("Installing MakeMKV");
+        info!("Installing MakeMKV");
         system.install_makemkv()?;
-        println!("Installing MKVToolNix");
+        info!("Installing MKVToolNix");
         system.install_mkvtoolnix()?;
-        println!("Installing Whipper");
+        info!("Installing Whipper");
         system.install_whipper()?
     }
 
     if config.video && !config.cli_only {
-        println!("Installing Codecs");
+        info!("Installing Codecs");
         system.install_codecs().await?;
-        println!("Installing VLC");
+        info!("Installing VLC");
         system.install_vlc().await?;
     }
 
     if config.video_editing && !config.cli_only {
-        println!("Installing DaVinci Resolve");
+        info!("Installing DaVinci Resolve");
         system.install_davinci_resolve()?;
     }
 
     if config.vm && !config.cli_only {
-        println!("Installing VM Tools");
+        info!("Installing VM Tools");
         system.install_vm_tools()?;
     }
 
     if config.vpn && !config.cli_only {
-        println!("Installing NordVPN");
+        info!("Installing NordVPN");
         system.install_nordvpn().await?;
     }
 
@@ -279,6 +280,7 @@ mod tests {
         let config = Config {
             browsers: true,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -324,6 +326,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: true,
             docker: false,
             dry_run: false,
@@ -437,6 +440,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: true,
             dry_run: false,
@@ -482,6 +486,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -551,6 +556,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -588,6 +594,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -633,6 +640,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -670,6 +678,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -735,6 +744,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -780,6 +790,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -877,6 +888,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -918,6 +930,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -971,6 +984,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -1012,6 +1026,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -1049,6 +1064,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -1086,6 +1102,7 @@ mod tests {
         let config = Config {
             browsers: false,
             cli_only: false,
+            debug: false,
             development: false,
             docker: false,
             dry_run: false,
@@ -1123,6 +1140,7 @@ mod tests {
         let config = Config {
             browsers: true,
             cli_only: true,
+            debug: true,
             development: true,
             docker: true,
             dry_run: true,

@@ -1,15 +1,16 @@
+use async_trait::async_trait;
+use log::info;
 use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
-use async_trait::async_trait;
-
 use crate::config::Config;
 use crate::system::{self, System};
 use crate::unix;
 
+#[derive(Debug)]
 pub(crate) struct Mac<'s> {
     config: &'s Config,
 }
