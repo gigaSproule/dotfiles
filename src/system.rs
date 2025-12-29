@@ -1,4 +1,3 @@
-use crate::system;
 use async_trait::async_trait;
 use log::{debug, info};
 #[cfg(test)]
@@ -144,16 +143,16 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_gramps(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
-        let gpus = get_gpus();
+    async fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
+        let gpus = get_gpus().await?;
         if gpus.iter().any(|gpu| gpu.to_lowercase().contains("nvidia")) {
             self.install_nvidia_tools()?;
         }
         Ok(())
     }
 
-    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
-        let gpus = get_gpus();
+    async fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
+        let gpus = get_gpus().await?;
         if gpus.iter().any(|gpu| gpu.to_lowercase().contains("nvidia")) {
             self.install_nvidia_laptop_tools()?;
         }
@@ -530,9 +529,9 @@ pub(crate) fn file_contains(file: &str, contains: &str) -> bool {
 ///
 /// system::get_gpus();
 /// ```
-pub(crate) fn get_gpus() -> Vec<String> {
+pub(crate) async fn get_gpus() -> Result<Vec<String>, Box<dyn Error>> {
     let instance = wgpu::Instance::default();
-    let adapters: Vec<Adapter> = instance.enumerate_adapters(BACKENDS);
+    let adapters: Vec<Adapter> = instance.enumerate_adapters(BACKENDS).await;
 
     let mut names: Vec<String> = Vec::new();
 
@@ -540,7 +539,7 @@ pub(crate) fn get_gpus() -> Vec<String> {
         names.push(adapter.get_info().name.to_string());
     }
 
-    names
+    Ok(names)
 }
 
 /// Returns the users home directory _without_ the trailing slash.

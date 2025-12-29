@@ -340,10 +340,6 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
     fn install_groovy(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("groovy")? {
             self.install_application("groovy")?;
