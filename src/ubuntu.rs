@@ -928,7 +928,6 @@ impl<'s> System for Ubuntu<'s> {
             self.install_application("flatpak")?;
             self.execute("flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo", false)?;
         }
-        linux::setup_nas(self)?;
         Ok(())
     }
 
@@ -1196,6 +1195,11 @@ impl<'s> System for Ubuntu<'s> {
 
     fn set_development_environment_settings(&self) -> Result<(), Box<dyn Error>> {
         linux::set_development_environment_settings()?;
+        Ok(())
+    }
+
+    fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
+        linux::setup_nas(self)?;
         Ok(())
     }
 

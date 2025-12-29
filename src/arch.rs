@@ -513,8 +513,8 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("texlive-most")? {
-            self.install_application("texlive-most")?;
+        if !self.is_installed("texlive")? {
+            self.install_application("texlive")?;
         }
         if !self.is_installed("perl-yaml-tiny")? {
             self.install_application("perl-yaml-tiny")?;
@@ -718,6 +718,13 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("system-config-printer")? {
+            self.install_application("system-config-printer")?;
+        }
+        if !self.is_installed("cups")? {
+            self.install_application("cups")?;
+        }
+        self.enable_service("cups")?;
         if !self.is_installed("epson-inkjet-printer-escpr")? {
             self.aur_install_application("epson-inkjet-printer-escpr")?;
         }
@@ -934,21 +941,13 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("ntfs-3g")? {
             self.install_application("ntfs-3g")?;
         }
-        linux::setup_nas(self)?;
-        if !self.is_installed("system-config-printer")? {
-            self.install_application("system-config-printer")?;
-        }
-        if !self.is_installed("cups")? {
-            self.install_application("cups")?;
-        }
-        self.enable_service("cups")?;
         if !self.is_installed("avahi")? {
             self.install_application("avahi")?;
         }
+        self.enable_service("avahi")?;
         if !self.is_installed("nss-mdns")? {
             self.install_application("nss-mdns")?;
         }
-        self.enable_service("avahi")?;
         let contents = fs::read_to_string("/etc/nsswitch.conf")?;
         let new_contents: String = contents.lines().map(|s| {
             if s.starts_with("hosts:") {
@@ -1050,28 +1049,10 @@ impl<'s> System for Arch<'s> {
             self.aur_install_application("visual-studio-code-bin")?;
         }
         self.install_hunspell()?;
-        // TODO: Need to fix this as it creates a `*` file under `~/vscode/dictionaries`
-        let dictionary_config = &format!("{}/vscode/dictionaries", self.get_home_dir());
-        let dictionaries_path = Path::new(dictionary_config);
-        if !dictionaries_path.exists() {
-            fs::create_dir_all(dictionaries_path)?;
-        }
-        unix::symlink(self, "/usr/share/hunspell/*", dictionary_config)?;
-        let user_id = unix::get_user_id();
-        let group_id = unix::get_group_id();
-        unix::recursively_chown(dictionary_config, &user_id, &group_id)?;
         Ok(())
     }
 
     async fn install_wifi(&self) -> Result<(), Box<dyn Error>> {
-        fs::copy(
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak",
-        )?;
-        system::download_file(
-            "https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035",
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
-        ).await?;
         Ok(())
     }
 
@@ -1244,6 +1225,11 @@ impl<'s> System for Arch<'s> {
 
     fn set_development_environment_settings(&self) -> Result<(), Box<dyn Error>> {
         linux::set_development_environment_settings()?;
+        Ok(())
+    }
+
+    fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
+        linux::setup_nas(self)?;
         Ok(())
     }
 
