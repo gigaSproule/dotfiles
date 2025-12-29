@@ -1138,14 +1138,13 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("xdg-desktop-portal-kde")? {
                 self.install_application("xdg-desktop-portal-kde")?;
             }
+            let parent_dir = format!("{}/.config/plasma-workspace/env", self.get_home_dir());
+            fs::create_dir_all(&parent_dir)?;
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(format!(
-                    "{}/.config/plasma-workspace/env/gtk.sh",
-                    self.get_home_dir()
-                ))?;
+                .open(format!("{}/gtk.sh", &parent_dir))?;
             writeln!(file, "export GTK_USE_PORTAL=1")?;
         }
         self.enable_service("NetworkManager")?;
@@ -1216,7 +1215,9 @@ impl<'s> System for Arch<'s> {
     }
 
     fn set_development_shortcuts(&self) -> Result<(), Box<dyn Error>> {
-        linux::gnome_development_shortcuts(self)?;
+        if self.config.gnome {
+            linux::gnome_development_shortcuts(self)?;
+        }
         Ok(())
     }
 
