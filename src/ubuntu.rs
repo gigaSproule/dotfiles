@@ -1069,8 +1069,8 @@ impl<'s> System for Ubuntu<'s> {
             if !self.is_installed("dolphin-plugins")? {
                 self.install_application("dolphin-plugins")?;
             }
-            if !self.is_installed("phonon-qt5-vlc")? {
-                self.install_application("phonon-qt5-vlc")?;
+            if !self.is_installed("phonon-qt6-vlc")? {
+                self.install_application("phonon-qt6-vlc")?;
             }
             if !self.is_installed("ffmpegthumbnailer")? {
                 self.install_application("ffmpegthumbnailer")?;
@@ -1083,6 +1083,9 @@ impl<'s> System for Ubuntu<'s> {
             }
             if !self.is_installed("kdegraphics-thumbnailers")? {
                 self.install_application("kdegraphics-thumbnailers")?;
+            }
+            if !self.is_installed("kleopatra")? {
+                self.install_application("kleopatra")?;
             }
             if !self.is_installed("konsole")? {
                 self.install_application("konsole")?;

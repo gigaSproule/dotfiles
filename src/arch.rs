@@ -1089,11 +1089,8 @@ impl<'s> System for Arch<'s> {
             open::that("https://extensions.gnome.org/extension/3960/transparent-top-bar-adjustable-transparency/")?;
         }
         if self.config.kde {
-            if !self.is_installed("plasma")? {
+            if !self.is_installed("plasma-desktop")? {
                 self.install_application("plasma")?;
-            }
-            if !self.is_installed("plasma-wayland-session")? {
-                self.install_application("plasma-wayland-session")?;
             }
             if !self.is_installed("baloo")? {
                 self.install_application("baloo")?;
@@ -1104,8 +1101,8 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("dolphin-plugins")? {
                 self.install_application("dolphin-plugins")?;
             }
-            if !self.is_installed("phonon-qt5-vlc")? {
-                self.install_application("phonon-qt5-vlc")?;
+            if !self.is_installed("phonon-qt6-vlc")? {
+                self.install_application("phonon-qt6-vlc")?;
             }
             if !self.is_installed("ffmpegthumbnailer")? {
                 self.install_application("ffmpegthumbnailer")?;
@@ -1119,14 +1116,14 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("kdegraphics-thumbnailers")? {
                 self.install_application("kdegraphics-thumbnailers")?;
             }
+            if !self.is_installed("kleopatra")? {
+                self.install_application("kleopatra")?;
+            }
             if !self.is_installed("konsole")? {
                 self.install_application("konsole")?;
             }
             if !self.is_installed("ktorrent")? {
                 self.install_application("ktorrent")?;
-            }
-            if !self.is_installed("latte-dock")? {
-                self.install_application("latte-dock")?;
             }
             if !self.is_installed("okular")? {
                 self.install_application("okular")?;
@@ -1134,21 +1131,20 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("sddm")? {
                 self.install_application("sddm")?;
             }
+            self.enable_service("sddm")?;
             if !self.is_installed("sddm-kcm")? {
                 self.install_application("sddm-kcm")?;
             }
             if !self.is_installed("xdg-desktop-portal-kde")? {
                 self.install_application("xdg-desktop-portal-kde")?;
             }
-            self.enable_service("sddm")?;
+            let parent_dir = format!("{}/.config/plasma-workspace/env", self.get_home_dir());
+            fs::create_dir_all(&parent_dir)?;
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(format!(
-                    "{}/.config/plasma-workspace/env/gtk.sh",
-                    self.get_home_dir()
-                ))?;
+                .open(format!("{}/gtk.sh", &parent_dir))?;
             writeln!(file, "export GTK_USE_PORTAL=1")?;
         }
         self.enable_service("NetworkManager")?;
@@ -1219,7 +1215,9 @@ impl<'s> System for Arch<'s> {
     }
 
     fn set_development_shortcuts(&self) -> Result<(), Box<dyn Error>> {
-        linux::gnome_development_shortcuts(self)?;
+        if self.config.gnome {
+            linux::gnome_development_shortcuts(self)?;
+        }
         Ok(())
     }
 

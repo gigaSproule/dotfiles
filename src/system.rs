@@ -145,7 +145,7 @@ pub(crate) trait System: Send + Sync + Debug {
     fn install_gramps(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
-        let gpus = system::get_gpus();
+        let gpus = get_gpus();
         if gpus.iter().any(|gpu| gpu.to_lowercase().contains("nvidia")) {
             self.install_nvidia_tools()?;
         }
@@ -153,7 +153,7 @@ pub(crate) trait System: Send + Sync + Debug {
     }
 
     fn install_graphic_card_laptop_tools(&self) -> Result<(), Box<dyn Error>> {
-        let gpus = system::get_gpus();
+        let gpus = get_gpus();
         if gpus.iter().any(|gpu| gpu.to_lowercase().contains("nvidia")) {
             self.install_nvidia_laptop_tools()?;
         }
