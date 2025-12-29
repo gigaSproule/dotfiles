@@ -513,8 +513,8 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_latex(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("texlive-most")? {
-            self.install_application("texlive-most")?;
+        if !self.is_installed("texlive")? {
+            self.install_application("texlive")?;
         }
         if !self.is_installed("perl-yaml-tiny")? {
             self.install_application("perl-yaml-tiny")?;
@@ -1049,28 +1049,10 @@ impl<'s> System for Arch<'s> {
             self.aur_install_application("visual-studio-code-bin")?;
         }
         self.install_hunspell()?;
-        // TODO: Need to fix this as it creates a `*` file under `~/vscode/dictionaries`
-        let dictionary_config = &format!("{}/vscode/dictionaries", self.get_home_dir());
-        let dictionaries_path = Path::new(dictionary_config);
-        if !dictionaries_path.exists() {
-            fs::create_dir_all(dictionaries_path)?;
-        }
-        unix::symlink(self, "/usr/share/hunspell/*", dictionary_config)?;
-        let user_id = unix::get_user_id();
-        let group_id = unix::get_group_id();
-        unix::recursively_chown(dictionary_config, &user_id, &group_id)?;
         Ok(())
     }
 
     async fn install_wifi(&self) -> Result<(), Box<dyn Error>> {
-        fs::copy(
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin.bak",
-        )?;
-        system::download_file(
-            "https://github.com/kvalo/ath10k-firmware/raw/master/QCA6174/hw3.0/4.4.1.c3/firmware-6.bin_WLAN.RM.4.4.1.c3-00035",
-            "/lib/firmware/ath10k/QCA6174/hw3.0/firmware-6.bin",
-        ).await?;
         Ok(())
     }
 
@@ -1250,7 +1232,7 @@ impl<'s> System for Arch<'s> {
         linux::setup_nas(self)?;
         Ok(())
     }
-    
+
     fn setup_power_saving_tweaks(&self) -> Result<(), Box<dyn Error>> {
         linux::setup_power_saving_tweaks()?;
         Ok(())
