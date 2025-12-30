@@ -661,8 +661,8 @@ impl<'s> System for Arch<'s> {
     }
 
     fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("nvidia")? {
-            self.install_application("nvidia")?;
+        if !self.is_installed("nvidia-open")? {
+            self.install_application("nvidia-open")?;
         }
         if !self.is_installed("nvidia-utils")? {
             self.install_application("nvidia-utils")?;
