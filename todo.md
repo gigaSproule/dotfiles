@@ -1,3 +1,0 @@
-```shell
-dotfiles-linux --laptop
-```

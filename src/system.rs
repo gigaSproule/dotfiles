@@ -1,3 +1,5 @@
+#[cfg(target_os = "linux")]
+use crate::unix;
 use async_trait::async_trait;
 use log::{debug, info};
 #[cfg(test)]
@@ -11,13 +13,11 @@ use std::path::Path;
 use std::process::Command;
 use std::process::Stdio;
 use std::{fs, io};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use wgpu::{Adapter, Backends};
 
-#[cfg(any(target_os = "linux", target_os = "windows"))]
-static BACKENDS: Backends = Backends::VULKAN;
-
-#[cfg(target_os = "macos")]
-static BACKENDS: Backends = Backends::METAL;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+static BACKENDS: Backends = Backends::all();
 
 #[async_trait]
 #[cfg_attr(test, automock)]
@@ -53,6 +53,7 @@ pub(crate) trait System: Send + Sync + Debug {
     /// system.install_application("application");
     /// ```
     fn install_application(&self, application: &str) -> Result<String, Box<dyn Error>> {
+        debug!("Installing {}", application);
         self.install_applications(vec![application])
     }
 
@@ -529,15 +530,36 @@ pub(crate) fn file_contains(file: &str, contains: &str) -> bool {
 ///
 /// system::get_gpus();
 /// ```
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 pub(crate) async fn get_gpus() -> Result<Vec<String>, Box<dyn Error>> {
     let instance = wgpu::Instance::default();
     let adapters: Vec<Adapter> = instance.enumerate_adapters(BACKENDS).await;
 
     let mut names: Vec<String> = Vec::new();
-
     for adapter in adapters {
         names.push(adapter.get_info().name.to_string());
     }
+
+    Ok(names)
+}
+
+#[cfg(target_os = "linux")]
+pub(crate) async fn get_gpus() -> Result<Vec<String>, Box<dyn Error>> {
+    let output =
+        unix::execute("lspci -k", false, false, false).expect("Failed to execute lspci command");
+    let mut names: Vec<String> = Vec::new();
+    output
+        .split("\n")
+        .filter(|line| line.contains("VGA compatible controller") || line.contains("3D controller"))
+        .for_each(|line| {
+            debug!("{}", line);
+            let find = "controller: ";
+            let position = line
+                .find(find)
+                .expect("Couldn't find controller: in lspci output")
+                + find.len();
+            names.push(line.split_at(position).1.trim().to_string());
+        });
 
     Ok(names)
 }
