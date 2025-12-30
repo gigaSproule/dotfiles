@@ -2,5 +2,5 @@
 Installation seems to hang
 
 ```shell
-dotfiles-linux --development --laptop
+dotfiles-linux --laptop
 ```

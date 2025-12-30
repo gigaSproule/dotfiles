@@ -16,7 +16,7 @@ pub(crate) async fn install<'s>(
         info!("Installing Window Manager");
         system.install_window_manager()?;
         info!("Installing Graphic Card Tools");
-        system.install_graphic_card_tools()?;
+        system.install_graphic_card_tools().await?;
     }
 
     info!("Installing Bash");
@@ -171,7 +171,7 @@ pub(crate) async fn install<'s>(
 
         if !config.cli_only {
             info!("Installing Graphics Card Tools for Laptop");
-            system.install_graphic_card_laptop_tools()?;
+            system.install_graphic_card_laptop_tools().await?;
         }
     }
 
@@ -727,7 +727,7 @@ mod tests {
         mock_system
             .expect_install_graphic_card_laptop_tools()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_microcode()
             .times(1)
@@ -1457,7 +1457,7 @@ mod tests {
         mock_system
             .expect_install_graphic_card_tools()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_archiver()
             .times(1)
