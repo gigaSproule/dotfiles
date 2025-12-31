@@ -146,9 +146,14 @@ pub(crate) trait System: Send + Sync + Debug {
 
     async fn install_graphic_card_tools(&self) -> Result<(), Box<dyn Error>> {
         let gpus = get_gpus().await?;
-        if gpus.iter().any(|gpu| gpu.to_lowercase().contains("nvidia")) {
-            self.install_nvidia_tools()?;
-        }
+        let _ = gpus
+            .iter()
+            .filter(|gpu| gpu.to_lowercase().contains("nvidia"))
+            .map(|gpu| {
+                self.install_nvidia_tools(gpu)?;
+                Ok(())
+            })
+            .collect::<Vec<Result<(), Box<dyn Error>>>>();
         Ok(())
     }
 
@@ -211,7 +216,7 @@ pub(crate) trait System: Send + Sync + Debug {
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>>;
+    fn install_nvidia_tools(&self, gpu: &String) -> Result<(), Box<dyn Error>>;
 
     fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn Error>>;
 
