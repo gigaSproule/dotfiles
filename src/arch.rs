@@ -660,27 +660,51 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_nvidia_tools(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("nvidia-open")? {
-            self.install_application("nvidia-open")?;
-        }
-        if !self.is_installed("nvidia-utils")? {
-            self.install_application("nvidia-utils")?;
-        }
-        if !self.is_installed("lib32-nvidia-utils")? {
-            self.install_application("lib32-nvidia-utils")?;
-        }
-        if !self.is_installed("nvidia-settings")? {
-            self.install_application("nvidia-settings")?;
+    fn install_nvidia_tools(&self, gpu: &String) -> Result<(), Box<dyn Error>> {
+        if gpu.contains("1050") {
+            if !self.is_installed("dkms")? {
+                self.aur_install_application("dkms")?;
+            }
+            if !self.is_installed("linux-headers")? {
+                self.aur_install_application("linux-headers")?;
+            }
+            if !self.is_installed("nvidia-580xx-dkms")? {
+                self.aur_install_application("nvidia-580xx-dkms")?;
+            }
+            if !self.is_installed("nvidia-580xx-utils")? {
+                self.aur_install_application("nvidia-580xx-utils")?;
+            }
+            if !self.is_installed("lib32-nvidia-580xx-utils")? {
+                self.aur_install_application("lib32-nvidia-580xx-utils")?;
+            }
+            if !self.is_installed("nvidia-580xx-settings")? {
+                self.aur_install_application("nvidia-580xx-settings")?;
+            }
+            if !self.is_installed("opencl-nvidia-580xx")? {
+                self.install_application("opencl-nvidia-580xx")?;
+            }
+        } else {
+            if !self.is_installed("nvidia-open")? {
+                self.install_application("nvidia-open")?;
+            }
+            if !self.is_installed("nvidia-utils")? {
+                self.install_application("nvidia-utils")?;
+            }
+            if !self.is_installed("lib32-nvidia-utils")? {
+                self.install_application("lib32-nvidia-utils")?;
+            }
+            if !self.is_installed("nvidia-settings")? {
+                self.install_application("nvidia-settings")?;
+            }
+            if !self.is_installed("opencl-nvidia")? {
+                self.install_application("opencl-nvidia")?;
+            }
         }
         if !self.is_installed("vulkan-icd-loader")? {
             self.install_application("vulkan-icd-loader")?;
         }
         if !self.is_installed("lib32-vulkan-icd-loader")? {
             self.install_application("lib32-vulkan-icd-loader")?;
-        }
-        if !self.is_installed("opencl-nvidia")? {
-            self.install_application("opencl-nvidia")?;
         }
         Ok(())
     }
