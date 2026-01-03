@@ -660,7 +660,7 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_nvidia_tools(&self, gpu: &String) -> Result<(), Box<dyn Error>> {
+    fn install_nvidia_tools(&self, gpu: &str) -> Result<(), Box<dyn Error>> {
         if gpu.contains("1050") {
             if !self.is_installed("dkms")? {
                 self.aur_install_application("dkms")?;
