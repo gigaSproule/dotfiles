@@ -567,7 +567,7 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_nvidia_tools(&self, _gpu: &String) -> Result<(), Box<dyn Error>> {
+    fn install_nvidia_tools(&self, _gpu: &str) -> Result<(), Box<dyn Error>> {
         Ok(())
     }
 

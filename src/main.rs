@@ -15,11 +15,11 @@ static DISTRO_VALUE: Mutex<&str> = Mutex::new("Ubuntu");
 pub mod whoami {
     use crate::DISTRO_VALUE;
 
-    pub fn distro() -> String {
-        DISTRO_VALUE
+    pub fn distro() -> Result<String, whoami::Error> {
+        Ok(DISTRO_VALUE
             .lock()
             .expect("Failed to lock the DISTRO_VALUE mutex.")
-            .to_string()
+            .to_string())
     }
 }
 #[cfg(all(test, target_os = "windows"))]
@@ -84,9 +84,10 @@ fn get_system<'s>(config: &'s config::Config) -> Box<dyn system::System + 's> {
     }
     let distro_str = whoami::distro();
     match distro_str {
-        distro if distro == "Arch Linux" => Box::new(arch::Arch::new(config)),
-        distro if distro.starts_with("Ubuntu") => Box::new(ubuntu::Ubuntu::new(config)),
-        _ => panic!("Unable to determine the distro {distro_str}."),
+        Ok(distro) if distro == "Arch Linux" => Box::new(arch::Arch::new(config)),
+        Ok(distro) if distro.starts_with("Ubuntu") => Box::new(ubuntu::Ubuntu::new(config)),
+        Ok(distro) => panic!("Unable to determine the distro {distro}."),
+        Err(msg) => panic!("Unable to determine the distro {msg}."),
     }
 }
 

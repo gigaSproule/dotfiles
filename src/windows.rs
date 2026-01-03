@@ -683,7 +683,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_nvidia_tools(&self, _gpu: &String) -> Result<(), Box<dyn Error>> {
+    fn install_nvidia_tools(&self, _gpu: &str) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("NvApp")? {
             open::that("https://www.nvidia.com/en-gb/software/nvidia-app/")?;
         }

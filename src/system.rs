@@ -216,7 +216,7 @@ pub(crate) trait System: Send + Sync + Debug {
 
     async fn install_nordvpn(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_nvidia_tools(&self, gpu: &String) -> Result<(), Box<dyn Error>>;
+    fn install_nvidia_tools(&self, gpu: &str) -> Result<(), Box<dyn Error>>;
 
     fn install_nvidia_laptop_tools(&self) -> Result<(), Box<dyn Error>>;
 

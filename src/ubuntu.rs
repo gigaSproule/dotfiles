@@ -741,7 +741,7 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_nvidia_tools(&self, _gpu: &String) -> Result<(), Box<dyn Error>> {
+    fn install_nvidia_tools(&self, _gpu: &str) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("ubuntu-drivers-common")? {
             self.add_ppa("graphics-drivers/ppa")?;
             self.update_os_repo()?;
