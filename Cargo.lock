@@ -2220,9 +2220,9 @@ dependencies = [
 
 [[package]]
 name = "serial_test"
-version = "3.3.0"
+version = "3.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f0a431a3ca900d082ff6741295bf7594a3c33cb7c46baf80be8c72a4842fcb4"
+checksum = "0d0b343e184fc3b7bb44dff0705fffcf4b3756ba6aff420dddd8b24ca145e555"
 dependencies = [
  "futures-executor",
  "futures-util",
