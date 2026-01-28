@@ -894,6 +894,21 @@ impl<'s> System for Ubuntu<'s> {
             "msttcorefonts/accepted-mscorefonts-eula",
             "true",
         )?;
+        if !self.is_installed("fonts-dejavu")? {
+            self.install_application("fonts-dejavu")?;
+        }
+        if !self.is_installed("fonts-liberation")? {
+            self.install_application("fonts-liberation")?;
+        }
+        if !self.is_installed("fonts-noto")? {
+            self.install_application("fonts-noto")?;
+        }
+        if !self.is_installed("fonts-noto-cjk")? {
+            self.install_application("fonts-noto-cjk")?;
+        }
+        if !self.is_installed("fonts-roboto")? {
+            self.install_application("fonts-roboto")?;
+        }
         if !self.is_installed("network-manager")? {
             self.install_application("network-manager")?;
         }

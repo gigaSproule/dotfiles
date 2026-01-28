@@ -938,6 +938,21 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("ttf-dejavu")? {
             self.install_application("ttf-dejavu")?;
         }
+        if !self.is_installed("ttf-liberation")? {
+            self.install_application("ttf-liberation")?;
+        }
+        if !self.is_installed("ttf-ms-win11-auto")? {
+            self.aur_install_application("ttf-ms-win11-auto")?;
+        }
+        if !self.is_installed("noto-fonts")? {
+            self.install_application("noto-fonts")?;
+        }
+        if !self.is_installed("noto-fonts-cjk")? {
+            self.install_application("noto-fonts-cjk")?;
+        }
+        if !self.is_installed("ttf-roboto")? {
+            self.install_application("ttf-roboto")?;
+        }
         if !self.is_installed("alsa-utils")? {
             self.install_application("alsa-utils")?;
         }
