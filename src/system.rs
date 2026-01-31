@@ -248,6 +248,8 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_sweet_home_3d(&self) -> Result<(), Box<dyn Error>>;
 
+    fn install_syncthing(&self) -> Result<(), Box<dyn Error>>;
+
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_tauon_music_box(&self) -> Result<(), Box<dyn Error>>;
