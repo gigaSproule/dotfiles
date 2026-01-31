@@ -797,6 +797,13 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
+    fn install_syncthing(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("Syncthing.Syncthing")? {
+            self.install_application("Syncthing.Syncthing")?;
+        }
+        Ok(())
+    }
+
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         // Needed to install powershell modules
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;

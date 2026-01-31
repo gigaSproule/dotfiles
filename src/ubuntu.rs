@@ -888,6 +888,13 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
+    fn install_syncthing(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("syncthing")? {
+            self.install_application("syncthing")?;
+        }
+        Ok(())
+    }
+
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         self.set_debconf(
             "ttf-mscorefonts-installer",

@@ -128,6 +128,8 @@ pub(crate) async fn install<'s>(
         system.install_retroarch()?;
         info!("Installing Steam");
         system.install_steam()?;
+        info!("Installing Syncthing");
+        system.install_syncthing()?;
         info!("Installing Wine");
         system.install_wine()?;
         info!("Installing Xbox streaming");
@@ -546,6 +548,10 @@ mod tests {
             .returning(|| Ok(()));
         mock_system
             .expect_install_steam()
+            .times(1)
+            .returning(|| Ok(()));
+        mock_system
+            .expect_install_syncthing()
             .times(1)
             .returning(|| Ok(()));
         mock_system
@@ -1356,6 +1362,7 @@ mod tests {
         mock_system.expect_install_origin().times(0);
         mock_system.expect_install_retroarch().times(0);
         mock_system.expect_install_steam().times(0);
+        mock_system.expect_install_syncthing().times(0);
         mock_system.expect_install_wine().times(0);
         mock_system.expect_install_xbox_streaming().times(0);
         mock_system
