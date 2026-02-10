@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::ffi::CStr;
 use std::fs;
 use std::fs::{File, OpenOptions};
@@ -69,9 +70,7 @@ pub(crate) fn get_home_dir() -> String {
     }
 }
 
-pub(crate) fn gnome_development_shortcuts(
-    system: &dyn System,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn gnome_development_shortcuts(system: &dyn System) -> Result<(), Box<dyn Error>> {
     system.execute(
         r#"gsettings set org.gnome.desktop.wm.keybindings switch-to-workspace-up "[]""#,
         false,
@@ -205,20 +204,19 @@ done
     Ok(())
 }
 
-pub(crate) fn setup_docker(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
-    system.execute(
-        format!("usermod -a -G docker {}", unix::get_username()).as_str(),
-        true,
-    )?;
+pub(crate) fn setup_docker(dry_run: bool) -> Result<(), Box<dyn Error>> {
+    info!("Creating docker group");
+    unix::create_group("docker", dry_run)?;
+    info!("Adding user to docker group");
+    unix::add_user_to_group("docker", dry_run)?;
     Ok(())
 }
 
-pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn setup_nas(system: &impl System, dry_run: bool) -> Result<(), Box<dyn Error>> {
     info!("Creating NAS group");
-    if unix::get_group_id_by_name("nas").is_err() {
-        system.execute("groupadd nas", true)?;
-    }
-    system.execute(&format!("usermod -a -G nas {}", unix::get_username()), true)?;
+    unix::create_group("nas", dry_run)?;
+    info!("Adding user to NAS group");
+    unix::add_user_to_group("nas", dry_run)?;
 
     info!("Setting up NAS scripts");
     let smb_credentials = format!("{}/.smbcredentials", system.get_home_dir());
@@ -298,7 +296,7 @@ pub(crate) fn setup_nas(system: &impl System) -> Result<(), Box<dyn std::error::
     Ok(())
 }
 
-pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn setup_nodejs(system: &dyn System) -> Result<(), Box<dyn Error>> {
     let nvm_content = "export NVM_DIR=\"$([ -z \"${{XDG_CONFIG_HOME-}}\" ] && printf %s \"${{HOME}}/.nvm\" || printf %s \"${{XDG_CONFIG_HOME}}/nvm\")\"\n\
     [ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\" # This loads nvm";
     system::add_to_file(&format!("{}/.zshrc", system.get_home_dir()), nvm_content)?;

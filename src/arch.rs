@@ -297,7 +297,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("docker-compose")? {
             self.install_application("docker-compose")?;
         }
-        linux::setup_docker(self)?;
+        linux::setup_docker(self.config.dry_run)?;
         Ok(())
     }
 
@@ -1273,7 +1273,7 @@ impl<'s> System for Arch<'s> {
     }
 
     fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
-        linux::setup_nas(self)?;
+        linux::setup_nas(self, self.config.dry_run)?;
         Ok(())
     }
 
