@@ -66,6 +66,17 @@ pub(crate) fn get_username() -> String {
     username
 }
 
+/// Creates the defined group if it doesn't already exist
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use unix;
+///
+/// unix::create_group("group_name", false);
+/// ```
 pub(crate) fn create_group(group_name: &str, dry_run: bool) -> Result<(), Box<dyn Error>> {
     let group = get_group_id_by_name(group_name);
     if group.is_err() {

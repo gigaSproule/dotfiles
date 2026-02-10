@@ -303,7 +303,7 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("docker")? {
             self.install_application("docker")?;
         }
-        linux::setup_docker(self)?;
+        linux::setup_docker(self.config.dry_run)?;
         Ok(())
     }
 
@@ -1224,7 +1224,7 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
-        linux::setup_nas(self)?;
+        linux::setup_nas(self, self.config.dry_run)?;
         Ok(())
     }
 
