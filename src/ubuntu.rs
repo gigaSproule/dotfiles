@@ -783,6 +783,18 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn install_printer_drivers(&self) -> Result<(), Box<dyn Error>> {
+        if !self.is_installed("system-config-printer")? {
+            self.install_application("system-config-printer")?;
+        }
+        if !self.is_installed("cups")? {
+            self.install_application("cups")?;
+        }
+        if !self.is_installed("avahi-daemon")? {
+            self.install_application("avahi-daemon")?;
+        }
+        // if !self.is_installed("epson-inkjet-printer-escpr")? {
+        //     self.install_application("epson-inkjet-printer-escpr")?;
+        // }
         Ok(())
     }
 

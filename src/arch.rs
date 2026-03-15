@@ -749,9 +749,17 @@ impl<'s> System for Arch<'s> {
             self.install_application("cups")?;
         }
         self.enable_service("cups")?;
+        if !self.is_installed("avahi")? {
+            self.install_application("avahi")?;
+        }
+        self.enable_service("avahi-daemon")?;
         if !self.is_installed("epson-inkjet-printer-escpr")? {
             self.aur_install_application("epson-inkjet-printer-escpr")?;
         }
+        if !self.is_installed("ink")? {
+            self.aur_install_application("ink")?;
+        }
+        // /etc/nsswitch.conf needs to use mdns4_minimal instead of mdns_minimal
         Ok(())
     }
 
