@@ -630,7 +630,7 @@ impl<'s> System for Arch<'s> {
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("nvm")? {
-            self.aur_install_application("nvm")?;
+            self.install_application("nvm")?;
         }
         linux::setup_nodejs(self)?;
         Ok(())
