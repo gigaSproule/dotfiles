@@ -225,40 +225,45 @@ pub(crate) fn setup_nas(system: &impl System, dry_run: bool) -> Result<(), Box<d
             .create(true)
             .truncate(false)
             .write(true)
-            .open(smb_credentials)?;
+            .open(&smb_credentials)?;
 
         writeln!(smb_credentials_file, "username=")?;
         writeln!(smb_credentials_file, "password=")?;
         writeln!(smb_credentials_file)?;
+        info!(
+            "Please enter your username and password into {}",
+            &smb_credentials
+        );
     }
 
     let user_id = unix::get_user_id();
-    let group_id = unix::get_group_id_by_name("nas")?;
+    let user_group_id = unix::get_group_id();
+    let nas_group_id = unix::get_group_id_by_name("nas")?;
 
     let benjamin_mount = "/mnt/benjamin";
     if !Path::new(benjamin_mount).exists() {
         fs::create_dir_all(benjamin_mount)?;
-        unix::recursively_chown(benjamin_mount, &user_id, &group_id)?;
+        unix::recursively_chown(benjamin_mount, &user_id, &user_group_id)?;
     }
     let music_mount = "/mnt/music";
     if !Path::new(music_mount).exists() {
         fs::create_dir_all(music_mount)?;
-        unix::recursively_chown(music_mount, &user_id, &group_id)?;
+        unix::recursively_chown(music_mount, &user_id, &nas_group_id)?;
     }
     let photo_mount = "/mnt/photo";
     if !Path::new(photo_mount).exists() {
         fs::create_dir_all(photo_mount)?;
-        unix::recursively_chown(photo_mount, &user_id, &group_id)?;
+        unix::recursively_chown(photo_mount, &user_id, &nas_group_id)?;
     }
     let shared_mount = "/mnt/shared";
     if !Path::new(shared_mount).exists() {
         fs::create_dir_all(shared_mount)?;
-        unix::recursively_chown(shared_mount, &user_id, &group_id)?;
+        unix::recursively_chown(shared_mount, &user_id, &nas_group_id)?;
     }
     let videos_mount = "/mnt/videos";
     if !Path::new(videos_mount).exists() {
         fs::create_dir_all(videos_mount)?;
-        unix::recursively_chown(videos_mount, &user_id, &group_id)?;
+        unix::recursively_chown(videos_mount, &user_id, &nas_group_id)?;
     }
 
     let mount_nas = format!("{}/bin/mount-nas", system.get_home_dir());
@@ -270,10 +275,10 @@ pub(crate) fn setup_nas(system: &impl System, dry_run: bool) -> Result<(), Box<d
 
     writeln!(mount_nas_file, "#!/usr/bin/env bash")?;
     writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/homes/benjamin {benjamin_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/music {music_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/photo {photo_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/shared {shared_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/video {videos_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/music {music_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/photo {photo_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/shared {shared_mount}")?;
+    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/video {videos_mount}")?;
     writeln!(mount_nas_file)?;
     unix::recursively_chmod(&mount_nas, &0o755, &0o755)?;
 
