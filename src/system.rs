@@ -69,6 +69,7 @@ pub(crate) trait System: Send + Sync + Debug {
     /// let system: System = ...
     /// system.install_applications(vec!["application1", "application2"]);
     /// ```
+    #[allow(clippy::needless_lifetimes)]
     fn install_applications<'a>(
         &self,
         applications: Vec<&'a str>,
@@ -81,8 +82,6 @@ pub(crate) trait System: Send + Sync + Debug {
     fn install_archiver(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_audacity(&self) -> Result<(), Box<dyn Error>>;
-
-    fn install_authy(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>>;
 
@@ -112,6 +111,7 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_docker(&self) -> Result<(), Box<dyn Error>>;
 
+    #[expect(unused)]
     async fn install_eclipse(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_epic_games(&self) -> Result<(), Box<dyn Error>>;
@@ -204,12 +204,11 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>>;
 
-    async fn install_minikube(&self) -> Result<(), Box<dyn Error>>;
-
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_networking_tools(&self) -> Result<(), Box<dyn Error>>;
 
+    #[expect(unused)]
     fn install_nextcloud_client(&self) -> Result<(), Box<dyn Error>>;
 
     async fn install_nodejs(&self) -> Result<(), Box<dyn Error>>;
@@ -242,6 +241,7 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_slack(&self) -> Result<(), Box<dyn Error>>;
 
+    #[expect(unused)]
     fn install_spotify(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_steam(&self) -> Result<(), Box<dyn Error>>;
@@ -582,6 +582,7 @@ pub(crate) async fn get_gpus() -> Result<Vec<String>, Box<dyn Error>> {
 ///
 /// system::get_home_dir();
 /// ```
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 pub(crate) fn get_home_dir() -> String {
     dirs::home_dir()
         .expect("Could not get home directory")

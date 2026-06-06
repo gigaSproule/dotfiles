@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use log::info;
 use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
@@ -121,13 +120,6 @@ impl<'s> System for Mac<'s> {
 
         if !self.is_installed("ffmpeg")? {
             self.install_application("ffmpeg")?;
-        }
-        Ok(())
-    }
-
-    fn install_authy(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("authy")? {
-            self.cask_install_application("authy")?;
         }
         Ok(())
     }
@@ -431,7 +423,7 @@ impl<'s> System for Mac<'s> {
 
     fn install_openscad(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("openscad@snapshot")? {
-            self.cask_install_application("openscad@snapshot");
+            self.cask_install_application("openscad@snapshot")?;
         }
         Ok(())
     }
@@ -460,10 +452,6 @@ impl<'s> System for Mac<'s> {
             self.cask_install_application("microsoft-edge")?;
         }
         Ok(())
-    }
-
-    async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
-        todo!()
     }
 
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>> {

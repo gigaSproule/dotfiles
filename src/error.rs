@@ -5,6 +5,7 @@ pub(crate) struct Error {
 }
 
 impl Error {
+    #[cfg_attr(any(target_os = "windows", target_os = "macos"), expect(unused))]
     pub(crate) fn new(message: &str) -> Self {
         Error {
             message: message.to_string(),

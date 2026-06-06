@@ -166,13 +166,6 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_authy(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("Twilio.Authy")? {
-            self.install_application("Twilio.Authy")?;
-        }
-        Ok(())
-    }
-
     fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("Bambulab.Bambustudio")? {
             self.install_application("Bambulab.Bambustudio")?;
@@ -585,13 +578,6 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("Kubernetes.minikube")? {
-            self.install_application("Kubernetes.minikube")?;
-        }
-        Ok(())
-    }
-
     fn install_mkvtoolnix(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("MKVToolNix.MKVToolNix")? {
             self.install_application("MKVToolNix.MKVToolNix")?;
@@ -983,6 +969,7 @@ impl<'s> System for Windows<'s> {
     }
 
     fn update_os(&self) -> Result<(), Box<dyn Error>> {
+        self.update_os_repo()?;
         self.execute("winget upgrade --all", true)?;
         Ok(())
     }
