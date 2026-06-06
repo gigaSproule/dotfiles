@@ -2,6 +2,7 @@ use log::{debug, info};
 use nix::unistd::{chown, Gid, Uid};
 use std::env;
 use std::error::Error;
+#[cfg(target_os = "linux")]
 use std::ffi::CString;
 use std::fs;
 use std::fs::{File, OpenOptions};
@@ -11,6 +12,7 @@ use std::path::Path;
 use std::process::Command;
 use walkdir::WalkDir;
 
+#[cfg(target_os = "linux")]
 use crate::error;
 use crate::system;
 use crate::system::System;
@@ -29,8 +31,9 @@ pub(crate) fn get_group_id() -> u32 {
     parsed
 }
 
+#[cfg(target_os = "linux")]
 pub(crate) fn get_group_id_by_name(group_name: &str) -> Result<u32, Box<dyn Error>> {
-    let group_name_c = CString::new(group_name).unwrap();
+    let group_name_c = CString::new(group_name)?;
     unsafe {
         let group = libc::getgrnam(group_name_c.as_ptr());
         if group.is_null() {
@@ -77,6 +80,7 @@ pub(crate) fn get_username() -> String {
 ///
 /// unix::create_group("group_name", false);
 /// ```
+#[cfg(target_os = "linux")]
 pub(crate) fn create_group(group_name: &str, dry_run: bool) -> Result<(), Box<dyn Error>> {
     let group = get_group_id_by_name(group_name);
     if group.is_err() {
@@ -85,6 +89,7 @@ pub(crate) fn create_group(group_name: &str, dry_run: bool) -> Result<(), Box<dy
     Ok(())
 }
 
+#[cfg(target_os = "linux")]
 pub(crate) fn add_user_to_group(group_name: &str, dry_run: bool) -> Result<(), Box<dyn Error>> {
     execute(
         &format!("usermod -aG {group_name} {}", get_username()),
@@ -635,6 +640,7 @@ pub(crate) async fn setup_zsh(
     Ok(())
 }
 
+#[cfg(target_os = "macos")]
 pub(crate) fn symlink(
     system: &impl System,
     source: &str,

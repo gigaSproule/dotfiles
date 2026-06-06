@@ -2,8 +2,8 @@ use crate::config::Config;
 use crate::system::System;
 use log::info;
 
-pub(crate) async fn install<'s>(
-    config: &'s Config,
+pub(crate) async fn install(
+    config: &Config,
     system: &dyn System,
 ) -> Result<(), Box<dyn std::error::Error>> {
     system.setup_user_bin()?;
@@ -109,8 +109,6 @@ pub(crate) async fn install<'s>(
         system.install_kubectl().await?;
         info!("Installing Helm");
         system.install_helm().await?;
-        // info!("Installing Minikube");
-        // system.install_minikube();
     }
 
     if config.gaming && !config.cli_only {
@@ -193,8 +191,6 @@ pub(crate) async fn install<'s>(
         system.setup_nas()?;
 
         if !config.cli_only {
-            // info!("Installing Authy");
-            // system.install_authy()?;
             info!("Installing Calibre");
             system.install_calibre()?;
             info!("Installing Disk Usage Analyser");
@@ -837,10 +833,6 @@ mod tests {
         };
         let mut mock_system = get_mock_system(&config);
         mock_system
-            .expect_install_authy()
-            .times(0)
-            .returning(|| Ok(()));
-        mock_system
             .expect_install_calibre()
             .times(1)
             .returning(|| Ok(()));
@@ -1407,7 +1399,6 @@ mod tests {
             .expect_setup_power_saving_tweaks()
             .times(1)
             .returning(|| Ok(()));
-        mock_system.expect_install_authy().times(0);
         mock_system.expect_install_blender().times(0);
         mock_system.expect_install_bambu_studio().times(0);
         mock_system.expect_install_calibre().times(0);

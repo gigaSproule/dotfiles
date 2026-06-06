@@ -165,13 +165,6 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_authy(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("authy")? {
-            self.snap_install_application("authy", false)?;
-        }
-        Ok(())
-    }
-
     fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
         todo!("Implement this");
     }
@@ -637,15 +630,11 @@ impl<'s> System for Ubuntu<'s> {
         let cpu_name = linux::get_cpu_name();
 
         match cpu_name.as_deref() {
-            Some("GenuineIntel") => {
-                if !self.is_installed("intel-microcode")? {
-                    self.install_application("intel-microcode")?;
-                }
+            Some("GenuineIntel") if !self.is_installed("intel-microcode")? => {
+                self.install_application("intel-microcode")?;
             }
-            Some("AuthenticAMD") => {
-                if !self.is_installed("amd-microcode")? {
-                    self.install_application("amd-microcode")?;
-                }
+            Some("AuthenticAMD") if !self.is_installed("amd-microcode")? => {
+                self.install_application("amd-microcode")?;
             }
             _ => {}
         }
@@ -661,18 +650,6 @@ impl<'s> System for Ubuntu<'s> {
             )?;
             self.update_os_repo()?;
             self.install_application("microsoft-edge-stable")?;
-        }
-        Ok(())
-    }
-
-    async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("minikube")? {
-            system::download_file(
-                "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
-                "/usr/local/bin/minikube",
-            )
-            .await?;
-            unix::recursively_chmod("/usr/local/bin/minikube", &0o755, &0o755)?;
         }
         Ok(())
     }

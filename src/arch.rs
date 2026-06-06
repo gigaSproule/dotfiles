@@ -109,13 +109,6 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_authy(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("authy")? {
-            self.aur_install_application("authy")?;
-        }
-        Ok(())
-    }
-
     fn install_bambu_studio(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("bambustudio-bin")? {
             self.aur_install_application("bambustudio-bin")?;
@@ -575,15 +568,11 @@ impl<'s> System for Arch<'s> {
         let cpu_name = linux::get_cpu_name();
 
         match cpu_name.as_deref() {
-            Some("GenuineIntel") => {
-                if !self.is_installed("intel-ucode")? {
-                    self.install_application("intel-ucode")?;
-                }
+            Some("GenuineIntel") if !self.is_installed("intel-ucode")? => {
+                self.install_application("intel-ucode")?;
             }
-            Some("AuthenticAMD") => {
-                if !self.is_installed("amd-ucode")? {
-                    self.install_application("amd-ucode")?;
-                }
+            Some("AuthenticAMD") if !self.is_installed("amd-ucode")? => {
+                self.install_application("amd-ucode")?;
             }
             _ => {}
         }
@@ -593,13 +582,6 @@ impl<'s> System for Arch<'s> {
     fn install_microsoft_edge(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("microsoft-edge-stable-bin")? {
             self.aur_install_application("microsoft-edge-stable-bin")?;
-        }
-        Ok(())
-    }
-
-    async fn install_minikube(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("minikube")? {
-            self.install_application("minikube")?;
         }
         Ok(())
     }
@@ -640,10 +622,8 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("nordvpn-bin")? {
             self.aur_install_application("nordvpn-bin")?;
         }
-        if self.config.gnome {
-            if !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
-                self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
-            }
+        if self.config.gnome && !self.is_installed("gnome-shell-extension-nordvpn-connect-git")? {
+            self.aur_install_application("gnome-shell-extension-nordvpn-connect-git")?;
         }
         if self.config.kde {
             if !self.is_installed("plasma6-runners-nordvpn")? {
