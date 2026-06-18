@@ -1068,6 +1068,9 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("vlc")? {
             self.install_application("vlc")?;
         }
+        if !self.is_installed("vlc-plugins-extra")? {
+            self.install_application("vlc-plugins-extra")?;
+        }
         Ok(())
     }
 
