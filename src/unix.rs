@@ -27,7 +27,7 @@ pub(crate) fn get_group_id() -> u32 {
         panic!("Unable to get group ID");
     }
     let parsed = group_id.parse::<u32>().unwrap();
-    debug!("group_id {}", &parsed);
+    debug!("group_id {}", parsed);
     parsed
 }
 
@@ -53,7 +53,7 @@ pub(crate) fn get_user_id() -> u32 {
         panic!("Unable to get user ID");
     }
     let parsed = user_id.parse::<u32>().unwrap();
-    debug!("user_id {}", &parsed);
+    debug!("user_id {}", parsed);
     parsed
 }
 
@@ -277,7 +277,7 @@ pub(crate) fn set_java_home(
     jdk_path: &str,
 ) -> Result<(), std::io::Error> {
     let path = format!("{}/{}", system.get_home_dir(), file);
-    info!("Appending JAVA_HOME as {} to {}", jdk_path, &path);
+    info!("Appending JAVA_HOME as {} to {}", jdk_path, path);
     add_variable_to_file(&path, "JAVA_HOME", jdk_path)?;
     env::set_var("JAVA_HOME", jdk_path);
     Ok(())
@@ -298,7 +298,7 @@ pub(crate) fn set_java_home(
 pub(crate) fn setup_bash(system: &impl System) -> Result<(), Box<dyn Error>> {
     let home_dir = system.get_home_dir();
     let bashrc = format!("{home_dir}/.bashrc");
-    info!("Creating bashrc at {}", &bashrc);
+    info!("Creating bashrc at {}", bashrc);
     let mut bashrc_file = OpenOptions::new()
         .create(true)
         .truncate(false)

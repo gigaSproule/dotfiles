@@ -104,7 +104,7 @@ impl<'s> Ubuntu<'s> {
             .open(&debconf_file)?;
         writeln!(file, "{installer} {conf} select {value}")?;
         writeln!(file, "{installer} {conf} seen {value}")?;
-        self.execute(&format!("debconf-set-selections {}", &debconf_file), true)?;
+        self.execute(&format!("debconf-set-selections {}", debconf_file), true)?;
         fs::remove_file(debconf_file)?;
         Ok(())
     }
@@ -1179,7 +1179,7 @@ impl<'s> System for Ubuntu<'s> {
         system::download_file(
             format!(
                 "https://github.com/unknownskl/greenlight/releases/download/v{0}/greenlight_{0}_amd64.deb",
-                &version
+                version
             ).as_str(),
             "greenlight.deb",
         ).await?;
