@@ -232,7 +232,7 @@ pub(crate) fn setup_nas(system: &impl System, dry_run: bool) -> Result<(), Box<d
         writeln!(smb_credentials_file)?;
         info!(
             "Please enter your username and password into {}",
-            &smb_credentials
+            smb_credentials
         );
     }
 

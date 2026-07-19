@@ -1181,7 +1181,7 @@ impl<'s> System for Arch<'s> {
                 .create(true)
                 .write(true)
                 .truncate(true)
-                .open(format!("{}/gtk.sh", &parent_dir))?;
+                .open(format!("{}/gtk.sh", parent_dir))?;
             writeln!(file, "export GTK_USE_PORTAL=1")?;
         }
         self.enable_service("NetworkManager")?;

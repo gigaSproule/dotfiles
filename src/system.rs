@@ -641,7 +641,7 @@ pub(crate) fn run_command(
         for line in stdout_lines {
             let string_line = line.unwrap();
             if print_output {
-                info!("{}", &string_line);
+                info!("{}", string_line);
             }
             output.push(string_line);
         }
@@ -650,7 +650,7 @@ pub(crate) fn run_command(
         for line in stderr_lines {
             let string_line = line.unwrap();
             if print_output {
-                info!("{}", &string_line);
+                info!("{}", string_line);
             }
             output.push(string_line);
         }
