@@ -256,7 +256,7 @@ pub(crate) async fn install(
 
     if config.video_editing && !config.cli_only {
         info!("Installing DaVinci Resolve");
-        system.install_davinci_resolve()?;
+        system.install_davinci_resolve().await?;
     }
 
     if config.vm && !config.cli_only {
@@ -1111,7 +1111,7 @@ mod tests {
         mock_system
             .expect_install_davinci_resolve()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
 
         assert!(rt.block_on(install(&config, &mock_system)).is_ok());
     }

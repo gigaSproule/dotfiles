@@ -25,7 +25,6 @@ docker build -t arch -f ./docker/arch.dockerfile .
 ```bash
 docker run -ti -v ${PWD}:/app arch
 cargo build
-su -- archuser
 sudo target/debug/dotfiles [options]
 ```
 
@@ -34,7 +33,6 @@ sudo target/debug/dotfiles [options]
 ```bash
 docker run -ti arch
 cargo build
-su -- archuser
 sudo target/debug/dotfiles [options]
 ```
 
@@ -51,7 +49,6 @@ docker build -t ubuntu -f ./docker/ubuntu.dockerfile .
 ```bash
 docker run -ti -v ${PWD}:/app ubuntu
 cargo build
-sudo su -- ubuntuuser
 sudo target/debug/dotfiles [options]
 ```
 
@@ -60,7 +57,6 @@ sudo target/debug/dotfiles [options]
 ```bash
 docker run -ti ubuntu
 cargo build
-sudo su -- ubuntuuser
 sudo target/debug/dotfiles [options]
 ```
 

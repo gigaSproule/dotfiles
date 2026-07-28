@@ -10,3 +10,6 @@ install.ps1
 target/
 yay/
 yay.tar.gz
+davinci-resolve-studio/
+DaVinci_Resolve_Studio_*_Linux.zip*
+davinci-resolve-studio.tar.gz
