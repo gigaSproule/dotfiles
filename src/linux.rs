@@ -102,6 +102,9 @@ pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Erro
 }
 
 pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::Error> {
+    info!("Setting .license folder to have permissions for anyone to write to, so the license key be validated");
+    unix::recursively_chmod("/opt/resolve/.license", &0o777, &0o777)?;
+
     info!("Setting up DaVinci Resolve helper scripts");
 
     let convert_audio = format!("{}/bin/convert_audio", system.get_home_dir());
