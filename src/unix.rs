@@ -255,6 +255,10 @@ pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(
             Some(Gid::from_raw(*group)),
         )?;
     }
+    debug!(
+        "Changed ownership of {} to user {} and group {}",
+        path, user, group
+    );
     Ok(())
 }
 

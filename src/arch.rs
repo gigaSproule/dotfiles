@@ -1,13 +1,16 @@
 use async_trait::async_trait;
-use log::{debug, info};
+use log::{debug, error, info};
 use std::error::Error;
 use std::fs;
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use tokio::io::{stdin, stdout, AsyncWriteExt};
+use tokio_stream::StreamExt;
+use tokio_util::codec::{FramedRead, LinesCodec};
 
 use crate::config::Config;
-use crate::system::System;
+use crate::system::{download_file, System};
 use crate::{linux, system, unix};
 
 #[derive(Debug)]
@@ -50,9 +53,22 @@ impl<'s> Arch<'s> {
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
         let output = unix::execute(&format!("pacman -Qi {app}"), false, false, false);
         if !output?.ends_with("was not found") {
+            debug!("{} is already installed.", app);
             return Ok(true);
         }
+        debug!("{} is not installed.", app);
         Ok(false)
+    }
+
+    fn remote_install(&self, url: &str) -> Result<bool, Box<dyn Error>> {
+        debug!("Downloading and installing {}", url);
+        match unix::execute(&format!("pacman -U {url}"), false, false, false) {
+            Ok(_) => {
+                debug!("Installed {} successfully.", url);
+                Ok(true)
+            }
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -251,9 +267,106 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
+        // Takes too long to install via AUR, so need to download qt5-location, qt5-webchannel and qt5-webengine
+        if !self.is_installed("qt5-location")? {
+            self.remote_install("https://archive.archlinux.org/packages/q/qt5-location/qt5-location-5.15.9%2Bkde%2Br4-1-x86_64.pkg.tar.zst")?;
+        }
+        if !self.is_installed("qt5-webchannel")? {
+            self.remote_install("https://archive.archlinux.org/packages/q/qt5-webchannel/qt5-webchannel-5.15.9+kde+r3-1-x86_64.pkg.tar.zst")?;
+        }
+        if !self.is_installed("qt5-webengine")? {
+            self.remote_install("https://archive.archlinux.org/packages/q/qt5-webengine/qt5-webengine-5.15.9-3-x86_64.pkg.tar.zst")?;
+            // self.aur_install_application("qt5-webengine")?;
+        }
         if !self.is_installed("davinci-resolve-studio")? {
-            self.aur_install_application("davinci-resolve-studio")?;
+            let aur_dir = format!("{}/Downloads", self.get_home_dir());
+            debug!("Creating {}", aur_dir);
+            fs::create_dir_all(&aur_dir)?;
+            download_file(
+                "https://aur.archlinux.org/cgit/aur.git/snapshot/davinci-resolve-studio.tar.gz",
+                "davinci-resolve-studio.tar.gz",
+            )
+            .await?;
+            linux::untar_rename_root("davinci-resolve-studio.tar.gz", "davinci-resolve-studio")?;
+
+            info!("Download the studio zip file and put into {}", aur_dir);
+            open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")?;
+            let stdin = stdin();
+            let mut stdout = stdout();
+            let mut reader = FramedRead::new(stdin, LinesCodec::new());
+            let mut expected_zip: PathBuf = PathBuf::new();
+            loop {
+                stdout
+                    .write_all(b"Have you downloaded the file yet? (y/N): ")
+                    .await?;
+                stdout.flush().await?;
+                if let Some(Ok(line)) = reader.next().await {
+                    if !line.eq_ignore_ascii_case("y") {
+                        error!("Please download the file into {}.", aur_dir);
+                        continue;
+                    }
+
+                    for entry in fs::read_dir(&aur_dir)? {
+                        let entry = entry?;
+                        let path = entry.path();
+
+                        if path.is_file() {
+                            if let Some(filename) = path.file_name().and_then(|n| n.to_str()) {
+                                // Check if the file starts and ends with your specific pattern elements
+                                if filename.starts_with("DaVinci_Resolve_Studio_")
+                                    && filename.ends_with("_Linux.zip")
+                                {
+                                    debug!("Found zip {}", filename);
+                                    expected_zip = path.canonicalize()?;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    match fs::exists(&expected_zip) {
+                        Ok(true) => break,
+                        _ => {
+                            error!(
+                                "Unable to find {}, please make sure it is there.",
+                                expected_zip.to_str().unwrap()
+                            );
+                            continue;
+                        }
+                    }
+                }
+            }
+            let to = format!(
+                "davinci-resolve-studio/{}",
+                expected_zip.file_name().unwrap().to_str().unwrap()
+            );
+            debug!("Copying {} to {}", expected_zip.to_str().unwrap(), to);
+            if let Err(e) = fs::rename(&expected_zip, &to) {
+                if e.kind() == tokio::io::ErrorKind::CrossesDevices {
+                    fs::copy(&expected_zip, to)?;
+                    fs::remove_file(&expected_zip)?;
+                } else {
+                    return Err(Box::from(e));
+                }
+            }
+            let user_id = unix::get_user_id();
+            let group_id = unix::get_group_id();
+            unix::recursively_chown("davinci-resolve-studio", &user_id, &group_id)?;
+            unix::execute_path(
+                "makepkg -si --noconfirm",
+                false,
+                &format!(
+                    "{}/davinci-resolve-studio",
+                    std::env::current_dir()
+                        .unwrap()
+                        .into_os_string()
+                        .into_string()
+                        .unwrap()
+                ),
+                true,
+                self.config.dry_run,
+            )?;
+            fs::remove_dir_all(format!("{}/davinci-resolve-studio", aur_dir))?;
         }
         linux::setup_davinci_resolve(self)?;
         Ok(())
@@ -975,10 +1088,6 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("ntfs-3g")? {
             self.install_application("ntfs-3g")?;
         }
-        if !self.is_installed("avahi")? {
-            self.install_application("avahi")?;
-        }
-        self.enable_service("avahi")?;
         if !self.is_installed("nss-mdns")? {
             self.install_application("nss-mdns")?;
         }
@@ -998,6 +1107,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("speech-dispatcher")? {
             self.install_application("speech-dispatcher")?;
         }
+        unix::add_user_to_group("optical", self.config.dry_run)?;
         Ok(())
     }
 

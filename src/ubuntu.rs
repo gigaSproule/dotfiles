@@ -254,7 +254,7 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("davinci-resolve-studio")? {
             self.install_application("davinci-resolve-studio")?;
             linux::setup_davinci_resolve(self)?;

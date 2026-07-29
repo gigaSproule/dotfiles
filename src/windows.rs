@@ -256,7 +256,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("DaVinci Resolve")? {
             open::that("https://www.blackmagicdesign.com/uk/products/davinciresolve/studio")?;
         }

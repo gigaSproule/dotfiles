@@ -101,7 +101,7 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_curl(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>>;
+    async fn install_davinci_resolve(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_discord(&self) -> Result<(), Box<dyn Error>>;
 
@@ -422,6 +422,7 @@ pub(crate) async fn download_file(url: &str, downloaded_file: &str) -> Result<()
     };
     let content = response.bytes().await?;
     file.write_all(&content)?;
+    debug!("Downloaded {} to {}", url, downloaded_file);
     Ok(())
 }
 
