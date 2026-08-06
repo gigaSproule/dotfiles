@@ -43,6 +43,12 @@ impl<'s> Ubuntu<'s> {
         Ok(())
     }
 
+    fn enable_kernel_module(&self, module: &str) -> Result<(), Box<dyn Error>> {
+        linux::add_kernel_module(module)?;
+        self.execute("update-initramfs -u -k all", true)?;
+        Ok(())
+    }
+
     fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
         self.execute(&format!("systemctl enable service {service}"), true)
     }
@@ -623,6 +629,7 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("ccextractor")? {
             self.install_application("ccextractor")?;
         }
+        self.enable_kernel_module("sg")?;
         Ok(())
     }
 
