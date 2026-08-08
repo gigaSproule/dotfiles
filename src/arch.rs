@@ -36,6 +36,12 @@ impl<'s> Arch<'s> {
         )
     }
 
+    fn enable_kernel_module(&self, module: &str) -> Result<(), Box<dyn Error>> {
+        linux::add_kernel_module(module)?;
+        self.execute("mkinitcpio -p linux", true)?;
+        Ok(())
+    }
+
     fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
         self.execute(&format!("systemctl enable {service}"), true)
     }
@@ -674,6 +680,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("ccextractor")? {
             self.aur_install_application("ccextractor")?;
         }
+        self.enable_kernel_module("sg")?;
         Ok(())
     }
 

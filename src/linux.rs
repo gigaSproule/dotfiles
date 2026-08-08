@@ -13,6 +13,28 @@ use crate::system::System;
 use crate::system::{self, file_contains};
 use crate::unix;
 
+/// Adds the module to the loaded kernel modules
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use linux;
+///
+/// linux::add_kernel_module("sg")?;
+/// ```
+pub(crate) fn add_kernel_module(module: &str) -> Result<(), Box<dyn Error>> {
+    let module_path = format!("/etc/modules-load.d/{module}.conf");
+    let mut module_file = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(module_path)?;
+    write!(module_file, "{module}")?;
+    Ok(())
+}
+
 /// Returns the vendor ID of the CPU for the machine.
 ///
 /// The possible values are `GenuineIntel` for Intel CPUs and `AuthenticAMD` for AMD CPUs.
