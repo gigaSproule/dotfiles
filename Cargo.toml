@@ -36,7 +36,7 @@ walkdir = "2.5.0"
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
-registry = "1.3.0"
+windows-registry = "0.6.1"
 utfx = "0.1.0"
 
 [profile.release]

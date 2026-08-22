@@ -1,10 +1,7 @@
 use async_trait::async_trait;
-use log::info;
-use registry::{Data, Hive, Security};
 use std::error::Error;
 use std::fs;
 use std::process::Command;
-use utfx::U16CString;
 
 use crate::config::Config;
 use crate::system;
@@ -56,14 +53,12 @@ impl<'s> Windows<'s> {
         if !import_module_output.contains("was not loaded because no valid module file was found") {
             return Ok(true);
         }
-        let regkey = Hive::LocalMachine.open(
-            r"Software\Microsoft\Windows\CurrentVersion\Uninstall",
-            Security::Read,
-        )?;
+        let regkey = windows_registry::LOCAL_MACHINE
+            .open(r"Software\Microsoft\Windows\CurrentVersion\Uninstall")?;
         let mut found = false;
-        for key in regkey.keys() {
-            let opened = key.unwrap().open(Security::Read).unwrap();
-            let display_name = opened.value("DisplayName");
+        for key in regkey.keys()? {
+            let opened = regkey.open(key).unwrap();
+            let display_name = opened.get_string("DisplayName");
             if display_name.is_err() {
                 continue;
             }
@@ -75,13 +70,11 @@ impl<'s> Windows<'s> {
         if found {
             return Ok(true);
         }
-        let regkey = Hive::LocalMachine.open(
-            r"Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
-            Security::Read,
-        )?;
-        for key in regkey.keys() {
-            let opened = key.unwrap().open(Security::Read).unwrap();
-            let display_name = opened.value("DisplayName");
+        let regkey = windows_registry::LOCAL_MACHINE
+            .open(r"Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall")?;
+        for key in regkey.keys()? {
+            let opened = regkey.open(key).unwrap();
+            let display_name = opened.get_string("DisplayName");
             if display_name.is_err() {
                 continue;
             }
@@ -198,25 +191,16 @@ impl<'s> System for Windows<'s> {
     fn install_cplusplus(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("GnuWin32.Make")? {
             self.install_application("GnuWin32.Make")?;
-            let regkey = Hive::LocalMachine.open(
-                r"System\CurrentControlSet\Control\Session Manager\Environment",
-                Security::Read | Security::Write,
+            let regkey = windows_registry::LOCAL_MACHINE
+                .options()
+                .read()
+                .write()
+                .open(r"System\CurrentControlSet\Control\Session Manager\Environment")?;
+            let path = regkey.get_string("Path")?;
+            regkey.set_string(
+                "Path",
+                format!("{};C:\\Program Files (x86)\\GnuWin32\\bin", path),
             )?;
-            for value in regkey.values() {
-                let mut opened = value.unwrap();
-                let name = opened.name();
-                if name.to_string().unwrap() == "Path" {
-                    info!("{:?}", name);
-                    opened.set_data(Data::String(
-                        U16CString::from_str(format!(
-                            "{};C:\\Program Files (x86)\\GnuWin32\\bin",
-                            opened.data()
-                        ))
-                        .unwrap(),
-                    ))?;
-                    break;
-                }
-            }
             self.refreshenv()?;
         }
         if !self.is_installed("Kitware.CMake")? {
@@ -793,30 +777,12 @@ impl<'s> System for Windows<'s> {
     async fn install_system_extras(&self) -> Result<(), Box<dyn Error>> {
         // Needed to install powershell modules
         self.execute_powershell("Set-ExecutionPolicy Unrestricted", true)?;
-        Hive::LocalMachine
-            .open(
-                r"SYSTEM\CurrentControlSet\Control\FileSystem",
-                Security::Read | Security::Write,
-            )
-            .or_else(|_error| {
-                Hive::LocalMachine.create(
-                    r"SYSTEM\CurrentControlSet\Control\FileSystem",
-                    Security::Read | Security::Write,
-                )
-            })?
-            .set_value("LongPathsEnabled", &Data::U32(1))?;
-        Hive::CurrentUser
-            .open(
-                r"Software\Policies\Microsoft\Windows\Explorer",
-                Security::Read | Security::Write,
-            )
-            .or_else(|_error| {
-                Hive::CurrentUser.create(
-                    r"Software\Policies\Microsoft\Windows\Explorer",
-                    Security::Read | Security::Write,
-                )
-            })?
-            .set_value("DisableSearchBoxSuggestions", &Data::U32(1))?;
+        windows_registry::LOCAL_MACHINE
+            .create(r"SYSTEM\CurrentControlSet\Control\FileSystem")?
+            .set_u32("LongPathsEnabled", 1)?;
+        windows_registry::CURRENT_USER
+            .create(r"Software\Policies\Microsoft\Windows\Explorer")?
+            .set_u32("DisableSearchBoxSuggestions", 1)?;
         if !self.is_installed("Microsoft.PowerShell")? {
             self.install_application("Microsoft.PowerShell")?;
         }
