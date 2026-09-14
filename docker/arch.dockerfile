@@ -1,4 +1,4 @@
-FROM archlinux@sha256:82b1b08faae9d61e3e7e13d562f4d09114d939105b0d59ff34140f3bd418593a
+FROM archlinux@sha256:204e91950fd364961088a01773eee9012243b7e965fed42b1d82d12416190782
 
 RUN pacman -Sy --noconfirm gcc openssl pkgconf sudo
 RUN useradd -ms /bin/bash archuser \
