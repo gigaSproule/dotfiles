@@ -1,4 +1,4 @@
-FROM ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b
+FROM ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
 
 ENV TZ=Europe/London
 RUN apt-get update && apt-get install -y build-essential curl libssl-dev locales pkg-config sudo
