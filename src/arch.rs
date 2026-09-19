@@ -18,8 +18,6 @@ pub(crate) struct Arch<'s> {
     config: &'s Config,
 }
 
-static JAVA_HOME: &str = "/usr/lib/jvm/default";
-
 impl<'s> Arch<'s> {
     pub(crate) fn new(config: &'s Config) -> Self {
         Arch { config }
@@ -259,7 +257,7 @@ impl<'s> System for Arch<'s> {
 
     async fn install_cryptomator(&self) -> Result<(), Box<dyn Error>> {
         // Required as a dependency for cryptomator
-        self.install_jdk()?;
+        self.install_jdk().await?;
         if !self.is_installed("cryptomator")? {
             self.aur_install_application("cryptomator")?;
         }
@@ -374,7 +372,7 @@ impl<'s> System for Arch<'s> {
             )?;
             fs::remove_dir_all(format!("{}/davinci-resolve-studio", aur_dir))?;
         }
-        linux::setup_davinci_resolve(self)?;
+        linux::setup_davinci_resolve(self, self.config)?;
         Ok(())
     }
 
@@ -592,14 +590,17 @@ impl<'s> System for Arch<'s> {
         Ok(())
     }
 
-    fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("jdk-openjdk")? {
-            self.install_application("jdk-openjdk")?;
-        }
-        unix::set_java_home(self, ".zshrc", JAVA_HOME)?;
-        unix::set_java_home(self, ".bashrc", JAVA_HOME)?;
-        unix::add_to_path(self, ".zshrc", "$JAVA_HOME/bin")?;
-        unix::add_to_path(self, ".bashrc", "$JAVA_HOME/bin")?;
+    async fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
+        download_file("https://get.sdkman.io", "sdkman-install.sh").await?;
+        system::add_to_file(
+            &format!("{}/.zshrc", self.get_home_dir()),
+            "source \"$HOME/.sdkman/bin/sdkman-init.sh\"",
+        )?;
+        system::add_to_file(
+            &format!("{}/.bashrc", self.get_home_dir()),
+            "source \"$HOME/.sdkman/bin/sdkman-init.sh\"",
+        )?;
+        self.execute("sdk install java 26-tem", false)?;
         Ok(())
     }
 

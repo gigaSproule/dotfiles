@@ -477,7 +477,7 @@ impl<'s> System for Windows<'s> {
         Ok(())
     }
 
-    fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
+    async fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
         if self.config.wsl && !self.is_installed_wsl("openjdk-24-jdk")? {
             self.install_wsl("openjdk-24-jdk")?;
         }

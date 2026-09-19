@@ -68,7 +68,7 @@ pub(crate) async fn install(
         info!("Installing Groovy");
         system.install_groovy()?;
         info!("Installing Java");
-        system.install_jdk()?;
+        system.install_jdk().await?;
         info!("Installing Maven");
         system.install_maven()?;
         info!("Installing NodeJS");
@@ -391,7 +391,7 @@ mod tests {
         mock_system
             .expect_install_jdk()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_maven()
             .times(1)
@@ -1301,7 +1301,7 @@ mod tests {
         mock_system
             .expect_install_jdk()
             .times(1)
-            .returning(|| Ok(()));
+            .returning(|| Box::pin(async { Ok(()) }));
         mock_system
             .expect_install_maven()
             .times(1)

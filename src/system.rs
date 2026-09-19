@@ -180,7 +180,7 @@ pub(crate) trait System: Send + Sync + Debug {
 
     fn install_intellij(&self) -> Result<(), Box<dyn Error>>;
 
-    fn install_jdk(&self) -> Result<(), Box<dyn Error>>;
+    async fn install_jdk(&self) -> Result<(), Box<dyn Error>>;
 
     fn install_keepassxc(&self) -> Result<(), Box<dyn Error>>;
 

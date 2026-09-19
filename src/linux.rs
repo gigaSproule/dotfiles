@@ -5,13 +5,13 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
-use flate2::read::GzDecoder;
-use log::info;
-use tar::Archive;
-
+use crate::config::Config;
 use crate::system::System;
 use crate::system::{self, file_contains};
 use crate::unix;
+use flate2::read::GzDecoder;
+use log::info;
+use tar::Archive;
 
 /// Adds the module to the loaded kernel modules
 ///
@@ -123,7 +123,10 @@ pub(crate) fn set_development_environment_settings() -> Result<(), std::io::Erro
     Ok(())
 }
 
-pub(crate) fn setup_davinci_resolve(system: &dyn System) -> Result<(), std::io::Error> {
+pub(crate) fn setup_davinci_resolve(
+    system: &dyn System,
+    config: &Config,
+) -> Result<(), std::io::Error> {
     info!("Setting .license folder to have permissions for anyone to write to, so the license key be validated");
     unix::recursively_chmod("/opt/resolve/.license", &0o777, &0o777)?;
 
@@ -165,7 +168,7 @@ done
     )?;
     unix::recursively_chmod(&convert_audio, &0o755, &0o755)?;
 
-    let convert_video = format!("{}/bin/convert_videos", system.get_home_dir());
+    let convert_video = format!("{}/bin/convert_video", system.get_home_dir());
     let mut convert_video_file = OpenOptions::new()
         .create(true)
         .write(true)
@@ -198,8 +201,8 @@ mv "converted.$container" "$directory/${{noext// /_}}.$container"
 "##
     )?;
     unix::recursively_chmod(&convert_video, &0o755, &0o755)?;
-    let convert_videos = format!("{}/bin/convert_videos", system.get_home_dir());
 
+    let convert_videos = format!("{}/bin/convert_videos", system.get_home_dir());
     let mut convert_videos_file = OpenOptions::new()
         .create(true)
         .write(true)
@@ -226,6 +229,28 @@ done
 "##
     )?;
     unix::recursively_chmod(&convert_videos, &0o755, &0o755)?;
+
+    if config.kde {
+        let resolve = format!("{}/bin/resolve", system.get_home_dir());
+        let mut resolve_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&resolve)?;
+
+        write!(
+            resolve_file,
+            r##"#!/usr/bin/env bash
+set -e
+# Work around where the appmenu takes hold of the keyboard when running under Wayland.
+# Hopefully this gets fixed at some point...
+qdbus org.kde.kded6 /kded org.kde.kded6.unloadModule "appmenu"
+/opt/resolve/bin/resolve
+qdbus org.kde.kded6 /kded org.kde.kded6.loadModule "appmenu"
+            "##
+        )?;
+        unix::recursively_chmod(&resolve, &0o755, &0o755)?;
+    }
     Ok(())
 }
 
