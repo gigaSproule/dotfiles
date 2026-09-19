@@ -8,7 +8,7 @@ use std::path::Path;
 use uuid::Uuid;
 
 use crate::config::Config;
-use crate::system::System;
+use crate::system::{download_file, System};
 use crate::{linux, system, unix};
 
 #[derive(Debug)]
@@ -264,7 +264,7 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("davinci-resolve-studio")? {
             self.install_application("davinci-resolve-studio")?;
         }
-        linux::setup_davinci_resolve(self)?;
+        linux::setup_davinci_resolve(self, self.config)?;
         Ok(())
     }
 
@@ -519,20 +519,17 @@ impl<'s> System for Ubuntu<'s> {
         Ok(())
     }
 
-    fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        if !self.is_installed("openjdk-24-jdk")? {
-            self.install_applications(vec!["openjdk-24-jdk"])?;
-        }
-        unix::set_java_home(
-            self,
-            ".zshrc",
-            &format!("/usr/lib/jvm/java-24-openjdk-{}", std::env::consts::ARCH),
+    async fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
+        download_file("https://get.sdkman.io", "sdkman-install.sh").await?;
+        system::add_to_file(
+            &format!("{}/.zshrc", self.get_home_dir()),
+            "source \"$HOME/.sdkman/bin/sdkman-init.sh\"",
         )?;
-        unix::set_java_home(
-            self,
-            ".bashrc",
-            &format!("/usr/lib/jvm/java-24-openjdk-{}", std::env::consts::ARCH),
+        system::add_to_file(
+            &format!("{}/.bashrc", self.get_home_dir()),
+            "source \"$HOME/.sdkman/bin/sdkman-init.sh\"",
         )?;
+        self.execute("sdk install java 26-tem", false)?;
         Ok(())
     }
 

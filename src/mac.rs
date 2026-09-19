@@ -6,7 +6,7 @@ use std::io::Write;
 use std::path::Path;
 
 use crate::config::Config;
-use crate::system::{self, System};
+use crate::system::{self, download_file, System};
 use crate::unix;
 
 #[derive(Debug)]
@@ -368,27 +368,17 @@ impl<'s> System for Mac<'s> {
         Ok(())
     }
 
-    fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
-        if !Path::new(&format!(
-            "{}/opt/openjdk/libexec/openjdk.jdk",
-            self.get_brew_prefix()?
-        ))
-        .exists()
-        {
-            self.install_application("openjdk")?;
-            unix::symlink(
-                self,
-                &format!(
-                    "{}/opt/openjdk/libexec/openjdk.jdk",
-                    self.get_brew_prefix()?
-                ),
-                "/Library/Java/JavaVirtualMachines/openjdk.jdk",
-            )?;
-        }
-        unix::set_java_home(self, ".zshrc", "$(/usr/libexec/java_home)")?;
-        unix::set_java_home(self, ".bashrc", "$(/usr/libexec/java_home)")?;
-        unix::add_to_path(self, ".zshrc", "$JAVA_HOME/bin")?;
-        unix::add_to_path(self, ".bashrc", "$JAVA_HOME/bin")?;
+    async fn install_jdk(&self) -> Result<(), Box<dyn Error>> {
+        download_file("https://get.sdkman.io", "sdkman-install.sh").await?;
+        system::add_to_file(
+            &format!("{}/.zshrc", self.get_home_dir()),
+            "source \"$HOME/.sdkman/bin/sdkman-init.sh\"",
+        )?;
+        system::add_to_file(
+            &format!("{}/.bashrc", self.get_home_dir()),
+            "source \"$HOME/.sdkman/bin/sdkman-init.sh\"",
+        )?;
+        self.execute("sdk install java 26-tem", false)?;
         Ok(())
     }
 

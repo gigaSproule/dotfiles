@@ -5,8 +5,12 @@ use std::error::Error;
 #[cfg(target_os = "linux")]
 use std::ffi::CString;
 use std::fs;
-use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, Write};
+#[cfg(target_os = "linux")]
+use std::fs::File;
+use std::fs::OpenOptions;
+use std::io::Write;
+#[cfg(target_os = "linux")]
+use std::io::{BufRead, BufReader};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::Command;
@@ -113,6 +117,7 @@ pub(crate) fn add_user_to_group(group_name: &str, dry_run: bool) -> Result<(), B
 /// unix::add_to_path(&system, ".zshrc", "/path/to/application"); // Will add to the file
 /// unix::add_to_path(&system, ".zshrc", "/path/to/application"); // Will not do anything
 /// ```
+#[cfg(target_os = "linux")]
 pub(crate) fn add_to_path(
     system: &impl System,
     file: &str,
@@ -275,6 +280,7 @@ pub(crate) fn recursively_chown(path: &str, user: &u32, group: &u32) -> Result<(
 /// unix::set_java_home(&system, ".zshrc", "/path/to/jdk"); // Will add to the file
 /// unix::set_java_home(&system, ".zshrc", "/path/to/jdk"); // Will not do anything
 /// ```
+#[expect(unused)]
 pub(crate) fn set_java_home(
     system: &impl System,
     file: &str,
@@ -644,7 +650,7 @@ pub(crate) async fn setup_zsh(
     Ok(())
 }
 
-#[cfg(target_os = "macos")]
+#[expect(unused)]
 pub(crate) fn symlink(
     system: &impl System,
     source: &str,
