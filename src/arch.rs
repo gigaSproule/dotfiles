@@ -1158,6 +1158,10 @@ impl<'s> System for Arch<'s> {
             self.install_application("tlp")?;
         }
         self.enable_service("tlp")?;
+        if !self.is_installed("tlp-pd")? {
+            self.install_application("tlp-pd")?;
+        }
+        self.enable_service("tlp-pd")?;
         Ok(())
     }
 

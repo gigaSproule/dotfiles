@@ -984,6 +984,9 @@ impl<'s> System for Ubuntu<'s> {
         if !self.is_installed("tlp")? {
             self.install_application("tlp")?;
         }
+        if !self.is_installed("tlp-pd")? {
+            self.install_application("tlp-pd")?;
+        }
         Ok(())
     }
 
