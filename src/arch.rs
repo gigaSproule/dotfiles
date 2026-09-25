@@ -1,17 +1,16 @@
+use crate::config::Config;
+use crate::system::{download_file, System};
+use crate::{linux, system, unix};
 use async_trait::async_trait;
 use log::{debug, error, info};
 use std::error::Error;
 use std::fs;
 use std::fs::{File, OpenOptions};
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use tokio::io::{stdin, stdout, AsyncWriteExt};
 use tokio_stream::StreamExt;
 use tokio_util::codec::{FramedRead, LinesCodec};
-
-use crate::config::Config;
-use crate::system::{download_file, System};
-use crate::{linux, system, unix};
 
 #[derive(Debug)]
 pub(crate) struct Arch<'s> {
@@ -860,7 +859,31 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("ink")? {
             self.aur_install_application("ink")?;
         }
-        // /etc/nsswitch.conf needs to use mdns4_minimal instead of mdns_minimal
+        let nsswitch_conf = "/etc/nsswitch.conf";
+
+        let mut file = File::open(nsswitch_conf)?;
+        let mut file_contents = String::new();
+        file.read_to_string(&mut file_contents)?;
+
+        file_contents = file_contents
+            .split('\n')
+            .collect::<Vec<&str>>()
+            .iter()
+            .map(|str| {
+                if str.starts_with("hosts:") && !str.contains("mdns_minimal") {
+                    return str.replace(" dns", " mdns_minimal [NOTFOUND=return] dns");
+                }
+                str.to_string()
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        let mut nsswitch_conf_file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(nsswitch_conf)?;
+        writeln!(nsswitch_conf_file, "{}", file_contents)?;
         Ok(())
     }
 
@@ -1386,7 +1409,7 @@ impl<'s> System for Arch<'s> {
     }
 
     fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
-        linux::setup_nas(self, self.config.dry_run)?;
+        linux::setup_nas(self, self.config)?;
         Ok(())
     }
 

@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use log::{debug, info};
 #[cfg(test)]
 use mockall::automock;
+use regex::Regex;
 use std::error::Error;
 use std::ffi::OsStr;
 use std::fmt::Debug;
@@ -592,6 +593,31 @@ pub(crate) fn get_home_dir() -> String {
         .expect("Could not convert home directory to a &str")
 }
 
+/// Replaces the matched pattern in the file with the replacement text.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use system;
+///
+/// system::replace_in_file("/path/to/file", "start-of-config: something", "text")?;
+/// ```
+pub(crate) fn replace_in_file(
+    file: &str,
+    regex: &Regex,
+    replacement: &str,
+) -> Result<(), Box<dyn Error>> {
+    let mut read_file = OpenOptions::new().read(true).open(file)?;
+    let mut contents = String::new();
+    read_file.read_to_string(&mut contents)?;
+    let replaced_content = regex.replace_all(&contents, replacement);
+    let mut write_file = OpenOptions::new().write(true).truncate(true).open(file)?;
+    write_file.write_all(replaced_content.as_bytes())?;
+    Ok(())
+}
+
 /// Optionally runs to given Command (based on dry_run), optionally printing out the std out and std error (based on print_output), returning a Result with a String of the joined std out and std error.
 ///
 /// # Examples
@@ -725,9 +751,95 @@ pub(crate) fn setup_git_config(system: &impl System) -> Result<(), Box<dyn Error
 
 #[cfg(test)]
 mod tests {
-    use serial_test::serial;
+    use rand::distr::SampleString;
 
     use super::*;
+
+    #[test]
+    fn test_add_to_file_appends_content_to_file() {
+        let path = &format!("tests/{}.txt", some_string());
+        File::create(path).expect("Failed to create file");
+
+        add_to_file(path, "content").expect("Failed to add to file");
+
+        let mut created_file = File::open(path).unwrap();
+        let mut file_contents = String::new();
+        created_file
+            .read_to_string(&mut file_contents)
+            .expect("Failed to read content of file");
+        assert_eq!(file_contents, "content\n");
+
+        fs::remove_file(path).expect("Failed to delete file");
+    }
+
+    #[test]
+    fn test_add_to_file_creates_file_if_not_exist() {
+        let path = &format!("tests/{}.txt", some_string());
+
+        add_to_file(path, "content").expect("Failed to add to file");
+
+        let mut created_file = File::open(path).unwrap();
+        let mut file_contents = String::new();
+        created_file
+            .read_to_string(&mut file_contents)
+            .expect("Failed to read content of file");
+        assert_eq!(file_contents, "content\n");
+
+        fs::remove_file(path).expect("Failed to delete file");
+    }
+
+    #[test]
+    fn test_add_to_file_does_not_duplicate_content() {
+        let path = &format!("tests/{}.txt", some_string());
+        File::create(path).expect("Failed to create file");
+
+        add_to_file(path, "content").expect("Failed to add to file for the first time");
+        add_to_file(path, "content").expect("Failed to add to file for the second time");
+
+        let mut created_file = File::open(path).unwrap();
+        let mut file_contents = String::new();
+        created_file
+            .read_to_string(&mut file_contents)
+            .expect("Failed to read content of file");
+        assert_eq!(file_contents, "content\n");
+
+        fs::remove_file(path).expect("Failed to delete file");
+    }
+
+    #[test]
+    fn test_extract_zip_produces_correct_directory() {
+        let zip_file = Path::new("tests/test-file.zip");
+        let target_dir_path = &format!("tmp/{}", some_string());
+        let target_dir = Path::new(target_dir_path);
+
+        extract_zip(zip_file, target_dir, false).expect("Failed to extract the zip file");
+
+        assert!(target_dir.join("top-level").exists());
+        assert!(target_dir.join("top-level").join("sub-directory").exists());
+        assert!(target_dir
+            .join("top-level")
+            .join("sub-directory")
+            .join("file.txt")
+            .exists());
+
+        fs::remove_dir_all(target_dir).expect("Failed to delete the target directory");
+    }
+
+    #[ignore = "Needs to be implemented"]
+    #[test]
+    fn test_extract_zip_produces_correct_directory_removing_top_level() {
+        let zip_file = Path::new("tests/test-file.zip");
+        let target_dir_path = &format!("tmp/{}", some_string());
+        let target_dir = Path::new(target_dir_path);
+
+        extract_zip(zip_file, target_dir, true).expect("Failed to extract the zip file");
+
+        assert!(!Path::new("tmp/zip-test-dir/top-level").exists());
+        assert!(Path::new("tmp/zip-test-dir/sub-directory").exists());
+        assert!(Path::new("tmp/zip-test-dir/sub-directory/file.txt").exists());
+
+        fs::remove_dir_all(target_dir).expect("Failed to delete the target directory");
+    }
 
     #[test]
     fn test_file_contains_file_does_not_exist() {
@@ -737,105 +849,49 @@ mod tests {
 
     #[test]
     fn test_file_contains_file_does_not_contain_text() {
-        let result = file_contains("tests/test-file.txt", "does not exist");
+        let path = &format!("tests/{}.txt", some_string());
+        let created_file = File::create(path).expect("Failed to create file");
+        writeln!(&created_file, "some content").expect("Failed to write to file");
+
+        let result = file_contains(path, "does not exist");
         assert!(!result);
+
+        fs::remove_file(path).expect("Failed to delete file");
     }
 
     #[test]
-    #[serial]
-    fn test_add_to_file_appends_content_to_file() {
-        let path = &"tests/created-file.txt";
-        let create_result = File::create(path);
-        create_result.expect("Failed to create file");
+    fn test_file_contains_file_does_contain_text() {
+        let path = &format!("tests/{}.txt", some_string());
+        let created_file = File::create(path).expect("Failed to create file");
+        writeln!(&created_file, "some content").expect("Failed to write to file");
 
-        let result = add_to_file(path, "content");
+        let result = file_contains(path, "content");
+        assert!(result);
+
+        fs::remove_file(path).expect("Failed to delete file");
+    }
+
+    #[test]
+    fn test_replace_in_file_with_matching_content() {
+        let path = &format!("tests/{}.txt", some_string());
+        let created_file = File::create(path).expect("Failed to create file");
+        writeln!(&created_file, "some replaceable content").expect("Failed to write to file");
+
+        let regex = Regex::new(r"repl\w+\s").expect("Failed to compile regex");
+        let result = replace_in_file(path, &regex, "brand new ");
         assert!(result.is_ok());
 
-        let mut created_file = File::open(path).unwrap();
+        let mut updated_file = File::open(path).unwrap();
         let mut file_contents = String::new();
-        created_file
+        updated_file
             .read_to_string(&mut file_contents)
             .expect("Failed to read content of file");
-        assert_eq!(file_contents, "content\n");
+        assert_eq!(file_contents, "some brand new content\n");
 
-        let delete_result = fs::remove_file(path);
-        delete_result.expect("Failed to delete file");
+        fs::remove_file(path).expect("Failed to delete file");
     }
 
-    #[test]
-    #[serial]
-    fn test_add_to_file_creates_file_if_not_exist() {
-        let path = &"tests/created-file.txt";
-
-        let result = add_to_file(path, "content");
-        assert!(result.is_ok());
-
-        let mut created_file = File::open(path).unwrap();
-        let mut file_contents = String::new();
-        created_file
-            .read_to_string(&mut file_contents)
-            .expect("Failed to read content of file");
-        assert_eq!(file_contents, "content\n");
-
-        let delete_result = fs::remove_file(path);
-        delete_result.expect("Failed to delete file");
-    }
-
-    #[test]
-    #[serial]
-    fn test_add_to_file_does_not_duplicate_content() {
-        let path = &"tests/created-file.txt";
-        let create_result = File::create(path);
-        create_result.expect("Failed to create file");
-
-        let first_write_result = add_to_file(path, "content");
-        assert!(first_write_result.is_ok());
-        let second_write_result = add_to_file(path, "content");
-        assert!(second_write_result.is_ok());
-
-        let mut created_file = File::open(path).unwrap();
-        let mut file_contents = String::new();
-        created_file
-            .read_to_string(&mut file_contents)
-            .expect("Failed to read content of file");
-        assert_eq!(file_contents, "content\n");
-
-        let delete_result = fs::remove_file(path);
-        delete_result.expect("Failed to delete file");
-    }
-
-    #[test]
-    #[serial]
-    fn test_extract_zip_produces_correct_directory() {
-        let zip_file = Path::new("tests/test-file.zip");
-        let target_dir = Path::new("tmp/zip-test-dir");
-
-        let extract_result = extract_zip(zip_file, target_dir, false);
-        extract_result.expect("Failed to extract the zip file");
-
-        assert!(Path::new("tmp/zip-test-dir/top-level").exists());
-        assert!(Path::new("tmp/zip-test-dir/top-level/sub-directory").exists());
-        assert!(Path::new("tmp/zip-test-dir/top-level/sub-directory/file.txt").exists());
-
-        let delete_result = fs::remove_dir_all(target_dir);
-        delete_result.expect("Failed to delete the target directory");
-    }
-
-    #[ignore = "Needs to be implemented"]
-    #[test]
-    #[serial]
-    fn test_extract_zip_produces_correct_directory_removing_top_level() {
-        let zip_file = Path::new("tests/test-file.zip");
-        let target_dir = Path::new("tmp/zip-test-dir");
-
-        let extract_result = extract_zip(zip_file, target_dir, true);
-        extract_result.expect("Failed to extract the zip file");
-
-        assert!(!Path::new("tmp/zip-test-dir/top-level").exists());
-        assert!(Path::new("tmp/zip-test-dir/sub-directory").exists());
-        assert!(Path::new("tmp/zip-test-dir/sub-directory/file.txt").exists());
-
-        let delete_result = fs::remove_dir_all(target_dir);
-        delete_result.expect("Failed to delete the target directory");
+    fn some_string() -> String {
+        rand::distr::Alphanumeric.sample_string(&mut rand::rng(), 16)
     }
 }

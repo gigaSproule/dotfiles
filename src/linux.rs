@@ -6,11 +6,12 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
 use crate::config::Config;
-use crate::system::System;
 use crate::system::{self, file_contains};
+use crate::system::{replace_in_file, System};
 use crate::unix;
 use flate2::read::GzDecoder;
 use log::info;
+use regex::Regex;
 use tar::Archive;
 
 /// Adds the module to the loaded kernel modules
@@ -262,11 +263,11 @@ pub(crate) fn setup_docker(dry_run: bool) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub(crate) fn setup_nas(system: &impl System, dry_run: bool) -> Result<(), Box<dyn Error>> {
+pub(crate) fn setup_nas(system: &impl System, config: &Config) -> Result<(), Box<dyn Error>> {
     info!("Creating NAS group");
-    unix::create_group("nas", dry_run)?;
+    unix::create_group("nas", config.dry_run)?;
     info!("Adding user to NAS group");
-    unix::add_user_to_group("nas", dry_run)?;
+    unix::add_user_to_group("nas", config.dry_run)?;
 
     info!("Setting up NAS scripts");
     let smb_credentials = format!("{}/.smbcredentials", system.get_home_dir());
@@ -316,6 +317,41 @@ pub(crate) fn setup_nas(system: &impl System, dry_run: bool) -> Result<(), Box<d
         unix::recursively_chown(videos_mount, &user_id, &nas_group_id)?;
     }
 
+    let nas_ip = "192.168.1.225";
+    let nas_mounts = vec![
+        (format!("//{nas_ip}/homes/benjamin"), benjamin_mount, true),
+        (format!("//{nas_ip}/music"), music_mount, false),
+        (format!("//{nas_ip}/photo"), photo_mount, false),
+        (format!("//{nas_ip}/shared"), shared_mount, false),
+        (format!("//{nas_ip}/videos"), videos_mount, false),
+    ];
+
+    if !config.laptop {
+        let fstab = "/etc/fstab";
+        let mut fstab_file = OpenOptions::new().create(true).append(true).open(fstab)?;
+
+        for (nas_mount, mount, user_group) in &nas_mounts {
+            let mount_entry = format!(
+                "{nas_mount} {mount} cifs rw,uid={user_id},gid={},\
+            credentials=/home/benjamin/.smbcredentials,vers=3.0,noauto,x-systemd.automount,\
+            x-systemd.idle-timeout=60 0 0",
+                if *user_group {
+                    user_group_id
+                } else {
+                    nas_group_id
+                }
+            );
+            if !file_contains(fstab, &mount_entry) {
+                if file_contains(fstab, nas_mount) {
+                    let regex = Regex::new(&format!("{nas_mount}.*"))?;
+                    replace_in_file(fstab, &regex, &mount_entry)?;
+                } else {
+                    writeln!(fstab_file, "{}", mount_entry)?;
+                }
+            }
+        }
+    }
+
     let mount_nas = format!("{}/bin/mount-nas", system.get_home_dir());
     let mut mount_nas_file = OpenOptions::new()
         .create(true)
@@ -324,11 +360,14 @@ pub(crate) fn setup_nas(system: &impl System, dry_run: bool) -> Result<(), Box<d
         .open(&mount_nas)?;
 
     writeln!(mount_nas_file, "#!/usr/bin/env bash")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(id -g),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/homes/benjamin {benjamin_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/music {music_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/photo {photo_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/shared {shared_mount}")?;
-    writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid=$(id -u),gid=$(getent group nas | cut -d: -f3),credentials=/home/benjamin/.smbcredentials,vers=3.0 //192.168.1.225/video {videos_mount}")?;
+    for (nas_mount, mount, user_group) in &nas_mounts {
+        writeln!(mount_nas_file, "sudo mount -t cifs -o rw,uid={user_id},gid={},credentials=/home/benjamin/.smbcredentials,vers=3.0 {nas_mount} {mount}",
+        if *user_group {
+            user_group_id
+        } else {
+            nas_group_id
+        })?;
+    }
     writeln!(mount_nas_file)?;
     unix::recursively_chmod(&mount_nas, &0o755, &0o755)?;
 
