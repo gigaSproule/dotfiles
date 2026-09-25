@@ -1220,7 +1220,7 @@ impl<'s> System for Ubuntu<'s> {
     }
 
     fn setup_nas(&self) -> Result<(), Box<dyn Error>> {
-        linux::setup_nas(self, self.config.dry_run)?;
+        linux::setup_nas(self, self.config)?;
         Ok(())
     }
 
