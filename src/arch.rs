@@ -39,10 +39,6 @@ impl<'s> Arch<'s> {
         Ok(())
     }
 
-    fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
-        self.execute(&format!("systemctl enable {service}"), true)
-    }
-
     fn install_hunspell(&self) -> Result<(), Box<dyn Error>> {
         if !self.is_installed("hunspell")? {
             self.install_application("hunspell")?;
@@ -157,7 +153,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("pulseaudio-bluetooth")? {
             self.install_application("pulseaudio-bluetooth")?;
         }
-        self.enable_service("bluetooth")?;
+        linux::enable_service(self, "bluetooth")?;
         Ok(())
     }
 
@@ -464,7 +460,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("fwupd")? {
             self.install_application("fwupd")?;
         }
-        self.enable_service("fwupd")?;
+        linux::enable_service(self, "fwupd")?;
         Ok(())
     }
 
@@ -756,7 +752,7 @@ impl<'s> System for Arch<'s> {
         }
         unix::create_group("nordvpn", self.config.dry_run)?;
         unix::add_user_to_group("nordvpn", self.config.dry_run)?;
-        self.enable_service("nordvpnd")?;
+        linux::enable_service(self, "nordvpnd")?;
         Ok(())
     }
 
@@ -848,11 +844,11 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("cups")? {
             self.install_application("cups")?;
         }
-        self.enable_service("cups")?;
+        linux::enable_service(self, "cups")?;
         if !self.is_installed("avahi")? {
             self.install_application("avahi")?;
         }
-        self.enable_service("avahi-daemon")?;
+        linux::enable_service(self, "avahi-daemon")?;
         if !self.is_installed("epson-inkjet-printer-escpr")? {
             self.aur_install_application("epson-inkjet-printer-escpr")?;
         }
@@ -1180,11 +1176,11 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("tlp")? {
             self.install_application("tlp")?;
         }
-        self.enable_service("tlp")?;
+        linux::enable_service(self, "tlp")?;
         if !self.is_installed("tlp-pd")? {
             self.install_application("tlp-pd")?;
         }
-        self.enable_service("tlp-pd")?;
+        linux::enable_service(self, "tlp-pd")?;
         Ok(())
     }
 
@@ -1267,7 +1263,7 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("gnome-shell-extension-sound-output-device-chooser")? {
                 self.aur_install_application("gnome-shell-extension-sound-output-device-chooser")?;
             }
-            self.enable_service("gdm")?;
+            linux::enable_service(self, "gdm")?;
             open::that("https://extensions.gnome.org/extension/3960/transparent-top-bar-adjustable-transparency/")?;
         }
         if self.config.kde {
@@ -1313,7 +1309,7 @@ impl<'s> System for Arch<'s> {
             if !self.is_installed("sddm")? {
                 self.install_application("sddm")?;
             }
-            self.enable_service("sddm")?;
+            linux::enable_service(self, "sddm")?;
             if !self.is_installed("sddm-kcm")? {
                 self.install_application("sddm-kcm")?;
             }
@@ -1329,7 +1325,7 @@ impl<'s> System for Arch<'s> {
                 .open(format!("{}/gtk.sh", parent_dir))?;
             writeln!(file, "export GTK_USE_PORTAL=1")?;
         }
-        self.enable_service("NetworkManager")?;
+        linux::enable_service(self, "NetworkManager")?;
         Ok(())
     }
 

@@ -6,12 +6,11 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
 use crate::config::Config;
+use crate::system::System;
 use crate::system::{self, file_contains};
-use crate::system::{replace_in_file, System};
 use crate::unix;
 use flate2::read::GzDecoder;
 use log::info;
-use regex::Regex;
 use tar::Archive;
 
 /// Adds the module to the loaded kernel modules
@@ -34,6 +33,24 @@ pub(crate) fn add_kernel_module(module: &str) -> Result<(), Box<dyn Error>> {
         .open(module_path)?;
     write!(module_file, "{module}")?;
     Ok(())
+}
+
+/// Enables the provided systemctl service.
+///
+/// # Examples
+///
+/// Basic usage:
+///
+/// ```no_run
+/// use system;
+/// use linux;
+///
+/// let system = ...
+///
+/// linux::enable_service(&system, "bluetooth")?;
+/// ```
+pub(crate) fn enable_service(system: &dyn System, service: &str) -> Result<String, Box<dyn Error>> {
+    system.execute(&format!("systemctl enable {service}"), true)
 }
 
 /// Returns the vendor ID of the CPU for the machine.
@@ -327,28 +344,65 @@ pub(crate) fn setup_nas(system: &impl System, config: &Config) -> Result<(), Box
     ];
 
     if !config.laptop {
-        let fstab = "/etc/fstab";
-        let mut fstab_file = OpenOptions::new().create(true).append(true).open(fstab)?;
-
         for (nas_mount, mount, user_group) in &nas_mounts {
-            let mount_entry = format!(
-                "{nas_mount} {mount} cifs rw,uid={user_id},gid={},\
-            credentials=/home/benjamin/.smbcredentials,vers=3.0,noauto,x-systemd.automount,\
-            x-systemd.idle-timeout=60 0 0",
+            let nas_mount_split = nas_mount.split('/').collect::<Vec<&str>>();
+            let title = nas_mount_split.last().unwrap();
+            let mount_file_content = format!(
+                r"[Unit]
+Description=Mount NAS {title} share
+Requires=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Mount]
+What={nas_mount}
+Where={mount}
+Type=cifs
+Options=_netdev,rw,uid={user_id},gid={},credentials=/home/benjamin/.smbcredentials,vers=3.0,iocharset=utf8,nofail
+
+[Install]
+WantedBy=multi-user.target
+",
                 if *user_group {
                     user_group_id
                 } else {
                     nas_group_id
                 }
             );
-            if !file_contains(fstab, &mount_entry) {
-                if file_contains(fstab, nas_mount) {
-                    let regex = Regex::new(&format!("{nas_mount}.*"))?;
-                    replace_in_file(fstab, &regex, &mount_entry)?;
-                } else {
-                    writeln!(fstab_file, "{}", mount_entry)?;
-                }
+
+            let mut systemd_file_name = mount.replace("/", "-");
+            if systemd_file_name.starts_with("-") {
+                systemd_file_name = systemd_file_name.strip_prefix("-").unwrap().to_string();
             }
+            OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(format!("/etc/systemd/system/{systemd_file_name}.mount"))?
+                .write_all(mount_file_content.as_bytes())?;
+
+            let automount_file_content = format!(
+                r"[Unit]
+Description=Automount NAS {title} share
+Conflicts=umount.target
+
+[Automount]
+Where={mount}
+TimeoutIdleSec=60
+
+[Install]
+WantedBy=multi-user.target
+"
+            );
+
+            OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(format!("/etc/systemd/system/{systemd_file_name}.automount"))?
+                .write_all(automount_file_content.as_bytes())?;
+
+            enable_service(system, &format!("{systemd_file_name}.automount"))?;
         }
     }
 
