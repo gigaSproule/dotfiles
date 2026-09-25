@@ -49,10 +49,6 @@ impl<'s> Ubuntu<'s> {
         Ok(())
     }
 
-    fn enable_service(&self, service: &str) -> Result<String, Box<dyn Error>> {
-        self.execute(&format!("systemctl enable service {service}"), true)
-    }
-
     fn flatpak_install_application(&self, application: &str) -> Result<(), Box<dyn Error>> {
         self.execute(&format!("flatpak install flathub {application}"), true)?;
         Ok(())
@@ -1139,7 +1135,7 @@ impl<'s> System for Ubuntu<'s> {
                 ))?;
             writeln!(file, "export GTK_USE_PORTAL=1")?;
         }
-        self.enable_service("NetworkManager")?;
+        linux::enable_service(self, "NetworkManager")?;
         Ok(())
     }
 

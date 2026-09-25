@@ -604,6 +604,7 @@ pub(crate) fn get_home_dir() -> String {
 ///
 /// system::replace_in_file("/path/to/file", "start-of-config: something", "text")?;
 /// ```
+#[cfg_attr(not(test), expect(unused))]
 pub(crate) fn replace_in_file(
     file: &str,
     regex: &Regex,
