@@ -819,6 +819,7 @@ impl<'s> System for Arch<'s> {
         if !self.is_installed("qt6-wayland")? {
             self.install_application("qt6-wayland")?;
         }
+        unix::add_user_to_group("video", self.config.dry_run)?;
         Ok(())
     }
 
