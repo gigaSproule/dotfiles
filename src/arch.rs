@@ -51,7 +51,7 @@ impl<'s> Arch<'s> {
 
     fn is_installed(&self, app: &str) -> Result<bool, Box<dyn Error>> {
         let output = unix::execute(&format!("pacman -Qi {app}"), false, false, false);
-        if !output?.ends_with("was not found") {
+        if !output?.contains("was not found") {
             debug!("{} is already installed.", app);
             return Ok(true);
         }
