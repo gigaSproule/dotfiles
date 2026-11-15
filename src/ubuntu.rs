@@ -79,10 +79,7 @@ impl<'s> Ubuntu<'s> {
         }
         let flatpak_output =
             unix::execute(&format!("flatpak list | grep {app}"), false, false, false)?;
-        if !flatpak_output.is_empty() {
-            return Ok(true);
-        }
-        Ok(false)
+        Ok(!flatpak_output.is_empty())
     }
 
     fn snap_install_application(
