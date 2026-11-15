@@ -1,4 +1,8 @@
 use crate::{config::parse, install::install};
+#[cfg(all(test, target_os = "windows"))]
+use ::is_elevated as _;
+#[cfg(all(not(test), target_os = "windows"))]
+use is_elevated;
 use log::{debug, LevelFilter};
 use log4rs::append::console::ConsoleAppender;
 use log4rs::config::{Appender, Logger, Root};
