@@ -1,4 +1,5 @@
 use crate::{config::parse, install::install};
+// Just to get around the unused warning
 #[cfg(all(test, target_os = "windows"))]
 use ::is_elevated as _;
 #[cfg(all(not(test), target_os = "windows"))]
