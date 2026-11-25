@@ -19,7 +19,7 @@ open = "5.3.3"
 
 [dev-dependencies]
 mockall = "=0.15.0"
-rand = "=0.10.3"
+rand = "=0.10.4"
 serial_test = "=4.0.1"
 
 [target.'cfg(target_os = "linux")'.dependencies]
