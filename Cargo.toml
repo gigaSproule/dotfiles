@@ -8,17 +8,14 @@ repository = "https://github.com/gigaSproule/dotfiles"
 
 [dependencies]
 async-trait = "0.1.89"
-dirs = "7.0.0"
 log = "0.4.29"
 log4rs = "1.4.0"
 regex = "1.13.1"
 reqwest = "0.13.0"
 tokio = { version = "1.48.0", features = ["full"] }
-tokio-stream = "0.1.19"
 tokio-util = "0.7.19"
 open = "5.3.3"
 "zip" = "9.0.0"
-wgpu = "30.0.0"
 
 [dev-dependencies]
 mockall = "=0.15.0"
@@ -28,6 +25,7 @@ serial_test = "=4.0.1"
 [target.'cfg(target_os = "linux")'.dependencies]
 flate2 = "1.1.5"
 tar = "0.4.44"
+tokio-stream = "0.1.19"
 whoami = "2.0.0"
 
 [target.'cfg(unix)'.dependencies]
@@ -39,7 +37,10 @@ walkdir = "2.5.0"
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
 windows-registry = "0.100.0"
-utfx = "0.1.0"
+
+[target.'cfg(any(target_os = "macos", target_os = "windows"))'.dependencies]
+dirs = "7.0.0"
+wgpu = "30.0.0"
 
 [profile.release]
 strip = true
